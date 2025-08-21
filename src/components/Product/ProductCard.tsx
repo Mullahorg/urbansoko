@@ -3,6 +3,7 @@ import { Heart, ShoppingCart, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { formatPrice } from '@/utils/currency';
 
 export interface Product {
   id: string;
@@ -104,10 +105,10 @@ const ProductCard = ({ product, onAddToCart, onToggleWishlist, isWishlisted }: P
           <p className="text-sm text-muted-foreground mb-2">{product.category}</p>
           
           <div className="flex items-center gap-2">
-            <span className="font-bold text-primary">${product.price}</span>
+            <span className="font-bold text-primary">{formatPrice(product.price)}</span>
             {product.originalPrice && (
               <span className="text-sm text-muted-foreground line-through">
-                ${product.originalPrice}
+                {formatPrice(product.originalPrice)}
               </span>
             )}
           </div>

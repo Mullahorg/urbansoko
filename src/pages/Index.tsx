@@ -27,7 +27,7 @@ const Index = () => {
     {
       icon: Truck,
       title: 'Free Shipping',
-      description: 'Free shipping on orders over $50'
+      description: 'Free shipping on orders over KSh 5,000'
     },
     {
       icon: Shield,
@@ -56,24 +56,24 @@ const Index = () => {
               Embrace your heritage with our modern African-inspired menswear. 
               From traditional prints to contemporary designs.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" asChild>
-                <Link to="/category/shirts">
-                  Shop Now <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button size="lg" variant="outline" asChild>
-                <Link to="/category/suits">View Collections</Link>
-              </Button>
-            </div>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Button size="lg" className="w-full sm:w-auto" asChild>
+              <Link to="/category/shirts">
+                Shop Now <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button size="lg" variant="outline" className="w-full sm:w-auto" asChild>
+              <Link to="/category/suits">View Collections</Link>
+            </Button>
+          </div>
           </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section className="py-16 bg-muted/30">
+        {/* Features */}
+      <section className="py-12 md:py-16 bg-muted/30">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             {features.map((feature, index) => (
               <Card key={index} className="text-center">
                 <CardContent className="pt-6">
@@ -97,7 +97,7 @@ const Index = () => {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
             {featuredProducts.map((product) => (
               <ProductCard
                 key={product.id}
@@ -130,7 +130,7 @@ const Index = () => {
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
             {newArrivals.map((product) => (
               <ProductCard
                 key={product.id}
