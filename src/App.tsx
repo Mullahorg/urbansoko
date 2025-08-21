@@ -12,21 +12,16 @@ import SearchPage from "./pages/SearchPage";
 import Header from "./components/Layout/Header";
 import InstallPrompt from "./components/PWA/InstallPrompt";
 import { CartProvider, useCart } from "./contexts/CartContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
 
 const queryClient = new QueryClient();
 
 const AppContent = () => {
-  const [isDark, setIsDark] = useState(false);
   const { getTotalItems } = useCart();
 
-  const toggleTheme = () => {
-    setIsDark(!isDark);
-    document.documentElement.classList.toggle('dark');
-  };
-
   return (
-    <div className={isDark ? 'dark' : ''}>
-      <Header isDark={isDark} toggleTheme={toggleTheme} cartCount={getTotalItems()} />
+    <div>
+      <Header cartCount={getTotalItems()} />
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/search" element={<SearchPage />} />
@@ -44,13 +39,15 @@ const AppContent = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <CartProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AppContent />
-        </BrowserRouter>
-      </CartProvider>
+      <ThemeProvider>
+        <CartProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AppContent />
+          </BrowserRouter>
+        </CartProvider>
+      </ThemeProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

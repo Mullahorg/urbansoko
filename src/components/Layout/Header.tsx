@@ -6,14 +6,13 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import MobileMenu from './MobileMenu';
 import CartSheet from '../Cart/CartSheet';
+import ThemeSelector from '../UI/ThemeSelector';
 
 interface HeaderProps {
-  isDark: boolean;
-  toggleTheme: () => void;
   cartCount: number;
 }
 
-const Header = ({ isDark, toggleTheme, cartCount }: HeaderProps) => {
+const Header = ({ cartCount }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
@@ -66,9 +65,7 @@ const Header = ({ isDark, toggleTheme, cartCount }: HeaderProps) => {
 
             {/* Actions */}
             <div className="flex items-center space-x-2 md:space-x-3">
-              <Button variant="ghost" size="icon" onClick={toggleTheme}>
-                {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              </Button>
+              <ThemeSelector />
               
               <Button variant="ghost" size="icon" className="hidden sm:flex">
                 <User className="h-4 w-4" />

@@ -5,11 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import ProductCard from '@/components/Product/ProductCard';
+import QuickView from '@/components/Product/QuickView';
 import { products } from '@/data/products';
 import { useCart } from '@/contexts/CartContext';
 
 const Index = () => {
   const [wishlist, setWishlist] = useState<string[]>([]);
+  const [quickViewProduct, setQuickViewProduct] = useState<any>(null);
+  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const { addToCart } = useCart();
 
   const featuredProducts = products.filter(p => p.isNew || p.isSale).slice(0, 8);
@@ -21,6 +24,11 @@ const Index = () => {
         ? prev.filter(id => id !== productId)
         : [...prev, productId]
     );
+  };
+
+  const handleQuickView = (product: any) => {
+    setQuickViewProduct(product);
+    setIsQuickViewOpen(true);
   };
 
   const features = [
@@ -99,13 +107,14 @@ const Index = () => {
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
             {featuredProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={addToCart}
-                onToggleWishlist={handleToggleWishlist}
-                isWishlisted={wishlist.includes(product.id)}
-              />
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onAddToCart={addToCart}
+                  onToggleWishlist={handleToggleWishlist}
+                  onQuickView={handleQuickView}
+                  isWishlisted={wishlist.includes(product.id)}
+                />
             ))}
           </div>
 
@@ -132,13 +141,14 @@ const Index = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
             {newArrivals.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={addToCart}
-                onToggleWishlist={handleToggleWishlist}
-                isWishlisted={wishlist.includes(product.id)}
-              />
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onAddToCart={addToCart}
+                  onToggleWishlist={handleToggleWishlist}
+                  onQuickView={handleQuickView}
+                  isWishlisted={wishlist.includes(product.id)}
+                />
             ))}
           </div>
         </div>
@@ -178,6 +188,15 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* Quick View Modal */}
+      <QuickView
+        product={quickViewProduct}
+        isOpen={isQuickViewOpen}
+        onClose={() => setIsQuickViewOpen(false)}
+        onToggleWishlist={handleToggleWishlist}
+        isWishlisted={quickViewProduct ? wishlist.includes(quickViewProduct.id) : false}
+      />
     </div>
   );
 };

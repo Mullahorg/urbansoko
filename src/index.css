@@ -39,20 +39,21 @@ All colors MUST be HSL.
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Green Theme Variables */
+    --green-primary: 142 76% 36%;
+    --green-primary-foreground: 355.7 100% 97.3%;
+    --green-secondary: 142 77% 73%;
+    --green-accent: 142 76% 36%;
+    --green-muted: 142 20% 95%;
+    --green-border: 142 30% 85%;
   }
 
   .dark {
@@ -91,6 +92,57 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Green Theme Dark Variables */
+    --green-primary: 142 76% 36%;
+    --green-primary-foreground: 355.7 100% 97.3%;
+    --green-secondary: 142 30% 25%;
+    --green-accent: 142 76% 36%;
+    --green-muted: 142 20% 15%;
+    --green-border: 142 30% 25%;
+  }
+
+  /* Green Theme */
+  .theme-green {
+    --primary: var(--green-primary);
+    --primary-foreground: var(--green-primary-foreground);
+    --secondary: var(--green-secondary);
+    --accent: var(--green-accent);
+    --muted: var(--green-muted);
+    --border: var(--green-border);
+  }
+
+  /* African Green Theme */
+  .theme-african {
+    --background: 0 0% 98%;
+    --foreground: 120 100% 5%;
+    --primary: 142 76% 36%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 39 77% 15%;
+    --secondary-foreground: 0 0% 100%;
+    --accent: 39 84% 56%;
+    --accent-foreground: 0 0% 100%;
+    --muted: 142 20% 95%;
+    --muted-foreground: 120 10% 45%;
+    --border: 142 30% 85%;
+    --card: 0 0% 100%;
+    --card-foreground: 120 100% 5%;
+  }
+
+  .theme-african.dark {
+    --background: 120 50% 4%;
+    --foreground: 0 0% 98%;
+    --primary: 142 76% 36%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 39 77% 15%;
+    --secondary-foreground: 0 0% 100%;
+    --accent: 39 84% 56%;
+    --accent-foreground: 0 0% 100%;
+    --muted: 120 20% 15%;
+    --muted-foreground: 120 10% 65%;
+    --border: 120 30% 25%;
+    --card: 120 50% 6%;
+    --card-foreground: 0 0% 98%;
   }
 }
 
@@ -101,5 +153,79 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* User-friendly animations and transitions */
+@layer components {
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  .animate-bounce-in {
+    animation: bounceIn 0.5s ease-out;
+  }
+
+  .loading-skeleton {
+    @apply animate-pulse bg-muted rounded;
+  }
+
+  .toast-success {
+    @apply bg-green-500 text-white;
+  }
+
+  .toast-error {
+    @apply bg-red-500 text-white;
+  }
+
+  .quick-view-overlay {
+    @apply fixed inset-0 bg-black/50 backdrop-blur-sm z-50;
+  }
+
+  .product-hover-glow {
+    transition: all 0.3s ease;
+  }
+
+  .product-hover-glow:hover {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
   }
 }

@@ -9,6 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import ProductCard from '@/components/Product/ProductCard';
+import QuickView from '@/components/Product/QuickView';
 import { products } from '@/data/products';
 import { useCart } from '@/contexts/CartContext';
 import { formatPrice } from '@/utils/currency';
@@ -16,6 +17,8 @@ import { formatPrice } from '@/utils/currency';
 const CategoryPage = () => {
   const { category, subcategory } = useParams();
   const [wishlist, setWishlist] = useState<string[]>([]);
+  const [quickViewProduct, setQuickViewProduct] = useState<any>(null);
+  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState('featured');
   const [priceRange, setPriceRange] = useState([0, 50000]);
@@ -81,6 +84,11 @@ const CategoryPage = () => {
         ? prev.filter(id => id !== productId)
         : [...prev, productId]
     );
+  };
+
+  const handleQuickView = (product: any) => {
+    setQuickViewProduct(product);
+    setIsQuickViewOpen(true);
   };
 
   const handleSizeToggle = (size: string) => {
@@ -293,6 +301,7 @@ const CategoryPage = () => {
                     product={product}
                     onAddToCart={addToCart}
                     onToggleWishlist={handleToggleWishlist}
+                    onQuickView={handleQuickView}
                     isWishlisted={wishlist.includes(product.id)}
                   />
                 ))}
@@ -300,6 +309,15 @@ const CategoryPage = () => {
             )}
           </div>
         </div>
+
+        {/* Quick View Modal */}
+        <QuickView
+          product={quickViewProduct}
+          isOpen={isQuickViewOpen}
+          onClose={() => setIsQuickViewOpen(false)}
+          onToggleWishlist={handleToggleWishlist}
+          isWishlisted={quickViewProduct ? wishlist.includes(quickViewProduct.id) : false}
+        />
       </div>
     </div>
   );

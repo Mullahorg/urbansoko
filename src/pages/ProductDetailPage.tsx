@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Heart, ShoppingCart, Star, Truck, Shield, RotateCcw, Share } from 'lucide-react';
+import { Heart, ShoppingCart, Star, Truck, Shield, RotateCcw, Share, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import ProductCard from '@/components/Product/ProductCard';
+import QuickView from '@/components/Product/QuickView';
 import { products } from '@/data/products';
 import { useCart } from '@/contexts/CartContext';
 import { formatPrice } from '@/utils/currency';
@@ -20,6 +21,8 @@ const ProductDetailPage = () => {
   const [quantity, setQuantity] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [quickViewProduct, setQuickViewProduct] = useState<any>(null);
+  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const { addToCart } = useCart();
   const { toast } = useToast();
 
@@ -57,6 +60,31 @@ const ProductDetailPage = () => {
     for (let i = 0; i < quantity; i++) {
       addToCart(product, selectedSize, selectedColor);
     }
+  };
+
+  const handleBuyNow = () => {
+    if (!selectedSize && product.sizes.length > 0) {
+      toast({
+        title: "Please select a size",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    for (let i = 0; i < quantity; i++) {
+      addToCart(product, selectedSize, selectedColor);
+    }
+    
+    toast({
+      title: "Proceeding to Checkout",
+      description: `${product.name} - Redirecting to M-Pesa payment...`,
+      className: "toast-success"
+    });
+  };
+
+  const handleQuickView = (product: any) => {
+    setQuickViewProduct(product);
+    setIsQuickViewOpen(true);
   };
 
   const relatedProducts = products
@@ -215,20 +243,31 @@ const ProductDetailPage = () => {
 
             {/* Actions */}
             <div className="space-y-3">
+              <Button 
+                className="w-full animate-bounce-in" 
+                onClick={handleBuyNow}
+                disabled={!product.inStock}
+                size="lg"
+              >
+                <Zap className="mr-2 h-4 w-4" />
+                Buy Now - {formatPrice(product.price * quantity)}
+              </Button>
+
               <div className="flex gap-3">
                 <Button 
+                  variant="outline"
                   className="flex-1" 
-                  size="lg" 
                   onClick={handleAddToCart}
                   disabled={!product.inStock}
+                  size="lg"
                 >
                   <ShoppingCart className="mr-2 h-4 w-4" />
-                  {product.inStock ? 'Add to Cart' : 'Out of Stock'}
+                  Add to Cart
                 </Button>
                 <Button
                   variant="outline"
-                  size="lg"
                   onClick={() => setIsWishlisted(!isWishlisted)}
+                  size="lg"
                 >
                   <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-current' : ''}`} />
                 </Button>
@@ -356,15 +395,25 @@ const ProductDetailPage = () => {
             <h2 className="text-2xl font-bold mb-8">You May Also Like</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {relatedProducts.map((relatedProduct) => (
-                <ProductCard
-                  key={relatedProduct.id}
-                  product={relatedProduct}
-                  onAddToCart={addToCart}
-                  onToggleWishlist={() => {}}
-                  isWishlisted={false}
-                />
+              <ProductCard
+                key={relatedProduct.id}
+                product={relatedProduct}
+                onAddToCart={addToCart}
+                onToggleWishlist={() => {}}
+                onQuickView={handleQuickView}
+                isWishlisted={false}
+              />
               ))}
             </div>
+
+            {/* Quick View Modal */}
+            <QuickView
+              product={quickViewProduct}
+              isOpen={isQuickViewOpen}
+              onClose={() => setIsQuickViewOpen(false)}
+              onToggleWishlist={() => {}}
+              isWishlisted={false}
+            />
           </div>
         )}
       </div>
