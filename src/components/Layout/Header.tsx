@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Search, ShoppingCart, User, Menu, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,8 +16,18 @@ interface HeaderProps {
 const Header = ({ isDark, toggleTheme, cartCount }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
 
-  const categories = ['Shirts', 'Pants', 'Suits', 'Shoes', 'Accessories'];
+  const categories = [
+    'Shirts', 'Pants', 'Suits', 'Sport Shoes', 'Formal Shoes', 'Accessories', 'Traditional Wear'
+  ];
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+    }
+  };
 
   return (
     <>
@@ -40,19 +50,19 @@ const Header = ({ isDark, toggleTheme, cartCount }: HeaderProps) => {
               Male Afrique
             </Link>
 
-            {/* Search bar - hidden on mobile */}
-            <div className="hidden lg:flex items-center flex-1 max-w-md mx-8">
-              <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  type="text"
-                  placeholder="Search for products..."
-                  className="pl-10"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-            </div>
+          {/* Search bar - hidden on mobile */}
+          <div className="hidden lg:flex items-center flex-1 max-w-md mx-8">
+            <form onSubmit={handleSearch} className="relative w-full">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                type="text"
+                placeholder="Search for products..."
+                className="pl-10"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </form>
+          </div>
 
             {/* Actions */}
             <div className="flex items-center space-x-2 md:space-x-3">
@@ -102,7 +112,7 @@ const Header = ({ isDark, toggleTheme, cartCount }: HeaderProps) => {
 
           {/* Mobile search */}
           <div className="lg:hidden pb-4">
-            <div className="relative">
+            <form onSubmit={handleSearch} className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
                 type="text"
@@ -111,7 +121,7 @@ const Header = ({ isDark, toggleTheme, cartCount }: HeaderProps) => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-            </div>
+            </form>
           </div>
         </div>
       </header>

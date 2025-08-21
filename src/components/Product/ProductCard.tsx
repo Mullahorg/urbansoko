@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Heart, ShoppingCart, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -41,11 +42,11 @@ const ProductCard = ({ product, onAddToCart, onToggleWishlist, isWishlisted }: P
     >
       <CardContent className="p-0">
         <div className="relative overflow-hidden">
-          <img
-            src={product.image}
-            alt={product.name}
-            className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
-          />
+            <img
+              src={product.image}
+              alt={product.name}
+              className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
+            />
           
           {/* Badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
@@ -99,9 +100,11 @@ const ProductCard = ({ product, onAddToCart, onToggleWishlist, isWishlisted }: P
         </div>
 
         <div className="p-4">
-          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-            {product.name}
-          </h3>
+          <Link to={`/product/${product.id}`} className="block">
+            <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
+              {product.name}
+            </h3>
+          </Link>
           <p className="text-sm text-muted-foreground mb-2">{product.category}</p>
           
           <div className="flex items-center gap-2">

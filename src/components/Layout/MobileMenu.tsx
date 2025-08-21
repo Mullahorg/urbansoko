@@ -26,8 +26,16 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
       subcategories: ['Business Suits', 'Formal Suits', 'Blazers']
     },
     {
-      name: 'Shoes',
-      subcategories: ['Sneakers', 'Formal Shoes', 'Boots']
+      name: 'Sport Shoes',
+      subcategories: ['Running Shoes', 'Basketball Shoes', 'Football Boots', 'Training Shoes']
+    },
+    {
+      name: 'Formal Shoes',
+      subcategories: ['Oxford Shoes', 'Loafers', 'Boots', 'Derby Shoes']
+    },
+    {
+      name: 'Traditional Wear',
+      subcategories: ['Kanzu', 'Kikoy', 'Wedding Suits', 'Ceremonial Wear']
     },
     {
       name: 'Accessories',
