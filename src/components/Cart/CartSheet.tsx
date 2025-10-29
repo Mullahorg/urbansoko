@@ -1,10 +1,12 @@
-import { Minus, Plus, Trash2, X } from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Minus, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useCart } from '@/contexts/CartContext';
-import { formatPrice } from '@/utils/currency';
+import { formatKES } from '@/utils/currency';
 
 interface CartSheetProps {
   trigger: React.ReactNode;
@@ -12,14 +14,16 @@ interface CartSheetProps {
 
 const CartSheet = ({ trigger }: CartSheetProps) => {
   const { items, updateQuantity, removeFromCart, getTotalPrice, getTotalItems } = useCart();
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
 
   const handleCheckout = () => {
-    // This will be implemented when Supabase is connected for M-Pesa integration
-    alert('Checkout functionality will be available once you connect to Supabase for M-Pesa payments');
+    setOpen(false);
+    navigate('/checkout');
   };
 
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         {trigger}
       </SheetTrigger>
@@ -37,7 +41,7 @@ const CartSheet = ({ trigger }: CartSheetProps) => {
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center">
                 <p className="text-muted-foreground mb-4">Your cart is empty</p>
-                <Button variant="outline">Continue Shopping</Button>
+                <Button variant="outline" onClick={() => setOpen(false)}>Continue Shopping</Button>
               </div>
             </div>
           ) : (
@@ -64,7 +68,7 @@ const CartSheet = ({ trigger }: CartSheetProps) => {
                         )}
                         
                         <div className="flex items-center justify-between mt-2">
-                          <span className="font-semibold text-sm">{formatPrice(item.price)}</span>
+                          <span className="font-semibold text-sm">{formatKES(item.price)}</span>
                           
                           <div className="flex items-center gap-2">
                             <Button
@@ -107,7 +111,7 @@ const CartSheet = ({ trigger }: CartSheetProps) => {
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold">Total:</span>
                   <span className="text-lg font-bold text-primary">
-                    {formatPrice(getTotalPrice())}
+                    {formatKES(getTotalPrice())}
                   </span>
                 </div>
                 
@@ -115,7 +119,7 @@ const CartSheet = ({ trigger }: CartSheetProps) => {
                 
                 <div className="space-y-2">
                   <Button className="w-full" size="lg" onClick={handleCheckout}>
-                    Checkout with M-Pesa
+                    Proceed to Checkout
                   </Button>
                   <p className="text-xs text-center text-muted-foreground">
                     Secure payment via M-Pesa • Free shipping over KSh 5,000
