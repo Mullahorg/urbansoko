@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import ProductCard from '@/components/Product/ProductCard';
 import QuickView from '@/components/Product/QuickView';
+import ReviewSection from '@/components/Product/ReviewSection';
 import { products } from '@/data/products';
 import { useCart } from '@/contexts/CartContext';
 import { formatPrice } from '@/utils/currency';
@@ -361,30 +362,7 @@ const ProductDetailPage = () => {
             </TabsContent>
             
             <TabsContent value="reviews" className="mt-6">
-              <Card>
-                <CardContent className="p-6">
-                  <h3 className="font-semibold mb-4">Customer Reviews</h3>
-                  <div className="space-y-4">
-                    {[1, 2, 3].map(i => (
-                      <div key={i} className="border-b pb-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="flex">
-                            {[...Array(5)].map((_, j) => (
-                              <Star key={j} className="h-4 w-4 fill-primary text-primary" />
-                            ))}
-                          </div>
-                          <span className="font-medium">James M.</span>
-                          <span className="text-sm text-muted-foreground">2 days ago</span>
-                        </div>
-                        <p className="text-muted-foreground">
-                          Excellent quality and perfect fit. The African print is beautiful and the fabric feels premium. 
-                          Highly recommend!
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+              <ReviewSection productId={product.id} />
             </TabsContent>
           </Tabs>
         </div>

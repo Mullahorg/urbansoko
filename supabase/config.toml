@@ -1,1 +1,4 @@
 project_id = "favswolamhefeybbkvqd"
+
+[functions.seed-products]
+verify_jwt = true
