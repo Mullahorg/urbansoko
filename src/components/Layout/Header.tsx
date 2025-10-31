@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, ShoppingCart, User, Menu, LogOut, Package } from 'lucide-react';
+import { Search, ShoppingCart, User, Menu, LogOut, Package, Heart, Trophy, Store } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -92,6 +92,18 @@ const Header = ({ cartCount }: HeaderProps) => {
                       <Package className="mr-2 h-4 w-4" />
                       My Orders
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/wishlist')}>
+                      <Heart className="mr-2 h-4 w-4" />
+                      Wishlist
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/rewards')}>
+                      <Trophy className="mr-2 h-4 w-4" />
+                      Rewards
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/vendor/register')}>
+                      <Store className="mr-2 h-4 w-4" />
+                      Become a Vendor
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={signOut}>
                       <LogOut className="mr-2 h-4 w-4" />
@@ -100,9 +112,14 @@ const Header = ({ cartCount }: HeaderProps) => {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <Button variant="ghost" size="sm" onClick={() => navigate('/auth')} className="hidden sm:flex">
-                  Sign In
-                </Button>
+                <>
+                  <Button variant="ghost" size="sm" onClick={() => navigate('/track-order')} className="hidden sm:flex">
+                    Track Order
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => navigate('/auth')} className="hidden sm:flex">
+                    Sign In
+                  </Button>
+                </>
               )}
               
               <CartSheet 

@@ -21,29 +21,34 @@ const CheckoutPage = () => {
   
   const [checkoutData, setCheckoutData] = useState({
     phone: '',
-    address: ''
+    address: '',
+    isGuest: !user,
+    guestName: '',
+    guestEmail: '',
   });
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate guest checkout fields
     if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to complete your purchase",
-        variant: "destructive"
-      });
-      navigate('/auth');
-      return;
-    }
-
-    if (!checkoutData.phone || !checkoutData.address) {
-      toast({
-        title: "Missing information",
-        description: "Please fill in all required fields",
-        variant: "destructive"
-      });
-      return;
+      if (!checkoutData.guestName || !checkoutData.guestEmail || !checkoutData.phone || !checkoutData.address) {
+        toast({
+          title: "Missing information",
+          description: "Please fill in all required fields",
+          variant: "destructive"
+        });
+        return;
+      }
+    } else {
+      if (!checkoutData.phone || !checkoutData.address) {
+        toast({
+          title: "Missing information",
+          description: "Please fill in all required fields",
+          variant: "destructive"
+        });
+        return;
+      }
     }
 
     setIsProcessing(true);
@@ -53,7 +58,9 @@ const CheckoutPage = () => {
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert({
-          user_id: user.id,
+          user_id: user?.id || null,
+          guest_name: !user ? checkoutData.guestName : null,
+          guest_email: !user ? checkoutData.guestEmail : null,
           total_amount: getTotalPrice(),
           shipping_address: checkoutData.address,
           phone: checkoutData.phone,
@@ -81,14 +88,43 @@ const CheckoutPage = () => {
 
       if (itemsError) throw itemsError;
 
-      // Simulate M-Pesa STK Push
+      // Call M-Pesa STK Push
+      const { data: mpesaResponse, error: mpesaError } = await supabase.functions.invoke(
+        'mpesa-stk-push',
+        {
+          body: {
+            phone: checkoutData.phone,
+            amount: getTotalPrice(),
+            orderId: order.id
+          }
+        }
+      );
+
+      if (mpesaError) {
+        console.error('M-Pesa error:', mpesaError);
+      }
+
       toast({
-        title: "M-Pesa STK Push Sent",
-        description: `Please check your phone (${checkoutData.phone}) to complete payment`,
+        title: "Order placed!",
+        description: mpesaResponse?.demo 
+          ? "Demo mode: Payment will be confirmed in 3 seconds" 
+          : "Check your phone for M-Pesa prompt",
       });
 
       clearCart();
-      navigate('/orders');
+      
+      // Show tracking code
+      toast({
+        title: "Track your order",
+        description: `Your tracking code: ${order.tracking_code}`,
+        duration: 10000,
+      });
+
+      if (!user) {
+        navigate(`/track-order?code=${order.tracking_code}`);
+      } else {
+        navigate('/orders');
+      }
     } catch (error: any) {
       toast({
         title: "Checkout failed",
@@ -122,6 +158,31 @@ const CheckoutPage = () => {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleCheckout} className="space-y-4">
+                {!user && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="guestName">Full Name</Label>
+                      <Input
+                        id="guestName"
+                        placeholder="John Doe"
+                        value={checkoutData.guestName}
+                        onChange={(e) => setCheckoutData({ ...checkoutData, guestName: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="guestEmail">Email Address</Label>
+                      <Input
+                        id="guestEmail"
+                        type="email"
+                        placeholder="john@example.com"
+                        value={checkoutData.guestEmail}
+                        onChange={(e) => setCheckoutData({ ...checkoutData, guestEmail: e.target.value })}
+                        required
+                      />
+                    </div>
+                  </>
+                )}
                 <div className="space-y-2">
                   <Label htmlFor="phone">
                     <Phone className="inline w-4 h-4 mr-2" />
@@ -154,8 +215,14 @@ const CheckoutPage = () => {
                 </div>
 
                 <Button type="submit" className="w-full" disabled={isProcessing}>
-                  {isProcessing ? 'Processing...' : 'Pay with M-Pesa'}
+                  {isProcessing ? 'Processing...' : `Pay ${formatKES(getTotalPrice())} via M-Pesa`}
                 </Button>
+                
+                {!user && (
+                  <p className="text-xs text-center text-muted-foreground">
+                    You'll receive an order tracking code after checkout
+                  </p>
+                )}
               </form>
             </CardContent>
           </Card>

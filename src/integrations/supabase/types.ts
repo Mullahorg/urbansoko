@@ -62,9 +62,43 @@ export type Database = {
           },
         ]
       }
+      order_status_history: {
+        Row: {
+          created_at: string | null
+          id: string
+          notes: string | null
+          order_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          order_id: string
+          status: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          order_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_status_history_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           created_at: string | null
+          guest_email: string | null
+          guest_name: string | null
           id: string
           mpesa_transaction_id: string | null
           payment_method: string | null
@@ -73,11 +107,14 @@ export type Database = {
           shipping_address: string
           status: string | null
           total_amount: number
+          tracking_code: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
           created_at?: string | null
+          guest_email?: string | null
+          guest_name?: string | null
           id?: string
           mpesa_transaction_id?: string | null
           payment_method?: string | null
@@ -86,11 +123,14 @@ export type Database = {
           shipping_address: string
           status?: string | null
           total_amount: number
+          tracking_code?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
           created_at?: string | null
+          guest_email?: string | null
+          guest_name?: string | null
           id?: string
           mpesa_transaction_id?: string | null
           payment_method?: string | null
@@ -99,6 +139,7 @@ export type Database = {
           shipping_address?: string
           status?: string | null
           total_amount?: number
+          tracking_code?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -127,6 +168,7 @@ export type Database = {
           sizes: string[] | null
           stock: number | null
           updated_at: string | null
+          vendor_id: string | null
         }
         Insert: {
           category: string
@@ -142,6 +184,7 @@ export type Database = {
           sizes?: string[] | null
           stock?: number | null
           updated_at?: string | null
+          vendor_id?: string | null
         }
         Update: {
           category?: string
@@ -157,8 +200,17 @@ export type Database = {
           sizes?: string[] | null
           stock?: number | null
           updated_at?: string | null
+          vendor_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "products_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -232,6 +284,71 @@ export type Database = {
           },
         ]
       }
+      rewards_history: {
+        Row: {
+          created_at: string | null
+          id: string
+          order_id: string | null
+          points: number
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          order_id?: string | null
+          points: number
+          reason: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          order_id?: string | null
+          points?: number
+          reason?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rewards_history_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_rewards: {
+        Row: {
+          created_at: string | null
+          id: string
+          level: number
+          points: number
+          total_earned: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          level?: number
+          points?: number
+          total_earned?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          level?: number
+          points?: number
+          total_earned?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -260,6 +377,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      vendors: {
+        Row: {
+          business_description: string | null
+          business_logo: string | null
+          business_name: string
+          commission_rate: number | null
+          contact_email: string
+          contact_phone: string | null
+          created_at: string | null
+          id: string
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          business_description?: string | null
+          business_logo?: string | null
+          business_name: string
+          commission_rate?: number | null
+          contact_email: string
+          contact_phone?: string | null
+          created_at?: string | null
+          id?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          business_description?: string | null
+          business_logo?: string | null
+          business_name?: string
+          commission_rate?: number | null
+          contact_email?: string
+          contact_phone?: string | null
+          created_at?: string | null
+          id?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       wishlist: {
         Row: {

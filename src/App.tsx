@@ -19,6 +19,11 @@ import AdminProducts from "./pages/admin/AdminProducts";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminDataMigration from "./pages/admin/AdminDataMigration";
+import WishlistPage from "./pages/WishlistPage";
+import OrderTrackingPage from "./pages/OrderTrackingPage";
+import RewardsPage from "./pages/RewardsPage";
+import VendorRegistrationPage from "./pages/VendorRegistrationPage";
+import VendorDashboard from "./pages/vendor/VendorDashboard";
 import Header from "./components/Layout/Header";
 import InstallPrompt from "./components/PWA/InstallPrompt";
 import { CartProvider, useCart } from "./contexts/CartContext";
@@ -50,6 +55,11 @@ const AppContent = () => {
           <Route path="users" element={<AdminUsers />} />
           <Route path="migrate" element={<AdminDataMigration />} />
         </Route>
+        <Route path="/wishlist" element={<WishlistPage />} />
+        <Route path="/track-order" element={<OrderTrackingPage />} />
+        <Route path="/rewards" element={<RewardsPage />} />
+        <Route path="/vendor/register" element={<VendorRegistrationPage />} />
+        <Route path="/vendor/dashboard" element={<VendorDashboard />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>

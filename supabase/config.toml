@@ -1,4 +1,10 @@
 project_id = "favswolamhefeybbkvqd"
 
 [functions.seed-products]
-verify_jwt = true
+verify_jwt = false
+
+[functions.mpesa-stk-push]
+verify_jwt = false
+
+[functions.mpesa-callback]
+verify_jwt = false
