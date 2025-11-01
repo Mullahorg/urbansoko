@@ -27,12 +27,23 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get M-Pesa credentials from environment
-    const consumerKey = Deno.env.get('MPESA_CONSUMER_KEY');
-    const consumerSecret = Deno.env.get('MPESA_CONSUMER_SECRET');
-    const shortcode = Deno.env.get('MPESA_SHORTCODE');
-    const passkey = Deno.env.get('MPESA_PASSKEY');
-    const callbackUrl = Deno.env.get('MPESA_CALLBACK_URL');
+    // Get M-Pesa credentials from database settings
+    const { data: settings } = await supabase
+      .from('settings')
+      .select('key, value')
+      .like('key', 'mpesa_%');
+
+    const settingsMap: Record<string, string> = {};
+    settings?.forEach((setting: any) => {
+      settingsMap[setting.key] = setting.value;
+    });
+
+    const consumerKey = settingsMap['mpesa_consumer_key'];
+    const consumerSecret = settingsMap['mpesa_consumer_secret'];
+    const shortcode = settingsMap['mpesa_shortcode'];
+    const passkey = settingsMap['mpesa_passkey'];
+    const callbackUrl = settingsMap['mpesa_callback_url'];
+    const environment = settingsMap['mpesa_environment'] || 'sandbox';
 
     if (!consumerKey || !consumerSecret || !shortcode || !passkey) {
       console.error('M-Pesa credentials not configured');
@@ -69,8 +80,12 @@ serve(async (req) => {
 
     // Step 1: Get OAuth token
     const auth = btoa(`${consumerKey}:${consumerSecret}`);
+    const baseUrl = environment === 'production' 
+      ? 'https://api.safaricom.co.ke' 
+      : 'https://sandbox.safaricom.co.ke';
+    
     const tokenResponse = await fetch(
-      'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials',
+      `${baseUrl}/oauth/v1/generate?grant_type=client_credentials`,
       {
         headers: {
           'Authorization': `Basic ${auth}`
@@ -104,7 +119,7 @@ serve(async (req) => {
 
     // Step 3: Send STK Push
     const stkResponse = await fetch(
-      'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest',
+      `${baseUrl}/mpesa/stkpush/v1/processrequest`,
       {
         method: 'POST',
         headers: {

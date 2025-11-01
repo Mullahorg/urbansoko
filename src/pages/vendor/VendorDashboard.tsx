@@ -143,9 +143,9 @@ const VendorDashboard = () => {
           <h1 className="text-3xl font-bold">{vendor.business_name}</h1>
           <p className="text-muted-foreground">Vendor Dashboard</p>
         </div>
-        <Button onClick={() => navigate('/vendor/products/new')}>
+        <Button onClick={() => navigate('/vendor/products')}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Product
+          Manage Products
         </Button>
       </div>
 

@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, ShoppingCart, Eye, Zap } from 'lucide-react';
+import { ShoppingCart, Eye, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { formatPrice } from '@/utils/currency';
 import { useToast } from '@/hooks/use-toast';
+import { WishlistButton } from './WishlistButton';
 
 export interface Product {
   id: string;
@@ -78,17 +79,7 @@ const ProductCard = ({ product, onAddToCart, onToggleWishlist, onQuickView, isWi
           <div className={`absolute top-2 right-2 flex flex-col gap-2 transition-opacity duration-300 ${
             isHovered ? 'opacity-100' : 'opacity-0'
           }`}>
-            <Button
-              size="icon"
-              variant="secondary"
-              className="h-8 w-8"
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleWishlist(product.id);
-              }}
-            >
-              <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-current text-accent' : ''}`} />
-            </Button>
+            <WishlistButton productId={product.id} />
             <Button
               size="icon"
               variant="secondary"
