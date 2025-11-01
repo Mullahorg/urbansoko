@@ -4,6 +4,7 @@ import { Search, ShoppingCart, User, Menu, LogOut, Package, Heart, Trophy, Store
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import logo from '@/assets/logo.jpeg';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -54,8 +55,9 @@ const Header = ({ cartCount }: HeaderProps) => {
             </Button>
 
             {/* Logo */}
-            <Link to="/" className="text-xl md:text-2xl font-bold text-primary">
-              Male Afrique
+            <Link to="/" className="flex items-center gap-2">
+              <img src={logo} alt="Male Afrique Wear" className="h-10 w-10 md:h-12 md:w-12 object-contain" />
+              <span className="text-xl md:text-2xl font-bold text-primary hidden sm:inline">Male Afrique</span>
             </Link>
 
           {/* Search bar - hidden on mobile */}
