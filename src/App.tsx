@@ -27,6 +27,13 @@ import RewardsPage from "./pages/RewardsPage";
 import VendorRegistrationPage from "./pages/VendorRegistrationPage";
 import VendorDashboard from "./pages/vendor/VendorDashboard";
 import VendorProducts from "./pages/vendor/VendorProducts";
+import AboutPage from "./pages/AboutPage";
+import ContactPage from "./pages/ContactPage";
+import TermsPage from "./pages/TermsPage";
+import PrivacyPage from "./pages/PrivacyPage";
+import ReturnPolicyPage from "./pages/ReturnPolicyPage";
+import FAQPage from "./pages/FAQPage";
+import ShippingPage from "./pages/ShippingPage";
 import Header from "./components/Layout/Header";
 import InstallPrompt from "./components/PWA/InstallPrompt";
 import { CartProvider, useCart } from "./contexts/CartContext";
@@ -66,6 +73,16 @@ const AppContent = () => {
         <Route path="/vendor/register" element={<VendorRegistrationPage />} />
         <Route path="/vendor/dashboard" element={<VendorDashboard />} />
         <Route path="/vendor/products" element={<VendorProducts />} />
+        
+        {/* Info Pages */}
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/return-policy" element={<ReturnPolicyPage />} />
+        <Route path="/faq" element={<FAQPage />} />
+        <Route path="/shipping" element={<ShippingPage />} />
+        
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
