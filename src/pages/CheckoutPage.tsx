@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { formatKES } from '@/utils/currency';
 import { supabase } from '@/integrations/supabase/client';
 import { ShoppingBag, Phone, MapPin } from 'lucide-react';
+import { ShippingCalculator } from '@/components/Product/ShippingCalculator';
 
 const CheckoutPage = () => {
   const { user } = useAuth();
@@ -147,11 +148,11 @@ const CheckoutPage = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <h1 className="text-2xl md:text-3xl font-bold mb-8">Checkout</h1>
       
-      <div className="grid md:grid-cols-3 gap-8">
-        <div className="md:col-span-2">
+      <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
+        <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Delivery Information</CardTitle>
@@ -226,9 +227,12 @@ const CheckoutPage = () => {
               </form>
             </CardContent>
           </Card>
+
+          {/* Shipping Calculator */}
+          <ShippingCalculator subtotal={getTotalPrice()} />
         </div>
 
-        <div>
+        <div className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Order Summary</CardTitle>

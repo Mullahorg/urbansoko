@@ -5,8 +5,8 @@ import logo from '@/assets/logo.jpeg';
 export const Footer = () => {
   return (
     <footer className="bg-card border-t mt-auto">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="container mx-auto px-4 py-8 md:py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand Section */}
           <div>
             <Link to="/" className="flex items-center gap-2 mb-4">
@@ -40,7 +40,7 @@ export const Footer = () => {
               <li><Link to="/contact" className="text-muted-foreground hover:text-primary transition-colors">Contact</Link></li>
               <li><Link to="/faq" className="text-muted-foreground hover:text-primary transition-colors">FAQ</Link></li>
               <li><Link to="/shipping" className="text-muted-foreground hover:text-primary transition-colors">Shipping Info</Link></li>
-              <li><Link to="/order-tracking" className="text-muted-foreground hover:text-primary transition-colors">Track Order</Link></li>
+              <li><Link to="/track-order" className="text-muted-foreground hover:text-primary transition-colors">Track Order</Link></li>
             </ul>
           </div>
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Heart, ShoppingCart, Star, Truck, Shield, RotateCcw, Share, Zap } from 'lucide-react';
+import { Heart, ShoppingCart, Star, Truck, Shield, RotateCcw, Share, Zap, Ruler, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,6 +10,8 @@ import { Separator } from '@/components/ui/separator';
 import ProductCard from '@/components/Product/ProductCard';
 import QuickView from '@/components/Product/QuickView';
 import ReviewSection from '@/components/Product/ReviewSection';
+import { SizeGuideModal } from '@/components/Product/SizeGuideModal';
+import { ShippingCalculator } from '@/components/Product/ShippingCalculator';
 import { products } from '@/data/products';
 import { useCart } from '@/contexts/CartContext';
 import { formatPrice } from '@/utils/currency';
@@ -24,6 +26,7 @@ const ProductDetailPage = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quickViewProduct, setQuickViewProduct] = useState<any>(null);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
+  const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
   const { addToCart } = useCart();
   const { toast } = useToast();
 
@@ -97,12 +100,15 @@ const ProductDetailPage = () => {
     : 0;
 
   // Mock additional images (in real app, these would come from product data)
-  const productImages = [
-    product.image,
-    product.image, // Placeholder for additional angles
-    product.image,
-    product.image
-  ];
+  const productImages = [product.image, product.image, product.image, product.image];
+
+  const nextImage = () => {
+    setSelectedImage((prev) => (prev + 1) % productImages.length);
+  };
+
+  const prevImage = () => {
+    setSelectedImage((prev) => (prev - 1 + productImages.length) % productImages.length);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -118,23 +124,61 @@ const ProductDetailPage = () => {
           <span>{product.name}</span>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-16">
           {/* Product Images */}
           <div className="space-y-4">
-            <div className="aspect-square overflow-hidden rounded-lg bg-muted">
+            <div className="relative aspect-square overflow-hidden rounded-lg bg-muted group">
               <img
                 src={productImages[selectedImage]}
                 alt={product.name}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               />
+              
+              {/* Image navigation arrows */}
+              {productImages.length > 1 && (
+                <>
+                  <button
+                    onClick={prevImage}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </button>
+                  <button
+                    onClick={nextImage}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    aria-label="Next image"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </button>
+                  
+                  {/* Image indicators */}
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
+                    {productImages.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setSelectedImage(index)}
+                        className={`h-1.5 rounded-full transition-all ${
+                          selectedImage === index 
+                            ? 'w-6 bg-primary' 
+                            : 'w-1.5 bg-background/60 hover:bg-background'
+                        }`}
+                        aria-label={`Go to image ${index + 1}`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
+            
+            {/* Thumbnail grid */}
             <div className="grid grid-cols-4 gap-2">
               {productImages.map((image, index) => (
                 <button
                   key={index}
                   onClick={() => setSelectedImage(index)}
-                  className={`aspect-square rounded-lg overflow-hidden border-2 ${
-                    selectedImage === index ? 'border-primary' : 'border-transparent'
+                  className={`aspect-square rounded-lg overflow-hidden border-2 transition-all hover:scale-105 ${
+                    selectedImage === index ? 'border-primary shadow-md' : 'border-transparent'
                   }`}
                 >
                   <img
@@ -211,7 +255,18 @@ const ProductDetailPage = () => {
 
               {product.sizes.length > 0 && (
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Size</label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-sm font-medium">Size</label>
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="h-auto p-0 text-primary"
+                      onClick={() => setIsSizeGuideOpen(true)}
+                    >
+                      <Ruler className="h-3 w-3 mr-1" />
+                      Size Guide
+                    </Button>
+                  </div>
                   <Select value={selectedSize} onValueChange={setSelectedSize}>
                     <SelectTrigger className="w-32">
                       <SelectValue placeholder="Select size" />
@@ -394,6 +449,13 @@ const ProductDetailPage = () => {
             />
           </div>
         )}
+
+        {/* Size Guide Modal */}
+        <SizeGuideModal
+          isOpen={isSizeGuideOpen}
+          onClose={() => setIsSizeGuideOpen(false)}
+          category={product.category}
+        />
       </div>
     </div>
   );

@@ -6,7 +6,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import ProductCard from '@/components/Product/ProductCard';
 import QuickView from '@/components/Product/QuickView';
-import { Footer } from '@/components/Layout/Footer';
 import { products } from '@/data/products';
 import { useCart } from '@/contexts/CartContext';
 
@@ -198,8 +197,6 @@ const Index = () => {
         onToggleWishlist={handleToggleWishlist}
         isWishlisted={quickViewProduct ? wishlist.includes(quickViewProduct.id) : false}
       />
-      
-      <Footer />
     </div>
   );
 };

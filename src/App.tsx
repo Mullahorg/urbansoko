@@ -35,6 +35,7 @@ import ReturnPolicyPage from "./pages/ReturnPolicyPage";
 import FAQPage from "./pages/FAQPage";
 import ShippingPage from "./pages/ShippingPage";
 import Header from "./components/Layout/Header";
+import { Footer } from "./components/Layout/Footer";
 import InstallPrompt from "./components/PWA/InstallPrompt";
 import { CartProvider, useCart } from "./contexts/CartContext";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -46,46 +47,49 @@ const AppContent = () => {
   const { getTotalItems } = useCart();
 
   return (
-    <div>
+    <div className="flex flex-col min-h-screen">
       <Header cartCount={getTotalItems()} />
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/search" element={<SearchPage />} />
-        <Route path="/category/:category" element={<CategoryPage />} />
-        <Route path="/category/:category/:subcategory" element={<CategoryPage />} />
-        <Route path="/product/:id" element={<ProductDetailPage />} />
-        <Route path="/auth" element={<AuthPage />} />
-        <Route path="/checkout" element={<CheckoutPage />} />
-        <Route path="/orders" element={<OrdersPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<AdminDashboard />} />
-          <Route path="products" element={<AdminProducts />} />
-          <Route path="orders" element={<AdminOrders />} />
-          <Route path="users" element={<AdminUsers />} />
-          <Route path="vendors" element={<AdminVendors />} />
-          <Route path="settings" element={<AdminSettings />} />
-          <Route path="migrate" element={<AdminDataMigration />} />
-        </Route>
-        <Route path="/wishlist" element={<WishlistPage />} />
-        <Route path="/track-order" element={<OrderTrackingPage />} />
-        <Route path="/rewards" element={<RewardsPage />} />
-        <Route path="/vendor/register" element={<VendorRegistrationPage />} />
-        <Route path="/vendor/dashboard" element={<VendorDashboard />} />
-        <Route path="/vendor/products" element={<VendorProducts />} />
-        
-        {/* Info Pages */}
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/contact" element={<ContactPage />} />
-        <Route path="/terms" element={<TermsPage />} />
-        <Route path="/privacy" element={<PrivacyPage />} />
-        <Route path="/return-policy" element={<ReturnPolicyPage />} />
-        <Route path="/faq" element={<FAQPage />} />
-        <Route path="/shipping" element={<ShippingPage />} />
-        
-        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <main className="flex-1">
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/search" element={<SearchPage />} />
+          <Route path="/category/:category" element={<CategoryPage />} />
+          <Route path="/category/:category/:subcategory" element={<CategoryPage />} />
+          <Route path="/product/:id" element={<ProductDetailPage />} />
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="products" element={<AdminProducts />} />
+            <Route path="orders" element={<AdminOrders />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="vendors" element={<AdminVendors />} />
+            <Route path="settings" element={<AdminSettings />} />
+            <Route path="migrate" element={<AdminDataMigration />} />
+          </Route>
+          <Route path="/wishlist" element={<WishlistPage />} />
+          <Route path="/track-order" element={<OrderTrackingPage />} />
+          <Route path="/rewards" element={<RewardsPage />} />
+          <Route path="/vendor/register" element={<VendorRegistrationPage />} />
+          <Route path="/vendor/dashboard" element={<VendorDashboard />} />
+          <Route path="/vendor/products" element={<VendorProducts />} />
+          
+          {/* Info Pages */}
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/return-policy" element={<ReturnPolicyPage />} />
+          <Route path="/faq" element={<FAQPage />} />
+          <Route path="/shipping" element={<ShippingPage />} />
+          
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </main>
+      <Footer />
       <InstallPrompt />
     </div>
   );
