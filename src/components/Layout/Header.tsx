@@ -56,8 +56,8 @@ const Header = ({ cartCount }: HeaderProps) => {
 
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2">
-              <img src={logo} alt="Male Afrique Wear" className="h-10 w-10 md:h-12 md:w-12 object-contain" />
-              <span className="text-xl md:text-2xl font-bold text-primary hidden sm:inline">Male Afrique</span>
+              <img src={logo} alt="Male Afrique Wear" className="h-8 w-8 object-contain" />
+              <span className="text-lg md:text-xl font-bold text-primary">Male Afrique</span>
             </Link>
 
           {/* Search bar - hidden on mobile */}
