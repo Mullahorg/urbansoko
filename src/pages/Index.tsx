@@ -52,21 +52,21 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-primary/10 to-accent/10 py-20">
+      <section className="relative bg-gradient-to-r from-primary/10 to-accent/10 py-12 md:py-16 lg:py-20">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
             <Badge className="mb-4 bg-accent text-accent-foreground">New Collection</Badge>
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 text-foreground">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 md:mb-6 text-foreground">
               Discover Your
               <span className="text-primary"> African Style</span>
             </h1>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 md:mb-8 max-w-2xl mx-auto px-4">
               Embrace your heritage with our modern African-inspired menswear. 
               From traditional prints to contemporary designs.
             </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center items-center px-4">
             <Button size="lg" className="w-full sm:w-auto" asChild>
-              <Link to="/category/shirts">
+              <Link to="/products">
                 Shop Now <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
@@ -96,10 +96,10 @@ const Index = () => {
       </section>
 
       {/* Featured Products */}
-      <section className="py-16">
+      <section className="py-12 md:py-16">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Featured Products</h2>
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="text-2xl md:text-3xl font-bold mb-3 md:mb-4">Featured Products</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Discover our handpicked selection of the finest African-inspired menswear
             </p>
@@ -127,11 +127,11 @@ const Index = () => {
       </section>
 
       {/* New Arrivals */}
-      <section className="py-16 bg-muted/30">
+      <section className="py-12 md:py-16 bg-muted/30">
         <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center mb-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6 md:mb-8">
             <div>
-              <h2 className="text-3xl font-bold mb-2">New Arrivals</h2>
+              <h2 className="text-2xl md:text-3xl font-bold mb-2">New Arrivals</h2>
               <p className="text-muted-foreground">Latest additions to our collection</p>
             </div>
             <Button variant="outline" asChild>
@@ -155,10 +155,10 @@ const Index = () => {
       </section>
 
       {/* Testimonials */}
-      <section className="py-16">
+      <section className="py-12 md:py-16">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">What Our Customers Say</h2>
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="text-2xl md:text-3xl font-bold mb-4">What Our Customers Say</h2>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

@@ -87,7 +87,7 @@ const ProfilePage = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-6 md:py-8">
       <div className="max-w-2xl mx-auto">
         <Card>
           <CardHeader>
@@ -139,11 +139,11 @@ const ProfilePage = () => {
               />
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <Button onClick={handleSave} disabled={saving} className="flex-1">
                 {saving ? 'Saving...' : 'Save Changes'}
               </Button>
-              <Button onClick={handleSignOut} variant="outline">
+              <Button onClick={handleSignOut} variant="outline" className="sm:w-auto">
                 <LogOut className="w-4 h-4 mr-2" />
                 Sign Out
               </Button>

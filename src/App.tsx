@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import CategoryPage from "./pages/CategoryPage";
+import ProductsPage from "./pages/ProductsPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import SearchPage from "./pages/SearchPage";
 import AuthPage from "./pages/AuthPage";
@@ -52,6 +53,7 @@ const AppContent = () => {
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/products" element={<ProductsPage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/category/:category" element={<CategoryPage />} />
           <Route path="/category/:category/:subcategory" element={<CategoryPage />} />

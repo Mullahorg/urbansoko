@@ -91,8 +91,8 @@ const OrdersPage = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">My Orders</h1>
+    <div className="container mx-auto px-4 py-6 md:py-8">
+      <h1 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">My Orders</h1>
       
       {orders.length === 0 ? (
         <Card>
@@ -107,14 +107,14 @@ const OrdersPage = () => {
           {orders.map(order => (
             <Card key={order.id} className="hover-scale cursor-pointer">
               <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 md:gap-3">
                     {getStatusIcon(order.status)}
                     <div>
-                      <CardTitle className="text-lg">
+                      <CardTitle className="text-base md:text-lg">
                         Order #{order.id.slice(0, 8)}
                       </CardTitle>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs md:text-sm text-muted-foreground">
                         {new Date(order.created_at).toLocaleDateString('en-KE', {
                           year: 'numeric',
                           month: 'long',
@@ -123,8 +123,8 @@ const OrdersPage = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-lg font-bold">{formatKES(order.total_amount)}</p>
+                  <div className="text-left sm:text-right w-full sm:w-auto">
+                    <p className="text-base md:text-lg font-bold">{formatKES(order.total_amount)}</p>
                     <div className="flex gap-2 mt-1">
                       <Badge variant={getStatusVariant(order.status)}>
                         {order.status}

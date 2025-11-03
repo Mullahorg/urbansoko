@@ -39,9 +39,9 @@ const SearchPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto mb-8">
-          <h1 className="text-3xl font-bold mb-6 text-center">Search Products</h1>
+      <div className="container mx-auto px-4 py-6 md:py-8">
+        <div className="max-w-2xl mx-auto mb-6 md:mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-center">Search Products</h1>
           
           <form onSubmit={handleSearch} className="flex gap-2">
             <div className="relative flex-1">
@@ -59,8 +59,8 @@ const SearchPage = () => {
         </div>
 
         {searchParams.get('q') && (
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">
+          <div className="mb-6 md:mb-8">
+            <h2 className="text-lg md:text-xl font-semibold mb-3 md:mb-4">
               Search results for "{searchParams.get('q')}" ({searchResults.length} products)
             </h2>
             
