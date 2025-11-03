@@ -38,9 +38,11 @@ import ShippingPage from "./pages/ShippingPage";
 import Header from "./components/Layout/Header";
 import { Footer } from "./components/Layout/Footer";
 import InstallPrompt from "./components/PWA/InstallPrompt";
+import ProtectedRoute from "./components/ProtectedRoute";
 import { CartProvider, useCart } from "./contexts/CartContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { LanguageProvider } from "./contexts/LanguageContext";
 
 const queryClient = new QueryClient();
 
@@ -60,9 +62,9 @@ const AppContent = () => {
           <Route path="/product/:id" element={<ProductDetailPage />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/orders" element={<OrdersPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/admin" element={<AdminLayout />}>
+          <Route path="/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminLayout /></ProtectedRoute>}>
             <Route index element={<AdminDashboard />} />
             <Route path="products" element={<AdminProducts />} />
             <Route path="orders" element={<AdminOrders />} />
@@ -71,12 +73,12 @@ const AppContent = () => {
             <Route path="settings" element={<AdminSettings />} />
             <Route path="migrate" element={<AdminDataMigration />} />
           </Route>
-          <Route path="/wishlist" element={<WishlistPage />} />
+          <Route path="/wishlist" element={<ProtectedRoute><WishlistPage /></ProtectedRoute>} />
           <Route path="/track-order" element={<OrderTrackingPage />} />
-          <Route path="/rewards" element={<RewardsPage />} />
-          <Route path="/vendor/register" element={<VendorRegistrationPage />} />
-          <Route path="/vendor/dashboard" element={<VendorDashboard />} />
-          <Route path="/vendor/products" element={<VendorProducts />} />
+          <Route path="/rewards" element={<ProtectedRoute><RewardsPage /></ProtectedRoute>} />
+          <Route path="/vendor/register" element={<ProtectedRoute><VendorRegistrationPage /></ProtectedRoute>} />
+          <Route path="/vendor/dashboard" element={<ProtectedRoute requiredRole="vendor"><VendorDashboard /></ProtectedRoute>} />
+          <Route path="/vendor/products" element={<ProtectedRoute requiredRole="vendor"><VendorProducts /></ProtectedRoute>} />
           
           {/* Info Pages */}
           <Route path="/about" element={<AboutPage />} />
@@ -100,17 +102,19 @@ const AppContent = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <ThemeProvider>
-        <AuthProvider>
-          <CartProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <AppContent />
-            </BrowserRouter>
-          </CartProvider>
-        </AuthProvider>
-      </ThemeProvider>
+      <LanguageProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <CartProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <AppContent />
+              </BrowserRouter>
+            </CartProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </LanguageProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

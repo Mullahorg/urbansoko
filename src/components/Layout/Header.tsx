@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, ShoppingCart, User, Menu, LogOut, Package, Heart, Trophy, Store } from 'lucide-react';
+import { Search, ShoppingCart, User, Menu, LogOut, Package, Heart, Trophy, Store, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -15,7 +15,10 @@ import {
 import MobileMenu from './MobileMenu';
 import CartSheet from '../Cart/CartSheet';
 import ThemeSelector from '../UI/ThemeSelector';
+import LanguageSelector from '../UI/LanguageSelector';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserRole } from '@/hooks/useUserRole';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface HeaderProps {
   cartCount: number;
@@ -26,6 +29,8 @@ const Header = ({ cartCount }: HeaderProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { role, isAdmin, isVendor } = useUserRole();
+  const { t } = useLanguage();
 
   const categories = [
     'Shirts', 'Pants', 'Suits', 'Sport Shoes', 'Formal Shoes', 'Accessories', 'Traditional Wear'
@@ -76,6 +81,7 @@ const Header = ({ cartCount }: HeaderProps) => {
 
             {/* Actions */}
             <div className="flex items-center space-x-2 md:space-x-3">
+              <LanguageSelector />
               <ThemeSelector />
               
               {user ? (
@@ -88,38 +94,57 @@ const Header = ({ cartCount }: HeaderProps) => {
                   <DropdownMenuContent align="end" className="w-48">
                     <DropdownMenuItem onClick={() => navigate('/profile')}>
                       <User className="mr-2 h-4 w-4" />
-                      Profile
+                      {t('nav.profile')}
                     </DropdownMenuItem>
+                    
+                    {isAdmin && (
+                      <DropdownMenuItem onClick={() => navigate('/admin')}>
+                        <Shield className="mr-2 h-4 w-4" />
+                        {t('nav.admin')}
+                      </DropdownMenuItem>
+                    )}
+                    
+                    {isVendor && (
+                      <DropdownMenuItem onClick={() => navigate('/vendor/dashboard')}>
+                        <Store className="mr-2 h-4 w-4" />
+                        {t('nav.vendor')}
+                      </DropdownMenuItem>
+                    )}
+                    
                     <DropdownMenuItem onClick={() => navigate('/orders')}>
                       <Package className="mr-2 h-4 w-4" />
-                      My Orders
+                      {t('nav.orders')}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate('/wishlist')}>
                       <Heart className="mr-2 h-4 w-4" />
-                      Wishlist
+                      {t('nav.wishlist')}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate('/rewards')}>
                       <Trophy className="mr-2 h-4 w-4" />
-                      Rewards
+                      {t('nav.rewards')}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate('/vendor/register')}>
-                      <Store className="mr-2 h-4 w-4" />
-                      Become a Vendor
-                    </DropdownMenuItem>
+                    
+                    {!isVendor && !isAdmin && (
+                      <DropdownMenuItem onClick={() => navigate('/vendor/register')}>
+                        <Store className="mr-2 h-4 w-4" />
+                        {t('nav.becomeVendor')}
+                      </DropdownMenuItem>
+                    )}
+                    
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={signOut}>
                       <LogOut className="mr-2 h-4 w-4" />
-                      Sign Out
+                      {t('nav.signOut')}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
                 <>
                   <Button variant="ghost" size="sm" onClick={() => navigate('/track-order')} className="hidden sm:flex">
-                    Track Order
+                    {t('nav.trackOrder')}
                   </Button>
                   <Button variant="ghost" size="sm" onClick={() => navigate('/auth')} className="hidden sm:flex">
-                    Sign In
+                    {t('nav.signIn')}
                   </Button>
                 </>
               )}
@@ -144,7 +169,7 @@ const Header = ({ cartCount }: HeaderProps) => {
             <ul className="flex space-x-8">
               <li>
                 <Link to="/" className="text-foreground hover:text-primary transition-colors py-2">
-                  Home
+                  {t('nav.home')}
                 </Link>
               </li>
               {categories.map((category) => (
