@@ -188,36 +188,36 @@ const CategoryPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-4 sm:py-6 lg:py-8">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-            <span>Home</span>
+        <div className="mb-6 sm:mb-8 animate-fade-in">
+          <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mb-2 overflow-x-auto scrollbar-hide">
+            <span className="whitespace-nowrap">Home</span>
             <span>/</span>
-            <span className="capitalize">{category}</span>
+            <span className="capitalize whitespace-nowrap">{category}</span>
             {subcategory && (
               <>
                 <span>/</span>
-                <span className="capitalize">{subcategory.replace('-', ' ')}</span>
+                <span className="capitalize whitespace-nowrap">{subcategory.replace('-', ' ')}</span>
               </>
             )}
           </div>
-          <h1 className="text-3xl font-bold capitalize mb-2">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold capitalize mb-2">
             {subcategory ? subcategory.replace('-', ' ') : category}
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             Discover our collection of {filteredProducts.length} premium {category?.toLowerCase()}
           </p>
         </div>
 
-        <div className="flex gap-8">
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
           {/* Desktop Filters */}
           <aside className="hidden lg:block w-64 flex-shrink-0">
-            <Card>
-              <CardContent className="p-6">
+            <Card className="sticky top-4">
+              <CardContent className="p-4 lg:p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <SlidersHorizontal className="h-4 w-4" />
-                  <h2 className="font-semibold">Filters</h2>
+                  <h2 className="font-semibold text-base">Filters</h2>
                 </div>
                 <FilterContent />
               </CardContent>
@@ -225,32 +225,38 @@ const CategoryPage = () => {
           </aside>
 
           {/* Main Content */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             {/* Controls */}
-            <div className="flex items-center justify-between mb-6 p-4 bg-muted/30 rounded-lg">
-              <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6 p-3 sm:p-4 bg-muted/30 rounded-lg">
+              <div className="flex items-center gap-2 sm:gap-4">
                 <Sheet open={showFilters} onOpenChange={setShowFilters}>
                   <SheetTrigger asChild>
-                    <Button variant="outline" size="sm" className="lg:hidden">
+                    <Button variant="outline" size="sm" className="lg:hidden h-9">
                       <Filter className="h-4 w-4 mr-2" />
                       Filters
+                      {(selectedSizes.length > 0 || selectedColors.length > 0) && (
+                        <Badge className="ml-2 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                          {selectedSizes.length + selectedColors.length}
+                        </Badge>
+                      )}
                     </Button>
                   </SheetTrigger>
-                  <SheetContent side="left">
+                  <SheetContent side="left" className="w-[85vw] sm:w-96">
                     <SheetHeader>
-                      <SheetTitle>Filters</SheetTitle>
+                      <SheetTitle className="text-base sm:text-lg">Filters</SheetTitle>
                     </SheetHeader>
-                    <div className="mt-6">
+                    <div className="mt-6 overflow-y-auto max-h-[calc(100vh-8rem)]">
                       <FilterContent />
                     </div>
                   </SheetContent>
                 </Sheet>
 
-                <div className="flex items-center gap-2">
+                <div className="hidden sm:flex items-center gap-2">
                   <Button
                     variant={viewMode === 'grid' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setViewMode('grid')}
+                    className="h-9 w-9 p-0"
                   >
                     <Grid className="h-4 w-4" />
                   </Button>
@@ -258,18 +264,19 @@ const CategoryPage = () => {
                     variant={viewMode === 'list' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setViewMode('list')}
+                    className="h-9 w-9 p-0"
                   >
                     <List className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4">
-                <span className="text-sm text-muted-foreground">
-                  {filteredProducts.length} products
+              <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4">
+                <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
+                  {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'}
                 </span>
                 <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-40">
+                  <SelectTrigger className="w-36 sm:w-40 h-9 text-xs sm:text-sm">
                     <SelectValue placeholder="Sort by" />
                   </SelectTrigger>
                   <SelectContent>
@@ -283,27 +290,56 @@ const CategoryPage = () => {
               </div>
             </div>
 
+            {/* Active Filters Display */}
+            {(selectedSizes.length > 0 || selectedColors.length > 0 || priceRange[0] > 0 || priceRange[1] < 50000) && (
+              <div className="flex flex-wrap items-center gap-2 mb-4 p-3 bg-card border rounded-lg animate-fade-in">
+                <span className="text-xs sm:text-sm font-medium">Active filters:</span>
+                {selectedSizes.map(size => (
+                  <Badge key={size} variant="secondary" className="text-xs">
+                    Size: {size}
+                    <button onClick={() => handleSizeToggle(size)} className="ml-1 hover:text-destructive">×</button>
+                  </Badge>
+                ))}
+                {selectedColors.map(color => (
+                  <Badge key={color} variant="secondary" className="text-xs">
+                    {color}
+                    <button onClick={() => handleColorToggle(color)} className="ml-1 hover:text-destructive">×</button>
+                  </Badge>
+                ))}
+                <Button variant="ghost" size="sm" onClick={clearFilters} className="h-6 text-xs ml-auto">
+                  Clear all
+                </Button>
+              </div>
+            )}
+
             {/* Products Grid */}
             {filteredProducts.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground mb-4">No products found matching your criteria</p>
-                <Button onClick={clearFilters}>Clear Filters</Button>
+              <div className="text-center py-12 sm:py-16 animate-fade-in">
+                <div className="max-w-md mx-auto">
+                  <p className="text-base sm:text-lg text-muted-foreground mb-4">No products found matching your criteria</p>
+                  <Button onClick={clearFilters} className="h-10">Clear All Filters</Button>
+                </div>
               </div>
             ) : (
-              <div className={`grid gap-6 ${
+              <div className={`grid gap-4 sm:gap-6 ${
                 viewMode === 'grid' 
-                  ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+                  ? 'grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
                   : 'grid-cols-1'
               }`}>
-                {filteredProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    onAddToCart={addToCart}
-                    onToggleWishlist={handleToggleWishlist}
-                    onQuickView={handleQuickView}
-                    isWishlisted={wishlist.includes(product.id)}
-                  />
+                {filteredProducts.map((product, index) => (
+                  <div 
+                    key={product.id} 
+                    className="animate-fade-in"
+                    style={{ animationDelay: `${index * 0.05}s` }}
+                  >
+                    <ProductCard
+                      product={product}
+                      onAddToCart={addToCart}
+                      onToggleWishlist={handleToggleWishlist}
+                      onQuickView={handleQuickView}
+                      isWishlisted={wishlist.includes(product.id)}
+                    />
+                  </div>
                 ))}
               </div>
             )}
