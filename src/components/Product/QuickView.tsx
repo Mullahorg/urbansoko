@@ -56,19 +56,19 @@ const QuickView = ({ product, isOpen, onClose, onToggleWishlist, isWishlisted }:
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl w-full max-h-[90vh] overflow-y-auto bg-card border border-border">
-        <DialogHeader>
+      <DialogContent className="max-w-4xl w-[95vw] sm:w-full max-h-[90vh] overflow-y-auto bg-card border border-border p-0">
+        <DialogHeader className="sr-only">
           <Button
             variant="ghost"
             size="icon"
-            className="absolute right-4 top-4 z-10"
+            className="absolute right-2 top-2 sm:right-4 sm:top-4 z-10 h-8 w-8 sm:h-10 sm:w-10"
             onClick={onClose}
           >
             <X className="h-4 w-4" />
           </Button>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 p-4 sm:p-6">
           {/* Product Image */}
           <div className="space-y-4">
             <div className="aspect-square overflow-hidden rounded-lg bg-muted">
@@ -81,14 +81,14 @@ const QuickView = ({ product, isOpen, onClose, onToggleWishlist, isWishlisted }:
           </div>
 
           {/* Product Info */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             <div>
-              <div className="flex items-center gap-2 mb-2">
-                <Badge variant="secondary">{product.category}</Badge>
-                {product.isNew && <Badge className="bg-primary">New</Badge>}
-                {product.isSale && <Badge className="bg-accent">Sale</Badge>}
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                <Badge variant="secondary" className="text-xs">{product.category}</Badge>
+                {product.isNew && <Badge className="bg-primary text-xs">New</Badge>}
+                {product.isSale && <Badge className="bg-accent text-xs">Sale</Badge>}
               </div>
-              <h2 className="text-2xl font-bold mb-2">{product.name}</h2>
+              <h2 className="text-xl sm:text-2xl font-bold mb-2">{product.name}</h2>
               <div className="flex items-center gap-2 mb-4">
                 <div className="flex items-center">
                   {[...Array(5)].map((_, i) => (
@@ -99,19 +99,19 @@ const QuickView = ({ product, isOpen, onClose, onToggleWishlist, isWishlisted }:
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <span className="text-2xl font-bold text-primary">{formatPrice(product.price)}</span>
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+              <span className="text-xl sm:text-2xl font-bold text-primary">{formatPrice(product.price)}</span>
               {product.originalPrice && (
                 <>
-                  <span className="text-lg text-muted-foreground line-through">
+                  <span className="text-base sm:text-lg text-muted-foreground line-through">
                     {formatPrice(product.originalPrice)}
                   </span>
-                  <Badge className="bg-accent">Save {discountPercentage}%</Badge>
+                  <Badge className="bg-accent text-xs">Save {discountPercentage}%</Badge>
                 </>
               )}
             </div>
 
-            <p className="text-muted-foreground">
+            <p className="text-sm sm:text-base text-muted-foreground">
               Embrace authentic African style with this premium {product.category.toLowerCase()}. 
               Crafted with attention to detail and designed for the modern man.
             </p>
@@ -171,20 +171,20 @@ const QuickView = ({ product, isOpen, onClose, onToggleWishlist, isWishlisted }:
             </div>
 
             {/* Actions */}
-            <div className="space-y-3">
-              <div className="flex gap-3">
+            <div className="space-y-2 sm:space-y-3">
+              <div className="flex gap-2 sm:gap-3">
                 <Button 
-                  className="flex-1" 
+                  className="flex-1 text-xs sm:text-sm h-9 sm:h-11" 
                   onClick={handleBuyNow}
                   disabled={!product.inStock}
-                  size="lg"
                 >
-                  Buy Now - {formatPrice(product.price * quantity)}
+                  <span className="hidden sm:inline">Buy Now - {formatPrice(product.price * quantity)}</span>
+                  <span className="sm:hidden">Buy - {formatPrice(product.price * quantity)}</span>
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => onToggleWishlist(product.id)}
-                  size="lg"
+                  className="h-9 w-9 sm:h-11 sm:w-11"
                 >
                   <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-current' : ''}`} />
                 </Button>
@@ -192,19 +192,18 @@ const QuickView = ({ product, isOpen, onClose, onToggleWishlist, isWishlisted }:
 
               <Button 
                 variant="outline" 
-                className="w-full" 
+                className="w-full text-xs sm:text-sm h-9 sm:h-11" 
                 onClick={handleAddToCart}
                 disabled={!product.inStock}
-                size="lg"
               >
-                <ShoppingCart className="mr-2 h-4 w-4" />
+                <ShoppingCart className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                 Add to Cart
               </Button>
 
               {product.inStock ? (
-                <p className="text-sm text-green-600 text-center">✓ In stock and ready to ship</p>
+                <p className="text-xs sm:text-sm text-green-600 text-center">✓ In stock and ready to ship</p>
               ) : (
-                <p className="text-sm text-red-600 text-center">Out of stock</p>
+                <p className="text-xs sm:text-sm text-red-600 text-center">Out of stock</p>
               )}
             </div>
           </div>

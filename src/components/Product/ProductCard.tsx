@@ -50,16 +50,19 @@ const ProductCard = ({ product, onAddToCart, onToggleWishlist, onQuickView, isWi
 
   return (
     <Card 
-      className="group cursor-pointer transition-all duration-300 hover:shadow-lg product-hover-glow animate-fade-in"
+      className="group cursor-pointer transition-all duration-300 hover:shadow-lg product-hover-glow animate-fade-in overflow-hidden"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onFocus={() => setIsHovered(true)}
+      onBlur={() => setIsHovered(false)}
+      tabIndex={0}
     >
       <CardContent className="p-0">
         <div className="relative overflow-hidden">
             <img
               src={product.image}
               alt={product.name}
-              className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
+              className="w-full h-48 sm:h-56 md:h-64 object-cover transition-transform duration-300 group-hover:scale-105 group-focus:scale-105"
             />
           
           {/* Badges */}
@@ -94,63 +97,61 @@ const ProductCard = ({ product, onAddToCart, onToggleWishlist, onQuickView, isWi
           </div>
 
           {/* Quick action buttons */}
-          <div className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent transition-all duration-300 ${
-            isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+          <div className={`absolute bottom-0 left-0 right-0 p-2 sm:p-4 bg-gradient-to-t from-black/90 to-transparent transition-all duration-300 ease-in-out ${
+            isHovered ? 'opacity-100 translate-y-0 animate-fade-in' : 'opacity-0 translate-y-2 pointer-events-none'
           }`}>
-            <div className="space-y-2">
+            <div className="space-y-1.5 sm:space-y-2">
               <Button
-                className="w-full animate-slide-up"
+                className="w-full text-xs sm:text-sm h-8 sm:h-9"
                 onClick={handleBuyNow}
                 disabled={!product.inStock}
-                size="sm"
               >
-                <Zap className="h-4 w-4 mr-2" />
+                <Zap className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                 Buy Now
               </Button>
               <Button
                 variant="outline"
-                className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20"
+                className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20 text-xs sm:text-sm h-8 sm:h-9"
                 onClick={(e) => {
                   e.stopPropagation();
                   onAddToCart(product);
                 }}
                 disabled={!product.inStock}
-                size="sm"
               >
-                <ShoppingCart className="h-4 w-4 mr-2" />
+                <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                 Add to Cart
               </Button>
             </div>
           </div>
         </div>
 
-        <div className="p-4">
+        <div className="p-3 sm:p-4">
           <Link to={`/product/${product.id}`} className="block">
-            <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
+            <h3 className="font-semibold text-sm sm:text-base text-foreground group-hover:text-primary transition-colors line-clamp-2">
               {product.name}
             </h3>
           </Link>
-          <p className="text-sm text-muted-foreground mb-2">{product.category}</p>
+          <p className="text-xs sm:text-sm text-muted-foreground mb-2 truncate">{product.category}</p>
           
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-primary">{formatPrice(product.price)}</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-bold text-sm sm:text-base text-primary">{formatPrice(product.price)}</span>
             {product.originalPrice && (
-              <span className="text-sm text-muted-foreground line-through">
+              <span className="text-xs sm:text-sm text-muted-foreground line-through">
                 {formatPrice(product.originalPrice)}
               </span>
             )}
           </div>
 
-          <div className="flex items-center gap-2 mt-2">
-            <span className="text-xs text-muted-foreground">Sizes:</span>
-            <div className="flex gap-1">
+          <div className="flex items-center gap-2 mt-2 overflow-hidden">
+            <span className="text-xs text-muted-foreground shrink-0">Sizes:</span>
+            <div className="flex gap-1 overflow-x-auto scrollbar-hide">
               {product.sizes.slice(0, 3).map((size) => (
-                <span key={size} className="text-xs bg-muted px-1 rounded">
+                <span key={size} className="text-xs bg-muted px-1.5 py-0.5 rounded shrink-0">
                   {size}
                 </span>
               ))}
               {product.sizes.length > 3 && (
-                <span className="text-xs text-muted-foreground">+{product.sizes.length - 3}</span>
+                <span className="text-xs text-muted-foreground shrink-0">+{product.sizes.length - 3}</span>
               )}
             </div>
           </div>
