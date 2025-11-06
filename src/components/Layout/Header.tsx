@@ -16,6 +16,7 @@ import MobileMenu from './MobileMenu';
 import CartSheet from '../Cart/CartSheet';
 import ThemeSelector from '../UI/ThemeSelector';
 import LanguageSelector from '../UI/LanguageSelector';
+import { MainNav } from './MainNav';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -32,9 +33,6 @@ const Header = ({ cartCount }: HeaderProps) => {
   const { role, isAdmin, isVendor } = useUserRole();
   const { t } = useLanguage();
 
-  const categories = [
-    'Shirts', 'Pants', 'Suits', 'Sport Shoes', 'Formal Shoes', 'Accessories', 'Traditional Wear'
-  ];
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -164,26 +162,10 @@ const Header = ({ cartCount }: HeaderProps) => {
             </div>
           </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:block pb-4">
-            <ul className="flex space-x-8">
-              <li>
-                <Link to="/" className="text-foreground hover:text-primary transition-colors py-2">
-                  {t('nav.home')}
-                </Link>
-              </li>
-              {categories.map((category) => (
-                <li key={category}>
-                  <Link
-                    to={`/category/${category.toLowerCase()}`}
-                    className="text-foreground hover:text-primary transition-colors py-2"
-                  >
-                    {category}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
+          {/* Desktop Navigation - Enhanced Mega Menu */}
+          <div className="hidden md:flex pb-4">
+            <MainNav />
+          </div>
 
           {/* Mobile search */}
           <div className="lg:hidden pb-4">

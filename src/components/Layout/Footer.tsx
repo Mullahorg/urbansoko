@@ -49,142 +49,133 @@ export const Footer = () => {
         </div>
       </div>
 
-      {/* Main Footer Content */}
-      <div className="container mx-auto px-4 py-8 sm:py-12 lg:py-16">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-12">
-          {/* Brand Section */}
-          <div className="lg:col-span-4">
-            <Link to="/" className="inline-flex items-center gap-3 mb-4 group">
-              <img 
-                src={logo} 
-                alt="Male Afrique Wear" 
-                className="h-10 w-10 sm:h-12 sm:w-12 object-contain rounded-lg shadow-md group-hover:shadow-lg transition-shadow" 
-              />
-              <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                Male Afrique
-              </span>
-            </Link>
-            <p className="text-sm text-muted-foreground mb-6 leading-relaxed max-w-sm">
-              Premium African fashion and traditional wear for the modern gentleman. Celebrating heritage with contemporary style.
-            </p>
-            <div className="flex gap-4">
-              <a 
-                href="https://facebook.com" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="w-10 h-10 rounded-full bg-primary/10 hover:bg-primary flex items-center justify-center text-muted-foreground hover:text-primary-foreground transition-all hover:scale-110"
-                aria-label="Facebook"
-              >
-                <Facebook size={18} />
-              </a>
-              <a 
-                href="https://twitter.com" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-primary/10 hover:bg-primary flex items-center justify-center text-muted-foreground hover:text-primary-foreground transition-all hover:scale-110"
-                aria-label="Twitter"
-              >
-                <Twitter size={18} />
-              </a>
-              <a 
-                href="https://instagram.com" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-primary/10 hover:bg-primary flex items-center justify-center text-muted-foreground hover:text-primary-foreground transition-all hover:scale-110"
-                aria-label="Instagram"
-              >
-                <Instagram size={18} />
-              </a>
+      {/* Main Footer Content - 2 Column Layout */}
+      <div className="container mx-auto px-4 py-8 sm:py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+          {/* Left Column - Brand & Links */}
+          <div className="space-y-8">
+            {/* Brand Section */}
+            <div>
+              <Link to="/" className="inline-flex items-center gap-3 mb-4 group">
+                <img 
+                  src={logo} 
+                  alt="Male Afrique Wear" 
+                  className="h-10 w-10 sm:h-12 sm:w-12 object-contain rounded-lg shadow-md group-hover:shadow-lg transition-shadow" 
+                />
+                <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                  Male Afrique
+                </span>
+              </Link>
+              <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+                Premium African fashion and traditional wear for the modern gentleman.
+              </p>
+              <div className="flex gap-4">
+                <a 
+                  href="https://facebook.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="w-10 h-10 rounded-full bg-primary/10 hover:bg-primary flex items-center justify-center text-muted-foreground hover:text-primary-foreground transition-all hover:scale-110"
+                  aria-label="Facebook"
+                >
+                  <Facebook size={18} />
+                </a>
+                <a 
+                  href="https://twitter.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-full bg-primary/10 hover:bg-primary flex items-center justify-center text-muted-foreground hover:text-primary-foreground transition-all hover:scale-110"
+                  aria-label="Twitter"
+                >
+                  <Twitter size={18} />
+                </a>
+                <a 
+                  href="https://instagram.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-full bg-primary/10 hover:bg-primary flex items-center justify-center text-muted-foreground hover:text-primary-foreground transition-all hover:scale-110"
+                  aria-label="Instagram"
+                >
+                  <Instagram size={18} />
+                </a>
+              </div>
+            </div>
+
+            {/* Quick Links Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+              {/* Shop */}
+              <div>
+                <h3 className="font-bold text-sm mb-3 text-foreground">Shop</h3>
+                <ul className="space-y-2 text-sm">
+                  <li>
+                    <Link to="/products" className="text-muted-foreground hover:text-primary transition-colors group">
+                      <span className="group-hover:translate-x-1 inline-block transition-transform">All Products</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/category/shirts" className="text-muted-foreground hover:text-primary transition-colors group">
+                      <span className="group-hover:translate-x-1 inline-block transition-transform">Shirts</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/category/accessories" className="text-muted-foreground hover:text-primary transition-colors group">
+                      <span className="group-hover:translate-x-1 inline-block transition-transform">Accessories</span>
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Support */}
+              <div>
+                <h3 className="font-bold text-sm mb-3 text-foreground">Support</h3>
+                <ul className="space-y-2 text-sm">
+                  <li>
+                    <Link to="/about" className="text-muted-foreground hover:text-primary transition-colors group">
+                      <span className="group-hover:translate-x-1 inline-block transition-transform">About</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/contact" className="text-muted-foreground hover:text-primary transition-colors group">
+                      <span className="group-hover:translate-x-1 inline-block transition-transform">Contact</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/faq" className="text-muted-foreground hover:text-primary transition-colors group">
+                      <span className="group-hover:translate-x-1 inline-block transition-transform">FAQ</span>
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Legal */}
+              <div>
+                <h3 className="font-bold text-sm mb-3 text-foreground">Legal</h3>
+                <ul className="space-y-2 text-sm">
+                  <li>
+                    <Link to="/terms" className="text-muted-foreground hover:text-primary transition-colors group">
+                      <span className="group-hover:translate-x-1 inline-block transition-transform">Terms</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/privacy" className="text-muted-foreground hover:text-primary transition-colors group">
+                      <span className="group-hover:translate-x-1 inline-block transition-transform">Privacy</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/shipping" className="text-muted-foreground hover:text-primary transition-colors group">
+                      <span className="group-hover:translate-x-1 inline-block transition-transform">Shipping</span>
+                    </Link>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
 
-          {/* Shop Links */}
-          <div className="lg:col-span-2">
-            <h3 className="font-bold text-base sm:text-lg mb-4 text-foreground">Shop</h3>
-            <ul className="space-y-3 text-sm">
-              <li>
-                <Link to="/products" className="text-muted-foreground hover:text-primary transition-colors inline-flex items-center group">
-                  <span className="group-hover:translate-x-1 transition-transform">All Products</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/category/shirts" className="text-muted-foreground hover:text-primary transition-colors inline-flex items-center group">
-                  <span className="group-hover:translate-x-1 transition-transform">Shirts</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/category/pants" className="text-muted-foreground hover:text-primary transition-colors inline-flex items-center group">
-                  <span className="group-hover:translate-x-1 transition-transform">Pants</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/category/accessories" className="text-muted-foreground hover:text-primary transition-colors inline-flex items-center group">
-                  <span className="group-hover:translate-x-1 transition-transform">Accessories</span>
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Support Links */}
-          <div className="lg:col-span-2">
-            <h3 className="font-bold text-base sm:text-lg mb-4 text-foreground">Support</h3>
-            <ul className="space-y-3 text-sm">
-              <li>
-                <Link to="/about" className="text-muted-foreground hover:text-primary transition-colors inline-flex items-center group">
-                  <span className="group-hover:translate-x-1 transition-transform">About Us</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/contact" className="text-muted-foreground hover:text-primary transition-colors inline-flex items-center group">
-                  <span className="group-hover:translate-x-1 transition-transform">Contact</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/faq" className="text-muted-foreground hover:text-primary transition-colors inline-flex items-center group">
-                  <span className="group-hover:translate-x-1 transition-transform">FAQ</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/track-order" className="text-muted-foreground hover:text-primary transition-colors inline-flex items-center group">
-                  <span className="group-hover:translate-x-1 transition-transform">Track Order</span>
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Legal Links */}
-          <div className="lg:col-span-2">
-            <h3 className="font-bold text-base sm:text-lg mb-4 text-foreground">Legal</h3>
-            <ul className="space-y-3 text-sm">
-              <li>
-                <Link to="/terms" className="text-muted-foreground hover:text-primary transition-colors inline-flex items-center group">
-                  <span className="group-hover:translate-x-1 transition-transform">Terms of Service</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/privacy" className="text-muted-foreground hover:text-primary transition-colors inline-flex items-center group">
-                  <span className="group-hover:translate-x-1 transition-transform">Privacy Policy</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/return-policy" className="text-muted-foreground hover:text-primary transition-colors inline-flex items-center group">
-                  <span className="group-hover:translate-x-1 transition-transform">Return Policy</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/shipping" className="text-muted-foreground hover:text-primary transition-colors inline-flex items-center group">
-                  <span className="group-hover:translate-x-1 transition-transform">Shipping Info</span>
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Contact Info */}
-          <div className="lg:col-span-2">
-            <h3 className="font-bold text-base sm:text-lg mb-4 text-foreground">Contact</h3>
-            <ul className="space-y-3 text-sm">
+          {/* Right Column - Contact */}
+          <div>
+            <h3 className="font-bold text-lg mb-4 text-foreground">Get In Touch</h3>
+            <ul className="space-y-4 text-sm mb-8">
               <li className="flex items-start gap-3 text-muted-foreground group">
-                <MapPin size={16} className="mt-0.5 flex-shrink-0 text-primary" />
+                <MapPin size={18} className="mt-0.5 flex-shrink-0 text-primary" />
                 <span className="group-hover:text-foreground transition-colors">Nairobi, Kenya</span>
               </li>
               <li>
@@ -192,7 +183,7 @@ export const Footer = () => {
                   href="tel:+254700000000" 
                   className="flex items-center gap-3 text-muted-foreground hover:text-primary transition-colors group"
                 >
-                  <Phone size={16} className="flex-shrink-0 text-primary" />
+                  <Phone size={18} className="flex-shrink-0 text-primary" />
                   <span>+254 700 000 000</span>
                 </a>
               </li>
@@ -201,11 +192,21 @@ export const Footer = () => {
                   href="mailto:info@maleafrique.com" 
                   className="flex items-center gap-3 text-muted-foreground hover:text-primary transition-colors group"
                 >
-                  <Mail size={16} className="flex-shrink-0 text-primary" />
+                  <Mail size={18} className="flex-shrink-0 text-primary" />
                   <span className="break-all">info@maleafrique.com</span>
                 </a>
               </li>
             </ul>
+
+            {/* Payment & Security Badges */}
+            <div>
+              <p className="text-xs text-muted-foreground mb-3">Secure Payment Methods</p>
+              <div className="flex flex-wrap gap-2">
+                <div className="px-3 py-2 bg-primary/5 rounded text-xs font-medium">M-Pesa</div>
+                <div className="px-3 py-2 bg-primary/5 rounded text-xs font-medium">Visa</div>
+                <div className="px-3 py-2 bg-primary/5 rounded text-xs font-medium">Mastercard</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
