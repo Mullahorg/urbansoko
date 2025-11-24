@@ -35,36 +35,53 @@ const OrderTrackingPage = () => {
   const [error, setError] = useState('');
 
   const trackOrder = async () => {
-    setLoading(true);
-    setError('');
-    setOrder(null);
-
-    const { data: orderData, error: orderError } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('tracking_code', trackingCode.trim())
-      .single();
-
-    if (orderError || !orderData) {
-      setError('Order not found. Please check your tracking code.');
-      setLoading(false);
+    if (!trackingCode.trim()) {
+      setError('Please enter a tracking code');
       return;
     }
 
-    setOrder(orderData);
+    setLoading(true);
+    setError('');
+    setOrder(null);
+    setStatusHistory([]);
 
-    // Fetch status history
-    const { data: historyData } = await supabase
-      .from('order_status_history')
-      .select('status, created_at, notes')
-      .eq('order_id', orderData.id)
-      .order('created_at', { ascending: false });
+    try {
+      const { data: orderData, error: orderError } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('tracking_code', trackingCode.trim())
+        .maybeSingle();
 
-    if (historyData) {
-      setStatusHistory(historyData);
+      if (orderError) throw orderError;
+
+      if (!orderData) {
+        setError('Order not found. Please check your tracking code and try again.');
+        setLoading(false);
+        return;
+      }
+
+      setOrder(orderData);
+
+      // Fetch status history
+      const { data: historyData, error: historyError } = await supabase
+        .from('order_status_history')
+        .select('status, created_at, notes')
+        .eq('order_id', orderData.id)
+        .order('created_at', { ascending: false });
+
+      if (historyError) {
+        console.error('Error fetching history:', historyError);
+      }
+
+      if (historyData) {
+        setStatusHistory(historyData);
+      }
+    } catch (error: any) {
+      console.error('Track order error:', error);
+      setError('An error occurred while tracking your order. Please try again.');
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const getStatusIcon = (status: string) => {
