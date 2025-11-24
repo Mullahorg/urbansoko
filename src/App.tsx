@@ -50,7 +50,6 @@ import ShippingPage from "./pages/ShippingPage";
 import Header from "./components/Layout/Header";
 import { Footer } from "./components/Layout/Footer";
 import InstallPrompt from "./components/PWA/InstallPrompt";
-import ProtectedRoute from "./components/ProtectedRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
 
 import { CartProvider, useCart } from "./contexts/CartContext";
@@ -60,15 +59,19 @@ import { LanguageProvider } from "./contexts/LanguageContext";
 
 const queryClient = new QueryClient();
 
-// Centralized role-check route wrapper
-const RoleRoute = ({ children, requiredRole }: { children: JSX.Element; requiredRole?: string }) => {
+// Centralized Role Route Wrapper
+const RoleRoute = ({ children, requiredRole }: { children: JSX.Element; requiredRole?: "admin" | "vendor" }) => {
   const { user, loading } = useAuth();
 
-  if (loading) return null; // optionally a loader
+  if (loading) return null; // Optional: add a spinner or skeleton
+
   if (!user) return <Navigate to="/auth" replace />;
 
+  // Admin route
   if (requiredRole === "admin" && !user.isAdmin) return <Navigate to="/" replace />;
-  if (requiredRole === "vendor" && user.isAdmin) return <Navigate to="/" replace />;
+
+  // Vendor route
+  if (requiredRole === "vendor" && user?.app_metadata?.role !== "vendor") return <Navigate to="/" replace />;
 
   return children;
 };
@@ -81,6 +84,7 @@ const AppContent = () => {
       <Header cartCount={getTotalItems()} />
       <main className="flex-1">
         <Routes>
+          {/* Public Routes */}
           <Route path="/" element={<Index />} />
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/search" element={<SearchPage />} />
@@ -89,15 +93,27 @@ const AppContent = () => {
           <Route path="/product/:id" element={<ProductDetailPage />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/track-order" element={<OrderTrackingPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/return-policy" element={<ReturnPolicyPage />} />
+          <Route path="/faq" element={<FAQPage />} />
+          <Route path="/shipping" element={<ShippingPage />} />
+
+          {/* Protected Routes */}
           <Route path="/orders" element={<RoleRoute><OrdersPage /></RoleRoute>} />
           <Route path="/profile" element={<RoleRoute><ProfilePage /></RoleRoute>} />
           <Route path="/wishlist" element={<RoleRoute><WishlistPage /></RoleRoute>} />
           <Route path="/rewards" element={<RoleRoute><RewardsPage /></RoleRoute>} />
+
+          {/* Vendor Routes */}
           <Route path="/vendor/register" element={<RoleRoute requiredRole="vendor"><VendorRegistrationPage /></RoleRoute>} />
           <Route path="/vendor/dashboard" element={<RoleRoute requiredRole="vendor"><VendorDashboard /></RoleRoute>} />
           <Route path="/vendor/products" element={<RoleRoute requiredRole="vendor"><VendorProducts /></RoleRoute>} />
 
-          {/* Admin routes */}
+          {/* Admin Routes */}
           <Route path="/admin" element={<RoleRoute requiredRole="admin"><AdminLayout /></RoleRoute>}>
             <Route index element={<AdminDashboard />} />
             <Route path="analytics" element={<AdminAnalytics />} />
@@ -114,16 +130,6 @@ const AppContent = () => {
             <Route path="settings" element={<AdminSettings />} />
             <Route path="migrate" element={<AdminDataMigration />} />
           </Route>
-
-          {/* Info Pages */}
-          <Route path="/track-order" element={<OrderTrackingPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/terms" element={<TermsPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/return-policy" element={<ReturnPolicyPage />} />
-          <Route path="/faq" element={<FAQPage />} />
-          <Route path="/shipping" element={<ShippingPage />} />
 
           {/* Catch-all */}
           <Route path="*" element={<NotFound />} />
