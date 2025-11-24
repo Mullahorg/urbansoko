@@ -11,6 +11,9 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useAuth } from "@/contexts/AuthContext"; // Import your auth context
+
+const SUPER_ADMIN_EMAIL = "johnmulama001@gmail.com";
 
 const adminItems = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard, end: true },
@@ -32,6 +35,10 @@ const adminItems = [
 export function AdminSidebar() {
   const { open } = useSidebar();
   const location = useLocation();
+  const { user } = useAuth(); // get current logged-in user
+
+  // Only allow admin users to see this sidebar
+  if (!user || !user.isAdmin || user.email !== SUPER_ADMIN_EMAIL) return null;
 
   const isActive = (path: string, end?: boolean) => {
     if (end) return location.pathname === path;
