@@ -1,9 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { Package, ShoppingCart, Users, LayoutDashboard, Database, Store, Settings, FileSpreadsheet, CheckSquare, CreditCard, BarChart3, FileText, Mail, Archive } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
-import { useAuth } from "@/contexts/AuthContext";
-
-const SUPER_ADMIN_EMAIL = "johnmulama001@gmail.com";
+import { useUserRole } from "@/hooks/useUserRole";
 
 const adminItems = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard, end: true },
@@ -25,10 +23,9 @@ const adminItems = [
 export function AdminSidebar() {
   const { open } = useSidebar();
   const location = useLocation();
-  const { user } = useAuth();
+  const { isAdmin } = useUserRole();
 
-  // Only show sidebar to super admin
-  if (!user || !user.isAdmin || user.email !== SUPER_ADMIN_EMAIL) return null;
+  if (!isAdmin) return null;
 
   const isActive = (path: string, end?: boolean) => end ? location.pathname === path : location.pathname.startsWith(path);
   const getNavCls = (active: boolean) => active ? "bg-primary text-primary-foreground" : "hover:bg-muted";
