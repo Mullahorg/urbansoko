@@ -45,19 +45,29 @@ const CheckoutPage = () => {
   }, []);
 
   const fetchPaymentSettings = async () => {
-    const { data } = await supabase
-      .from('settings')
-      .select('key, value')
-      .in('key', ['mpesa_paybill', 'mpesa_business_name', 'mpesa_account_number']);
+    try {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('key, value')
+        .in('key', ['mpesa_paybill', 'mpesa_business_name', 'mpesa_account_number']);
 
-    const settings = data?.reduce((acc: any, { key, value }) => {
-      if (key === 'mpesa_paybill') acc.paybill = value;
-      if (key === 'mpesa_business_name') acc.businessName = value;
-      if (key === 'mpesa_account_number') acc.accountNumber = value;
-      return acc;
-    }, {});
+      if (error) throw error;
 
-    setPaymentSettings(settings || paymentSettings);
+      const settings = data?.reduce((acc: any, { key, value }) => {
+        if (key === 'mpesa_paybill') acc.paybill = value;
+        if (key === 'mpesa_business_name') acc.businessName = value;
+        if (key === 'mpesa_account_number') acc.accountNumber = value;
+        return acc;
+      }, {});
+
+      setPaymentSettings(settings || paymentSettings);
+    } catch (error: any) {
+      toast({
+        title: 'Error loading payment settings',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
   };
 
   const handleScreenshotUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -190,9 +200,10 @@ const CheckoutPage = () => {
         navigate('/orders');
       }
     } catch (error: any) {
+      console.error('Checkout error:', error);
       toast({
         title: "Checkout failed",
-        description: error.message,
+        description: error.message || "An error occurred during checkout. Please try again.",
         variant: "destructive"
       });
     } finally {

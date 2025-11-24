@@ -16,10 +16,12 @@ import OrdersPage from "./pages/OrdersPage";
 import ProfilePage from "./pages/ProfilePage";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminProducts from "./pages/admin/AdminProducts";
 import AdminProductImport from "./pages/admin/AdminProductImport";
 import AdminOrderApproval from "./pages/admin/AdminOrderApproval";
 import AdminPaymentSettings from "./pages/admin/AdminPaymentSettings";
+import AdminContent from "./pages/admin/AdminContent";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminDataMigration from "./pages/admin/AdminDataMigration";
@@ -42,6 +44,7 @@ import Header from "./components/Layout/Header";
 import { Footer } from "./components/Layout/Footer";
 import InstallPrompt from "./components/PWA/InstallPrompt";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { CartProvider, useCart } from "./contexts/CartContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -69,11 +72,13 @@ const AppContent = () => {
           <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminLayout /></ProtectedRoute>}>
             <Route index element={<AdminDashboard />} />
+            <Route path="analytics" element={<AdminAnalytics />} />
             <Route path="products" element={<AdminProducts />} />
             <Route path="import" element={<AdminProductImport />} />
             <Route path="orders" element={<AdminOrders />} />
             <Route path="approvals" element={<AdminOrderApproval />} />
             <Route path="payment" element={<AdminPaymentSettings />} />
+            <Route path="content" element={<AdminContent />} />
             <Route path="users" element={<AdminUsers />} />
             <Route path="vendors" element={<AdminVendors />} />
             <Route path="settings" element={<AdminSettings />} />
@@ -106,23 +111,25 @@ const AppContent = () => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <LanguageProvider>
-        <ThemeProvider>
-          <AuthProvider>
-            <CartProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <AppContent />
-              </BrowserRouter>
-            </CartProvider>
-          </AuthProvider>
-        </ThemeProvider>
-      </LanguageProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <LanguageProvider>
+          <ThemeProvider>
+            <AuthProvider>
+              <CartProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <AppContent />
+                </BrowserRouter>
+              </CartProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </LanguageProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;
