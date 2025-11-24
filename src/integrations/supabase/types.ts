@@ -108,6 +108,7 @@ export type Database = {
           status: string | null
           total_amount: number
           tracking_code: string | null
+          transaction_screenshot_url: string | null
           updated_at: string | null
           user_id: string
         }
@@ -124,6 +125,7 @@ export type Database = {
           status?: string | null
           total_amount: number
           tracking_code?: string | null
+          transaction_screenshot_url?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -140,6 +142,7 @@ export type Database = {
           status?: string | null
           total_amount?: number
           tracking_code?: string | null
+          transaction_screenshot_url?: string | null
           updated_at?: string | null
           user_id?: string
         }
