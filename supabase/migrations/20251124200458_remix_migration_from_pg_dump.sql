@@ -163,6 +163,69 @@ $$;
 SET default_table_access_method = heap;
 
 --
+-- Name: newsletter_subscribers; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.newsletter_subscribers (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    email text NOT NULL,
+    subscribed_at timestamp with time zone DEFAULT now(),
+    status text DEFAULT 'active'::text,
+    source text DEFAULT 'website'::text,
+    CONSTRAINT newsletter_subscribers_status_check CHECK ((status = ANY (ARRAY['active'::text, 'unsubscribed'::text])))
+);
+
+
+--
+-- Name: orders; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.orders (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    status text DEFAULT 'pending'::text,
+    total_amount numeric(10,2) NOT NULL,
+    shipping_address text NOT NULL,
+    phone text NOT NULL,
+    payment_method text DEFAULT 'mpesa'::text,
+    payment_status text DEFAULT 'pending'::text,
+    mpesa_transaction_id text,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    guest_email text,
+    guest_name text,
+    tracking_code text DEFAULT SUBSTRING(md5((random())::text) FROM 1 FOR 12),
+    transaction_screenshot_url text,
+    CONSTRAINT orders_payment_status_check CHECK ((payment_status = ANY (ARRAY['pending'::text, 'completed'::text, 'failed'::text]))),
+    CONSTRAINT orders_status_check CHECK ((status = ANY (ARRAY['pending'::text, 'processing'::text, 'completed'::text, 'cancelled'::text])))
+);
+
+
+--
+-- Name: order_analytics; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.order_analytics WITH (security_invoker='true') AS
+ SELECT date_trunc('day'::text, created_at) AS date,
+    count(*) AS total_orders,
+    sum(total_amount) AS total_revenue,
+    avg(total_amount) AS avg_order_value,
+    count(
+        CASE
+            WHEN (payment_status = 'completed'::text) THEN 1
+            ELSE NULL::integer
+        END) AS completed_orders,
+    count(
+        CASE
+            WHEN (payment_status = 'pending'::text) THEN 1
+            ELSE NULL::integer
+        END) AS pending_orders
+   FROM public.orders
+  GROUP BY (date_trunc('day'::text, created_at))
+  ORDER BY (date_trunc('day'::text, created_at)) DESC;
+
+
+--
 -- Name: order_items; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -188,30 +251,6 @@ CREATE TABLE public.order_status_history (
     status text NOT NULL,
     notes text,
     created_at timestamp with time zone DEFAULT now()
-);
-
-
---
--- Name: orders; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.orders (
-    id uuid DEFAULT gen_random_uuid() NOT NULL,
-    user_id uuid NOT NULL,
-    status text DEFAULT 'pending'::text,
-    total_amount numeric(10,2) NOT NULL,
-    shipping_address text NOT NULL,
-    phone text NOT NULL,
-    payment_method text DEFAULT 'mpesa'::text,
-    payment_status text DEFAULT 'pending'::text,
-    mpesa_transaction_id text,
-    created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now(),
-    guest_email text,
-    guest_name text,
-    tracking_code text DEFAULT SUBSTRING(md5((random())::text) FROM 1 FOR 12),
-    CONSTRAINT orders_payment_status_check CHECK ((payment_status = ANY (ARRAY['pending'::text, 'completed'::text, 'failed'::text]))),
-    CONSTRAINT orders_status_check CHECK ((status = ANY (ARRAY['pending'::text, 'processing'::text, 'completed'::text, 'cancelled'::text])))
 );
 
 
@@ -297,6 +336,20 @@ CREATE TABLE public.settings (
 
 
 --
+-- Name: site_content; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.site_content (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    section text NOT NULL,
+    content jsonb NOT NULL,
+    updated_at timestamp with time zone DEFAULT now(),
+    updated_by uuid,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+
+--
 -- Name: user_rewards; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -353,6 +406,22 @@ CREATE TABLE public.wishlist (
     product_id uuid NOT NULL,
     created_at timestamp with time zone DEFAULT now()
 );
+
+
+--
+-- Name: newsletter_subscribers newsletter_subscribers_email_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.newsletter_subscribers
+    ADD CONSTRAINT newsletter_subscribers_email_key UNIQUE (email);
+
+
+--
+-- Name: newsletter_subscribers newsletter_subscribers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.newsletter_subscribers
+    ADD CONSTRAINT newsletter_subscribers_pkey PRIMARY KEY (id);
 
 
 --
@@ -444,6 +513,22 @@ ALTER TABLE ONLY public.settings
 
 
 --
+-- Name: site_content site_content_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.site_content
+    ADD CONSTRAINT site_content_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: site_content site_content_section_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.site_content
+    ADD CONSTRAINT site_content_section_key UNIQUE (section);
+
+
+--
 -- Name: user_rewards user_rewards_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -489,6 +574,20 @@ ALTER TABLE ONLY public.wishlist
 
 ALTER TABLE ONLY public.wishlist
     ADD CONSTRAINT wishlist_user_id_product_id_key UNIQUE (user_id, product_id);
+
+
+--
+-- Name: idx_newsletter_email; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_newsletter_email ON public.newsletter_subscribers USING btree (email);
+
+
+--
+-- Name: idx_newsletter_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_newsletter_status ON public.newsletter_subscribers USING btree (status);
 
 
 --
@@ -643,6 +742,14 @@ ALTER TABLE ONLY public.settings
 
 
 --
+-- Name: site_content site_content_updated_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.site_content
+    ADD CONSTRAINT site_content_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.profiles(id);
+
+
+--
 -- Name: user_rewards user_rewards_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -725,6 +832,20 @@ CREATE POLICY "Admins can manage roles" ON public.user_roles USING (public.has_r
 
 
 --
+-- Name: site_content Admins can manage site content; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Admins can manage site content" ON public.site_content USING (public.has_role(auth.uid(), 'admin'::public.app_role));
+
+
+--
+-- Name: newsletter_subscribers Admins can manage subscribers; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Admins can manage subscribers" ON public.newsletter_subscribers USING (public.has_role(auth.uid(), 'admin'::public.app_role));
+
+
+--
 -- Name: orders Admins can update orders; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -760,6 +881,13 @@ CREATE POLICY "Admins can view all roles" ON public.user_roles FOR SELECT USING 
 
 
 --
+-- Name: newsletter_subscribers Admins can view all subscribers; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Admins can view all subscribers" ON public.newsletter_subscribers FOR SELECT USING (public.has_role(auth.uid(), 'admin'::public.app_role));
+
+
+--
 -- Name: order_items Anyone can create order items; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -771,6 +899,13 @@ CREATE POLICY "Anyone can create order items" ON public.order_items FOR INSERT W
 --
 
 CREATE POLICY "Anyone can create orders" ON public.orders FOR INSERT WITH CHECK (true);
+
+
+--
+-- Name: newsletter_subscribers Anyone can subscribe; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Anyone can subscribe" ON public.newsletter_subscribers FOR INSERT WITH CHECK (true);
 
 
 --
@@ -792,6 +927,13 @@ CREATE POLICY "Anyone can view products" ON public.products FOR SELECT USING (tr
 --
 
 CREATE POLICY "Anyone can view reviews" ON public.reviews FOR SELECT USING (true);
+
+
+--
+-- Name: site_content Anyone can view site content; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Anyone can view site content" ON public.site_content FOR SELECT USING (true);
 
 
 --
@@ -918,6 +1060,12 @@ CREATE POLICY "Vendors can update their own profile" ON public.vendors FOR UPDAT
 
 
 --
+-- Name: newsletter_subscribers; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.newsletter_subscribers ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: order_items; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -964,6 +1112,12 @@ ALTER TABLE public.rewards_history ENABLE ROW LEVEL SECURITY;
 --
 
 ALTER TABLE public.settings ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: site_content; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.site_content ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: user_rewards; Type: ROW SECURITY; Schema: public; Owner: -
