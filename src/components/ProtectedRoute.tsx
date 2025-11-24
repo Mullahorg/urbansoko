@@ -1,19 +1,17 @@
-import { useEffect, useState } from 'react';
+import { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useUserRole, UserRole } from '@/hooks/useUserRole';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface ProtectedRouteProps {
-  children: React.ReactNode;
-  requiredRole?: UserRole | UserRole[];
+  children: ReactNode;
+  requiredRole?: 'admin' | 'vendor';
 }
 
 const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
-  const { user, loading: authLoading } = useAuth();
-  const { role, loading: roleLoading } = useUserRole();
+  const { user, loading } = useAuth();
 
-  if (authLoading || roleLoading) {
+  if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <Skeleton className="h-20 w-full mb-4" />
@@ -28,8 +26,11 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   }
 
   if (requiredRole) {
-    const allowedRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
-    if (!role || !allowedRoles.includes(role)) {
+    if (requiredRole === 'admin' && !user.isAdmin) {
+      return <Navigate to="/" replace />;
+    }
+
+    if (requiredRole === 'vendor' && user?.app_metadata?.role !== 'vendor') {
       return <Navigate to="/" replace />;
     }
   }
