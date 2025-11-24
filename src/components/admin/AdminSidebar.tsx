@@ -1,17 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { Package, ShoppingCart, Users, LayoutDashboard, Database, Store, Settings, FileSpreadsheet, CheckSquare, CreditCard, BarChart3, FileText, Mail, Archive } from "lucide-react";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from "@/components/ui/sidebar";
-import { useAuth } from "@/contexts/AuthContext"; // Import your auth context
+import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
+import { useAuth } from "@/contexts/AuthContext";
 
 const SUPER_ADMIN_EMAIL = "johnmulama001@gmail.com";
 
@@ -35,18 +25,12 @@ const adminItems = [
 export function AdminSidebar() {
   const { open } = useSidebar();
   const location = useLocation();
-  const { user } = useAuth(); // get current logged-in user
+  const { user } = useAuth();
 
-  // Only allow admin users to see this sidebar
-  if (!user || !user.isAdmin || user.email !== SUPER_ADMIN_EMAIL) return null;
+  if (!user?.isAdmin || user.email !== SUPER_ADMIN_EMAIL) return null;
 
-  const isActive = (path: string, end?: boolean) => {
-    if (end) return location.pathname === path;
-    return location.pathname.startsWith(path);
-  };
-
-  const getNavCls = (active: boolean) =>
-    active ? "bg-primary text-primary-foreground" : "hover:bg-muted";
+  const isActive = (path: string, end?: boolean) => (end ? location.pathname === path : location.pathname.startsWith(path));
+  const getNavCls = (active: boolean) => (active ? "bg-primary text-primary-foreground" : "hover:bg-muted");
 
   return (
     <Sidebar collapsible="icon">
@@ -55,14 +39,10 @@ export function AdminSidebar() {
           <SidebarGroupLabel>Admin Panel</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {adminItems.map((item) => (
+              {adminItems.map(item => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.url}
-                      end={item.end}
-                      className={({ isActive }) => getNavCls(isActive)}
-                    >
+                    <NavLink to={item.url} end={item.end} className={({ isActive }) => getNavCls(isActive)}>
                       <item.icon className="h-4 w-4" />
                       {open && <span>{item.title}</span>}
                     </NavLink>
