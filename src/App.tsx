@@ -17,6 +17,9 @@ import ProfilePage from "./pages/ProfilePage";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminProducts from "./pages/admin/AdminProducts";
+import AdminProductImport from "./pages/admin/AdminProductImport";
+import AdminOrderApproval from "./pages/admin/AdminOrderApproval";
+import AdminPaymentSettings from "./pages/admin/AdminPaymentSettings";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminDataMigration from "./pages/admin/AdminDataMigration";
@@ -67,7 +70,10 @@ const AppContent = () => {
           <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminLayout /></ProtectedRoute>}>
             <Route index element={<AdminDashboard />} />
             <Route path="products" element={<AdminProducts />} />
+            <Route path="import" element={<AdminProductImport />} />
             <Route path="orders" element={<AdminOrders />} />
+            <Route path="approvals" element={<AdminOrderApproval />} />
+            <Route path="payment" element={<AdminPaymentSettings />} />
             <Route path="users" element={<AdminUsers />} />
             <Route path="vendors" element={<AdminVendors />} />
             <Route path="settings" element={<AdminSettings />} />
