@@ -38,16 +38,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const assignRole = (user: User): ExtendedUser => {
     const extendedUser: ExtendedUser = { ...user };
-
     if (user.email === SUPER_ADMIN_EMAIL) extendedUser.role = "admin";
     else if ((user.app_metadata as any)?.role === "vendor") extendedUser.role = "vendor";
     else extendedUser.role = "user";
-
     return extendedUser;
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const currentUser = session?.user ? assignRole(session.user) : null;
       setSession(session);
       setUser(currentUser);
@@ -71,25 +69,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       password,
       options: { emailRedirectTo: redirectUrl, data: { full_name: fullName || '' } }
     });
-
     const newUser = data?.user ? assignRole(data.user) : null;
     if (newUser) setUser(newUser);
-
     if (error) toast({ title: "Sign up failed", description: error.message, variant: "destructive" });
     else toast({ title: "Account created!", description: "You can now sign in to your account." });
-
     return { error, user: newUser };
   };
 
   const signIn = async (email: string, password: string) => {
     const { error, data } = await supabase.auth.signInWithPassword({ email, password });
     const currentUser = data?.user ? assignRole(data.user) : null;
-
     if (currentUser) setUser(currentUser);
-
     if (error) toast({ title: "Sign in failed", description: error.message, variant: "destructive" });
     else toast({ title: "Welcome back!", description: "You've successfully signed in." });
-
     return { error, user: currentUser };
   };
 
