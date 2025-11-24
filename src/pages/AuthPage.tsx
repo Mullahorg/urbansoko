@@ -23,12 +23,9 @@ const signUpSchema = signInSchema.extend({
   path: ['confirmPassword']
 });
 
-// Super admin email
-const SUPER_ADMIN_EMAIL = "johnmulama001@gmail.com";
-
 const AuthPage = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn, signUp, user, setUser } = useAuth();
+  const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
 
   const [signInData, setSignInData] = useState({ email: '', password: '' });
@@ -41,14 +38,7 @@ const AuthPage = () => {
 
   useEffect(() => {
     if (user) {
-      if (user.email === SUPER_ADMIN_EMAIL) {
-        user.isAdmin = true;
-      }
-      if (user.isAdmin) {
-        navigate('/admin');
-      } else {
-        navigate('/');
-      }
+      navigate('/');
     }
   }, [user, navigate]);
 
@@ -63,8 +53,7 @@ const AuthPage = () => {
     try {
       signInSchema.parse(signInData);
       setIsLoading(true);
-      const { user: loggedInUser } = await signIn(signInData.email, signInData.password);
-      if (loggedInUser) setUser(loggedInUser);
+      await signIn(signInData.email, signInData.password);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors: any = {};
@@ -80,8 +69,7 @@ const AuthPage = () => {
     try {
       signUpSchema.parse(signUpData);
       setIsLoading(true);
-      const { user: newUser } = await signUp(signUpData.email, signUpData.password, signUpData.fullName);
-      if (newUser) setUser(newUser);
+      await signUp(signUpData.email, signUpData.password, signUpData.fullName);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors: any = {};

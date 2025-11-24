@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserRole } from '@/hooks/useUserRole';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface ProtectedRouteProps {
@@ -9,7 +10,10 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const { isAdmin, isVendor, loading: roleLoading } = useUserRole();
+
+  const loading = authLoading || roleLoading;
 
   if (loading) {
     return (
@@ -26,11 +30,11 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   }
 
   if (requiredRole) {
-    if (requiredRole === 'admin' && !user.isAdmin) {
+    if (requiredRole === 'admin' && !isAdmin) {
       return <Navigate to="/" replace />;
     }
 
-    if (requiredRole === 'vendor' && user?.app_metadata?.role !== 'vendor') {
+    if (requiredRole === 'vendor' && !isVendor) {
       return <Navigate to="/" replace />;
     }
   }
