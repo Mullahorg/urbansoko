@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Eye, EyeOff } from 'lucide-react';
 import { z } from 'zod';
 
 const signInSchema = z.object({
@@ -34,6 +35,10 @@ const AuthPage = () => {
     fullName: '' 
   });
   const [errors, setErrors] = useState<any>({});
+  
+  const [showSignInPassword, setShowSignInPassword] = useState(false);
+  const [showSignUpPassword, setShowSignUpPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -112,12 +117,28 @@ const AuthPage = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signin-password">Password</Label>
-                  <Input
-                    id="signin-password"
-                    type="password"
-                    value={signInData.password}
-                    onChange={e => setSignInData({ ...signInData, password: e.target.value })}
-                  />
+                  <div className="relative">
+                    <Input
+                      id="signin-password"
+                      type={showSignInPassword ? "text" : "password"}
+                      value={signInData.password}
+                      onChange={e => setSignInData({ ...signInData, password: e.target.value })}
+                      className="pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() => setShowSignInPassword(!showSignInPassword)}
+                    >
+                      {showSignInPassword ? (
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </Button>
+                  </div>
                   {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
@@ -152,22 +173,54 @@ const AuthPage = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-password">Password</Label>
-                  <Input
-                    id="signup-password"
-                    type="password"
-                    value={signUpData.password}
-                    onChange={e => setSignUpData({ ...signUpData, password: e.target.value })}
-                  />
+                  <div className="relative">
+                    <Input
+                      id="signup-password"
+                      type={showSignUpPassword ? "text" : "password"}
+                      value={signUpData.password}
+                      onChange={e => setSignUpData({ ...signUpData, password: e.target.value })}
+                      className="pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() => setShowSignUpPassword(!showSignUpPassword)}
+                    >
+                      {showSignUpPassword ? (
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </Button>
+                  </div>
                   {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-confirm">Confirm Password</Label>
-                  <Input
-                    id="signup-confirm"
-                    type="password"
-                    value={signUpData.confirmPassword}
-                    onChange={e => setSignUpData({ ...signUpData, confirmPassword: e.target.value })}
-                  />
+                  <div className="relative">
+                    <Input
+                      id="signup-confirm"
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={signUpData.confirmPassword}
+                      onChange={e => setSignUpData({ ...signUpData, confirmPassword: e.target.value })}
+                      className="pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </Button>
+                  </div>
                   {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>

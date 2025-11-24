@@ -1,4 +1,4 @@
-import { Palette } from 'lucide-react';
+import { Palette, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { 
   DropdownMenu, 
@@ -11,7 +11,7 @@ import {
 import { useTheme } from '@/contexts/ThemeContext';
 
 const ThemeSelector = () => {
-  const { colorScheme, setColorScheme } = useTheme();
+  const { theme, colorScheme, setColorScheme, toggleTheme, isDark } = useTheme();
 
   const schemes = [
     { id: 'default', name: 'Classic Gold', color: 'bg-yellow-500' },
@@ -27,8 +27,23 @@ const ThemeSelector = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48 bg-card border border-border shadow-lg z-50">
-        <DropdownMenuLabel>Choose Theme</DropdownMenuLabel>
+        <DropdownMenuLabel>Mode</DropdownMenuLabel>
+        <DropdownMenuItem
+          onClick={toggleTheme}
+          className="cursor-pointer hover:bg-accent"
+        >
+          <div className="flex items-center gap-3">
+            {isDark ? (
+              <Sun className="h-4 w-4" />
+            ) : (
+              <Moon className="h-4 w-4" />
+            )}
+            <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>
+          </div>
+        </DropdownMenuItem>
+        
         <DropdownMenuSeparator />
+        <DropdownMenuLabel>Color Scheme</DropdownMenuLabel>
         {schemes.map((scheme) => (
           <DropdownMenuItem
             key={scheme.id}
