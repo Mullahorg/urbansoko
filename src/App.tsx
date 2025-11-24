@@ -19,6 +19,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminProducts from "./pages/admin/AdminProducts";
 import AdminProductImport from "./pages/admin/AdminProductImport";
+import AdminInventory from "./pages/admin/AdminInventory";
 import AdminOrderApproval from "./pages/admin/AdminOrderApproval";
 import AdminPaymentSettings from "./pages/admin/AdminPaymentSettings";
 import AdminContent from "./pages/admin/AdminContent";
@@ -76,6 +77,7 @@ const AppContent = () => {
             <Route path="analytics" element={<AdminAnalytics />} />
             <Route path="products" element={<AdminProducts />} />
             <Route path="import" element={<AdminProductImport />} />
+            <Route path="inventory" element={<AdminInventory />} />
             <Route path="orders" element={<AdminOrders />} />
             <Route path="approvals" element={<AdminOrderApproval />} />
             <Route path="payment" element={<AdminPaymentSettings />} />
