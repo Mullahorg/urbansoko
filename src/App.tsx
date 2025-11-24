@@ -3,7 +3,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import CategoryPage from "./pages/CategoryPage";
@@ -14,6 +15,7 @@ import AuthPage from "./pages/AuthPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import OrdersPage from "./pages/OrdersPage";
 import ProfilePage from "./pages/ProfilePage";
+
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
@@ -29,12 +31,14 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminDataMigration from "./pages/admin/AdminDataMigration";
 import AdminVendors from "./pages/admin/AdminVendors";
 import AdminSettings from "./pages/admin/AdminSettings";
+
 import WishlistPage from "./pages/WishlistPage";
 import OrderTrackingPage from "./pages/OrderTrackingPage";
 import RewardsPage from "./pages/RewardsPage";
 import VendorRegistrationPage from "./pages/VendorRegistrationPage";
 import VendorDashboard from "./pages/vendor/VendorDashboard";
 import VendorProducts from "./pages/vendor/VendorProducts";
+
 import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
 import TermsPage from "./pages/TermsPage";
@@ -42,17 +46,32 @@ import PrivacyPage from "./pages/PrivacyPage";
 import ReturnPolicyPage from "./pages/ReturnPolicyPage";
 import FAQPage from "./pages/FAQPage";
 import ShippingPage from "./pages/ShippingPage";
+
 import Header from "./components/Layout/Header";
 import { Footer } from "./components/Layout/Footer";
 import InstallPrompt from "./components/PWA/InstallPrompt";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
+
 import { CartProvider, useCart } from "./contexts/CartContext";
-import { AuthProvider } from "./contexts/AuthContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
 
 const queryClient = new QueryClient();
+
+// Centralized role-check route wrapper
+const RoleRoute = ({ children, requiredRole }: { children: JSX.Element; requiredRole?: string }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) return null; // optionally a loader
+  if (!user) return <Navigate to="/auth" replace />;
+
+  if (requiredRole === "admin" && !user.isAdmin) return <Navigate to="/" replace />;
+  if (requiredRole === "vendor" && user.isAdmin) return <Navigate to="/" replace />;
+
+  return children;
+};
 
 const AppContent = () => {
   const { getTotalItems } = useCart();
@@ -70,9 +89,16 @@ const AppContent = () => {
           <Route path="/product/:id" element={<ProductDetailPage />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-          <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminLayout /></ProtectedRoute>}>
+          <Route path="/orders" element={<RoleRoute><OrdersPage /></RoleRoute>} />
+          <Route path="/profile" element={<RoleRoute><ProfilePage /></RoleRoute>} />
+          <Route path="/wishlist" element={<RoleRoute><WishlistPage /></RoleRoute>} />
+          <Route path="/rewards" element={<RoleRoute><RewardsPage /></RoleRoute>} />
+          <Route path="/vendor/register" element={<RoleRoute requiredRole="vendor"><VendorRegistrationPage /></RoleRoute>} />
+          <Route path="/vendor/dashboard" element={<RoleRoute requiredRole="vendor"><VendorDashboard /></RoleRoute>} />
+          <Route path="/vendor/products" element={<RoleRoute requiredRole="vendor"><VendorProducts /></RoleRoute>} />
+
+          {/* Admin routes */}
+          <Route path="/admin" element={<RoleRoute requiredRole="admin"><AdminLayout /></RoleRoute>}>
             <Route index element={<AdminDashboard />} />
             <Route path="analytics" element={<AdminAnalytics />} />
             <Route path="products" element={<AdminProducts />} />
@@ -88,14 +114,9 @@ const AppContent = () => {
             <Route path="settings" element={<AdminSettings />} />
             <Route path="migrate" element={<AdminDataMigration />} />
           </Route>
-          <Route path="/wishlist" element={<ProtectedRoute><WishlistPage /></ProtectedRoute>} />
-          <Route path="/track-order" element={<OrderTrackingPage />} />
-          <Route path="/rewards" element={<ProtectedRoute><RewardsPage /></ProtectedRoute>} />
-          <Route path="/vendor/register" element={<ProtectedRoute><VendorRegistrationPage /></ProtectedRoute>} />
-          <Route path="/vendor/dashboard" element={<ProtectedRoute requiredRole="vendor"><VendorDashboard /></ProtectedRoute>} />
-          <Route path="/vendor/products" element={<ProtectedRoute requiredRole="vendor"><VendorProducts /></ProtectedRoute>} />
-          
+
           {/* Info Pages */}
+          <Route path="/track-order" element={<OrderTrackingPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/terms" element={<TermsPage />} />
@@ -103,8 +124,8 @@ const AppContent = () => {
           <Route path="/return-policy" element={<ReturnPolicyPage />} />
           <Route path="/faq" element={<FAQPage />} />
           <Route path="/shipping" element={<ShippingPage />} />
-          
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+
+          {/* Catch-all */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
