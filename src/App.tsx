@@ -25,6 +25,17 @@ import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminProducts from "./pages/admin/AdminProducts";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
+import AdminInventory from "./pages/admin/AdminInventory";
+import AdminOrders from "./pages/admin/AdminOrders";
+import AdminOrderApproval from "./pages/admin/AdminOrderApproval";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminVendors from "./pages/admin/AdminVendors";
+import AdminSubscribers from "./pages/admin/AdminSubscribers";
+import AdminContent from "./pages/admin/AdminContent";
+import AdminSettings from "./pages/admin/AdminSettings";
+import AdminPaymentSettings from "./pages/admin/AdminPaymentSettings";
+import AdminProductImport from "./pages/admin/AdminProductImport";
+import AdminDataMigration from "./pages/admin/AdminDataMigration";
 
 // Vendor Pages
 import VendorDashboard from "./pages/vendor/VendorDashboard";
@@ -53,6 +64,17 @@ const AppContent = () => {
             <Route index element={<AdminDashboard />} />
             <Route path="products" element={<AdminProducts />} />
             <Route path="analytics" element={<AdminAnalytics />} />
+            <Route path="inventory" element={<AdminInventory />} />
+            <Route path="orders" element={<AdminOrders />} />
+            <Route path="approvals" element={<AdminOrderApproval />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="vendors" element={<AdminVendors />} />
+            <Route path="subscribers" element={<AdminSubscribers />} />
+            <Route path="content" element={<AdminContent />} />
+            <Route path="settings" element={<AdminSettings />} />
+            <Route path="payment" element={<AdminPaymentSettings />} />
+            <Route path="import" element={<AdminProductImport />} />
+            <Route path="migrate" element={<AdminDataMigration />} />
           </Route>
 
           {/* Vendor Routes */}
