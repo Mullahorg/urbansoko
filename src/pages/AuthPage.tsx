@@ -22,9 +22,12 @@ const signUpSchema = signInSchema.extend({
   path: ['confirmPassword']
 });
 
+// Set your super admin email here
+const SUPER_ADMIN_EMAIL = "johnmulama001@gmail.com";
+
 const AuthPage = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, signUp, user, setUser } = useAuth(); // Ensure setUser exists in your context
   const navigate = useNavigate();
 
   const [signInData, setSignInData] = useState({ email: '', password: '' });
@@ -42,18 +45,34 @@ const AuthPage = () => {
 
   useEffect(() => {
     if (user) {
-      navigate('/');
+      // Redirect admin to admin dashboard
+      if (user.isAdmin) {
+        navigate('/admin-dashboard'); 
+      } else {
+        navigate('/');
+      }
     }
   }, [user, navigate]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
-    
+
     try {
       signInSchema.parse(signInData);
       setIsLoading(true);
-      await signIn(signInData.email, signInData.password);
+
+      const loggedInUser = await signIn(signInData.email, signInData.password);
+
+      // Assign admin if email matches
+      if (loggedInUser.email === SUPER_ADMIN_EMAIL) {
+        loggedInUser.isAdmin = true;
+      } else {
+        loggedInUser.isAdmin = false;
+      }
+
+      setUser(loggedInUser); // Save updated user in context
+
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors: any = {};
@@ -70,11 +89,22 @@ const AuthPage = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
-    
+
     try {
       signUpSchema.parse(signUpData);
       setIsLoading(true);
-      await signUp(signUpData.email, signUpData.password, signUpData.fullName);
+
+      const newUser = await signUp(signUpData.email, signUpData.password, signUpData.fullName);
+
+      // Assign admin if email matches
+      if (newUser.email === SUPER_ADMIN_EMAIL) {
+        newUser.isAdmin = true;
+      } else {
+        newUser.isAdmin = false;
+      }
+
+      setUser(newUser); // Save updated user in context
+
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors: any = {};
