@@ -46,7 +46,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return extendedUser;
   };
 
-  // Load session on mount
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       const currentUser = session?.user ? assignRole(session.user) : null;
@@ -70,10 +69,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const { error, data } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: { full_name: fullName || '' }
-      }
+      options: { emailRedirectTo: redirectUrl, data: { full_name: fullName || '' } }
     });
 
     const newUser = data?.user ? assignRole(data.user) : null;
