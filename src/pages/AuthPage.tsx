@@ -6,9 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Moon, Sun } from 'lucide-react';
 import { z } from 'zod';
 
+// Validation schemas
 const signInSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters')
@@ -22,107 +23,103 @@ const signUpSchema = signInSchema.extend({
   path: ['confirmPassword']
 });
 
-// Set your super admin email here
+// Super admin email
 const SUPER_ADMIN_EMAIL = "johnmulama001@gmail.com";
 
 const AuthPage = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn, signUp, user, setUser } = useAuth(); // Ensure setUser exists in your context
+  const { signIn, signUp, user, setUser } = useAuth();
   const navigate = useNavigate();
 
   const [signInData, setSignInData] = useState({ email: '', password: '' });
-  const [signUpData, setSignUpData] = useState({ 
-    email: '', 
-    password: '', 
-    confirmPassword: '', 
-    fullName: '' 
-  });
+  const [signUpData, setSignUpData] = useState({ email: '', password: '', confirmPassword: '', fullName: '' });
   const [errors, setErrors] = useState<any>({});
-  
   const [showSignInPassword, setShowSignInPassword] = useState(false);
   const [showSignUpPassword, setShowSignUpPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
 
+  // Redirect user based on role
   useEffect(() => {
     if (user) {
-      // Redirect admin to admin dashboard
+      // Force super admin
+      if (user.email === SUPER_ADMIN_EMAIL) {
+        user.isAdmin = true;
+      }
+
       if (user.isAdmin) {
-        navigate('/admin-dashboard'); 
+        navigate('/admin');
       } else {
         navigate('/');
       }
     }
   }, [user, navigate]);
 
+  // Dark mode toggle
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
-
     try {
       signInSchema.parse(signInData);
       setIsLoading(true);
 
       const loggedInUser = await signIn(signInData.email, signInData.password);
 
-      // Assign admin if email matches
-      if (loggedInUser.email === SUPER_ADMIN_EMAIL) {
-        loggedInUser.isAdmin = true;
-      } else {
-        loggedInUser.isAdmin = false;
-      }
+      // Auto-assign admin role
+      loggedInUser.isAdmin = loggedInUser.email === SUPER_ADMIN_EMAIL;
 
-      setUser(loggedInUser); // Save updated user in context
+      setUser(loggedInUser);
 
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors: any = {};
-        error.errors.forEach(err => {
-          fieldErrors[err.path[0]] = err.message;
-        });
+        error.errors.forEach(err => { fieldErrors[err.path[0]] = err.message; });
         setErrors(fieldErrors);
       }
-    } finally {
-      setIsLoading(false);
-    }
+    } finally { setIsLoading(false); }
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
-
     try {
       signUpSchema.parse(signUpData);
       setIsLoading(true);
 
       const newUser = await signUp(signUpData.email, signUpData.password, signUpData.fullName);
 
-      // Assign admin if email matches
-      if (newUser.email === SUPER_ADMIN_EMAIL) {
-        newUser.isAdmin = true;
-      } else {
-        newUser.isAdmin = false;
-      }
+      // Auto-assign admin role
+      newUser.isAdmin = newUser.email === SUPER_ADMIN_EMAIL;
 
-      setUser(newUser); // Save updated user in context
+      setUser(newUser);
 
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors: any = {};
-        error.errors.forEach(err => {
-          fieldErrors[err.path[0]] = err.message;
-        });
+        error.errors.forEach(err => { fieldErrors[err.path[0]] = err.message; });
         setErrors(fieldErrors);
       }
-    } finally {
-      setIsLoading(false);
-    }
+    } finally { setIsLoading(false); }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background to-accent/10">
       <Card className="w-full max-w-md animate-fade-in">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold">Male Afrique</CardTitle>
+        <CardHeader className="text-center flex flex-col items-center gap-2">
+          <div className="flex items-center gap-2">
+            <CardTitle className="text-3xl font-bold">Male Afrique</CardTitle>
+            <Button size="icon" variant="ghost" onClick={() => setDarkMode(!darkMode)}>
+              {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </Button>
+          </div>
           <CardDescription>Welcome to Kenya's premier men's fashion store</CardDescription>
         </CardHeader>
         <CardContent>
@@ -131,7 +128,8 @@ const AuthPage = () => {
               <TabsTrigger value="signin">Sign In</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
-            
+
+            {/* Sign In */}
             <TabsContent value="signin">
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div className="space-y-2">
@@ -162,11 +160,7 @@ const AuthPage = () => {
                       className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                       onClick={() => setShowSignInPassword(!showSignInPassword)}
                     >
-                      {showSignInPassword ? (
-                        <EyeOff className="h-4 w-4 text-muted-foreground" />
-                      ) : (
-                        <Eye className="h-4 w-4 text-muted-foreground" />
-                      )}
+                      {showSignInPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
                     </Button>
                   </div>
                   {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
@@ -176,7 +170,8 @@ const AuthPage = () => {
                 </Button>
               </form>
             </TabsContent>
-            
+
+            {/* Sign Up */}
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
@@ -218,11 +213,7 @@ const AuthPage = () => {
                       className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                       onClick={() => setShowSignUpPassword(!showSignUpPassword)}
                     >
-                      {showSignUpPassword ? (
-                        <EyeOff className="h-4 w-4 text-muted-foreground" />
-                      ) : (
-                        <Eye className="h-4 w-4 text-muted-foreground" />
-                      )}
+                      {showSignUpPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
                     </Button>
                   </div>
                   {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
@@ -244,11 +235,7 @@ const AuthPage = () => {
                       className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     >
-                      {showConfirmPassword ? (
-                        <EyeOff className="h-4 w-4 text-muted-foreground" />
-                      ) : (
-                        <Eye className="h-4 w-4 text-muted-foreground" />
-                      )}
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
                     </Button>
                   </div>
                   {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
