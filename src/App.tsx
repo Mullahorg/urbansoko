@@ -17,21 +17,43 @@ import ErrorBoundary from "./components/ErrorBoundary";
 
 import Index from "./pages/Index";
 import AuthPage from "./pages/AuthPage";
+import NotFound from "./pages/NotFound";
+
+// Admin Pages
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import NotFound from "./pages/NotFound";
-// ... import other pages
+import AdminAnalytics from "./pages/admin/AdminAnalytics";
+import AdminProducts from "./pages/admin/AdminProducts";
+// ... import other admin pages
+
+// Vendor Pages
+import VendorDashboard from "./pages/vendor/VendorDashboard";
+import VendorProducts from "./pages/vendor/VendorProducts";
+
+// User Pages
+import ProfilePage from "./pages/ProfilePage";
+import OrdersPage from "./pages/OrdersPage";
+import WishlistPage from "./pages/WishlistPage";
 
 const queryClient = new QueryClient();
 
-// RoleRoute wrapper
-const RoleRoute = ({ children, requiredRole }: { children: JSX.Element; requiredRole?: "admin" | "vendor" | "user" }) => {
+// Correct RoleRoute
+const RoleRoute = ({
+  children,
+  requiredRole,
+}: {
+  children: JSX.Element;
+  requiredRole?: "admin" | "vendor" | "user";
+}) => {
   const { user, loading } = useAuth();
 
-  if (loading) return null; // optionally a loader
+  if (loading) return <div>Loading...</div>;
   if (!user) return <Navigate to="/auth" replace />;
 
-  if (requiredRole && user.role !== requiredRole) return <Navigate to="/" replace />;
+  // Determine role
+  const role = user.isAdmin ? "admin" : user.isVendor ? "vendor" : "user";
+
+  if (requiredRole && role !== requiredRole) return <Navigate to="/" replace />;
 
   return children;
 };
@@ -48,17 +70,65 @@ const AppContent = () => {
           <Route path="/auth" element={<AuthPage />} />
 
           {/* Admin Routes */}
-          <Route path="/admin" element={<RoleRoute requiredRole="admin"><AdminLayout /></RoleRoute>}>
+          <Route
+            path="/admin"
+            element={
+              <RoleRoute requiredRole="admin">
+                <AdminLayout />
+              </RoleRoute>
+            }
+          >
             <Route index element={<AdminDashboard />} />
-            {/* other admin nested routes */}
+            <Route path="analytics" element={<AdminAnalytics />} />
+            <Route path="products" element={<AdminProducts />} />
+            {/* add all other nested admin routes here */}
           </Route>
 
           {/* Vendor Routes */}
-          <Route path="/vendor/dashboard" element={<RoleRoute requiredRole="vendor"><div>Vendor Dashboard</div></RoleRoute>} />
+          <Route
+            path="/vendor/dashboard"
+            element={
+              <RoleRoute requiredRole="vendor">
+                <VendorDashboard />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="/vendor/products"
+            element={
+              <RoleRoute requiredRole="vendor">
+                <VendorProducts />
+              </RoleRoute>
+            }
+          />
 
           {/* Protected User Routes */}
-          <Route path="/profile" element={<RoleRoute requiredRole="user"><div>Profile Page</div></RoleRoute>} />
+          <Route
+            path="/profile"
+            element={
+              <RoleRoute requiredRole="user">
+                <ProfilePage />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="/orders"
+            element={
+              <RoleRoute requiredRole="user">
+                <OrdersPage />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="/wishlist"
+            element={
+              <RoleRoute requiredRole="user">
+                <WishlistPage />
+              </RoleRoute>
+            }
+          />
 
+          {/* Catch-all */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
