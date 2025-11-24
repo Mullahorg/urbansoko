@@ -27,10 +27,11 @@ export function AdminSidebar() {
   const location = useLocation();
   const { user } = useAuth();
 
-  if (!user?.isAdmin || user.email !== SUPER_ADMIN_EMAIL) return null;
+  // Only show sidebar to super admin
+  if (!user || !user.isAdmin || user.email !== SUPER_ADMIN_EMAIL) return null;
 
-  const isActive = (path: string, end?: boolean) => (end ? location.pathname === path : location.pathname.startsWith(path));
-  const getNavCls = (active: boolean) => (active ? "bg-primary text-primary-foreground" : "hover:bg-muted");
+  const isActive = (path: string, end?: boolean) => end ? location.pathname === path : location.pathname.startsWith(path);
+  const getNavCls = (active: boolean) => active ? "bg-primary text-primary-foreground" : "hover:bg-muted";
 
   return (
     <Sidebar collapsible="icon">
