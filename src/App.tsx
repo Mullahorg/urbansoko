@@ -46,6 +46,23 @@ import ProfilePage from "./pages/ProfilePage";
 import OrdersPage from "./pages/OrdersPage";
 import WishlistPage from "./pages/WishlistPage";
 
+// Public Pages
+import ProductsPage from "./pages/ProductsPage";
+import ProductDetailPage from "./pages/ProductDetailPage";
+import CategoryPage from "./pages/CategoryPage";
+import SearchPage from "./pages/SearchPage";
+import CheckoutPage from "./pages/CheckoutPage";
+import AboutPage from "./pages/AboutPage";
+import ContactPage from "./pages/ContactPage";
+import FAQPage from "./pages/FAQPage";
+import ShippingPage from "./pages/ShippingPage";
+import ReturnPolicyPage from "./pages/ReturnPolicyPage";
+import PrivacyPage from "./pages/PrivacyPage";
+import TermsPage from "./pages/TermsPage";
+import OrderTrackingPage from "./pages/OrderTrackingPage";
+import RewardsPage from "./pages/RewardsPage";
+import VendorRegistrationPage from "./pages/VendorRegistrationPage";
+
 const queryClient = new QueryClient();
 
 const AppContent = () => {
@@ -58,6 +75,23 @@ const AppContent = () => {
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<AuthPage />} />
+          
+          {/* Public Pages */}
+          <Route path="/products" element={<ProductsPage />} />
+          <Route path="/product/:id" element={<ProductDetailPage />} />
+          <Route path="/category/:category" element={<CategoryPage />} />
+          <Route path="/search" element={<SearchPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/faq" element={<FAQPage />} />
+          <Route path="/shipping" element={<ShippingPage />} />
+          <Route path="/returns" element={<ReturnPolicyPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/track-order" element={<OrderTrackingPage />} />
+          <Route path="/rewards" element={<RewardsPage />} />
+          <Route path="/vendor-registration" element={<VendorRegistrationPage />} />
 
           {/* Admin Routes */}
           <Route path="/admin" element={<RoleRoute requiredRole="admin"><AdminLayout /></RoleRoute>}>

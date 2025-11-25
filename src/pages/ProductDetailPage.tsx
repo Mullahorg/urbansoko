@@ -12,13 +12,16 @@ import QuickView from '@/components/Product/QuickView';
 import ReviewSection from '@/components/Product/ReviewSection';
 import { SizeGuideModal } from '@/components/Product/SizeGuideModal';
 import { ShippingCalculator } from '@/components/Product/ShippingCalculator';
-import { products } from '@/data/products';
 import { useCart } from '@/contexts/CartContext';
 import { formatPrice } from '@/utils/currency';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const ProductDetailPage = () => {
   const { id } = useParams();
+  const [product, setProduct] = useState<any>(null);
+  const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
   const [quantity, setQuantity] = useState(1);
@@ -30,14 +33,56 @@ const ProductDetailPage = () => {
   const { addToCart } = useCart();
   const { toast } = useToast();
 
-  const product = products.find(p => p.id === id);
-  
   useEffect(() => {
-    if (product) {
-      setSelectedColor(product.colors[0]);
-      setSelectedSize(product.sizes[0]);
+    if (id) {
+      fetchProduct();
     }
-  }, [product]);
+  }, [id]);
+
+  const fetchProduct = async () => {
+    try {
+      const { data: productData, error: productError } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (productError) throw productError;
+      
+      setProduct(productData);
+      
+      if (productData) {
+        setSelectedColor(productData.colors?.[0] || '');
+        setSelectedSize(productData.sizes?.[0] || '');
+
+        // Fetch related products
+        const { data: related } = await supabase
+          .from('products')
+          .select('*')
+          .eq('category', productData.category)
+          .neq('id', id)
+          .limit(4);
+        
+        setRelatedProducts(related || []);
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Error loading product',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Loading product...</p>
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -53,7 +98,7 @@ const ProductDetailPage = () => {
   }
 
   const handleAddToCart = () => {
-    if (!selectedSize && product.sizes.length > 0) {
+    if (!selectedSize && product.sizes?.length > 0) {
       toast({
         title: "Please select a size",
         variant: "destructive"
@@ -61,13 +106,19 @@ const ProductDetailPage = () => {
       return;
     }
 
+    const productForCart = {
+      ...product,
+      image: product.image_url || product.images?.[0],
+      inStock: product.stock > 0,
+    };
+
     for (let i = 0; i < quantity; i++) {
-      addToCart(product, selectedSize, selectedColor);
+      addToCart(productForCart, selectedSize, selectedColor);
     }
   };
 
   const handleBuyNow = () => {
-    if (!selectedSize && product.sizes.length > 0) {
+    if (!selectedSize && product.sizes?.length > 0) {
       toast({
         title: "Please select a size",
         variant: "destructive"
@@ -75,32 +126,19 @@ const ProductDetailPage = () => {
       return;
     }
 
-    for (let i = 0; i < quantity; i++) {
-      addToCart(product, selectedSize, selectedColor);
-    }
-    
+    handleAddToCart();
     toast({
       title: "Proceeding to Checkout",
-      description: `${product.name} - Redirecting to M-Pesa payment...`,
-      className: "toast-success"
+      description: `${product.name} - Redirecting to checkout...`,
     });
   };
 
-  const handleQuickView = (product: any) => {
-    setQuickViewProduct(product);
+  const handleQuickView = (prod: any) => {
+    setQuickViewProduct(prod);
     setIsQuickViewOpen(true);
   };
 
-  const relatedProducts = products
-    .filter(p => p.category === product.category && p.id !== product.id)
-    .slice(0, 4);
-
-  const discountPercentage = product.originalPrice 
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-    : 0;
-
-  // Mock additional images (in real app, these would come from product data)
-  const productImages = [product.image, product.image, product.image, product.image];
+  const productImages = product.images?.length > 0 ? product.images : [product.image_url];
 
   const nextImage = () => {
     setSelectedImage((prev) => (prev + 1) % productImages.length);
@@ -140,55 +178,39 @@ const ProductDetailPage = () => {
                   <button
                     onClick={prevImage}
                     className="absolute left-2 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    aria-label="Previous image"
                   >
                     <ChevronLeft className="h-5 w-5" />
                   </button>
                   <button
                     onClick={nextImage}
                     className="absolute right-2 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    aria-label="Next image"
                   >
                     <ChevronRight className="h-5 w-5" />
                   </button>
-                  
-                  {/* Image indicators */}
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
-                    {productImages.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setSelectedImage(index)}
-                        className={`h-1.5 rounded-full transition-all ${
-                          selectedImage === index 
-                            ? 'w-6 bg-primary' 
-                            : 'w-1.5 bg-background/60 hover:bg-background'
-                        }`}
-                        aria-label={`Go to image ${index + 1}`}
-                      />
-                    ))}
-                  </div>
                 </>
               )}
             </div>
             
             {/* Thumbnail grid */}
-            <div className="grid grid-cols-4 gap-2">
-              {productImages.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedImage(index)}
-                  className={`aspect-square rounded-lg overflow-hidden border-2 transition-all hover:scale-105 ${
-                    selectedImage === index ? 'border-primary shadow-md' : 'border-transparent'
-                  }`}
-                >
-                  <img
-                    src={image}
-                    alt={`${product.name} view ${index + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              ))}
-            </div>
+            {productImages.length > 1 && (
+              <div className="grid grid-cols-4 gap-2">
+                {productImages.map((image: string, index: number) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedImage(index)}
+                    className={`aspect-square rounded-lg overflow-hidden border-2 transition-all hover:scale-105 ${
+                      selectedImage === index ? 'border-primary shadow-md' : 'border-transparent'
+                    }`}
+                  >
+                    <img
+                      src={image}
+                      alt={`${product.name} view ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Product Info */}
@@ -196,8 +218,7 @@ const ProductDetailPage = () => {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Badge variant="secondary">{product.category}</Badge>
-                {product.isNew && <Badge className="bg-primary">New</Badge>}
-                {product.isSale && <Badge className="bg-accent">Sale</Badge>}
+                {product.featured && <Badge className="bg-primary">Featured</Badge>}
               </div>
               <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
               <div className="flex items-center gap-2 mb-4">
@@ -205,38 +226,28 @@ const ProductDetailPage = () => {
                   {[...Array(5)].map((_, i) => (
                     <Star key={i} className="h-4 w-4 fill-primary text-primary" />
                   ))}
-                  <span className="ml-2 text-sm text-muted-foreground">(127 reviews)</span>
+                  <span className="ml-2 text-sm text-muted-foreground">(Reviews)</span>
                 </div>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
               <span className="text-3xl font-bold text-primary">{formatPrice(product.price)}</span>
-              {product.originalPrice && (
-                <>
-                  <span className="text-xl text-muted-foreground line-through">
-                    {formatPrice(product.originalPrice)}
-                  </span>
-                  <Badge className="bg-accent">Save {discountPercentage}%</Badge>
-                </>
-              )}
             </div>
 
             <p className="text-muted-foreground">
-              Embrace authentic African style with this premium {product.category.toLowerCase()}. 
-              Crafted with attention to detail and designed for the modern man who appreciates 
-              cultural heritage combined with contemporary fashion.
+              {product.description || `Embrace authentic African style with this premium ${product.category.toLowerCase()}.`}
             </p>
 
             <Separator />
 
             {/* Options */}
             <div className="space-y-4">
-              {product.colors.length > 1 && (
+              {product.colors?.length > 0 && (
                 <div>
                   <label className="text-sm font-medium mb-2 block">Color</label>
                   <div className="flex gap-2">
-                    {product.colors.map(color => (
+                    {product.colors.map((color: string) => (
                       <button
                         key={color}
                         onClick={() => setSelectedColor(color)}
@@ -253,7 +264,7 @@ const ProductDetailPage = () => {
                 </div>
               )}
 
-              {product.sizes.length > 0 && (
+              {product.sizes?.length > 0 && (
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label className="text-sm font-medium">Size</label>
@@ -272,7 +283,7 @@ const ProductDetailPage = () => {
                       <SelectValue placeholder="Select size" />
                     </SelectTrigger>
                     <SelectContent>
-                      {product.sizes.map(size => (
+                      {product.sizes.map((size: string) => (
                         <SelectItem key={size} value={size}>{size}</SelectItem>
                       ))}
                     </SelectContent>
@@ -300,9 +311,9 @@ const ProductDetailPage = () => {
             {/* Actions */}
             <div className="space-y-3">
               <Button 
-                className="w-full animate-bounce-in" 
+                className="w-full" 
                 onClick={handleBuyNow}
-                disabled={!product.inStock}
+                disabled={product.stock <= 0}
                 size="lg"
               >
                 <Zap className="mr-2 h-4 w-4" />
@@ -314,7 +325,7 @@ const ProductDetailPage = () => {
                   variant="outline"
                   className="flex-1" 
                   onClick={handleAddToCart}
-                  disabled={!product.inStock}
+                  disabled={product.stock <= 0}
                   size="lg"
                 >
                   <ShoppingCart className="mr-2 h-4 w-4" />
@@ -332,8 +343,8 @@ const ProductDetailPage = () => {
                 </Button>
               </div>
 
-              {product.inStock && (
-                <p className="text-sm text-green-600">✓ In stock and ready to ship</p>
+              {product.stock > 0 && (
+                <p className="text-sm text-green-600">✓ In stock ({product.stock} available)</p>
               )}
             </div>
 
@@ -357,104 +368,39 @@ const ProductDetailPage = () => {
           </div>
         </div>
 
-        {/* Product Details Tabs */}
-        <div className="mb-16">
-          <Tabs defaultValue="description" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="description">Description</TabsTrigger>
-              <TabsTrigger value="sizing">Size Guide</TabsTrigger>
-              <TabsTrigger value="reviews">Reviews (127)</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="description" className="mt-6">
-              <Card>
-                <CardContent className="p-6">
-                  <h3 className="font-semibold mb-4">Product Description</h3>
-                  <div className="prose max-w-none">
-                    <p>
-                      This exquisite {product.name} represents the perfect fusion of traditional African 
-                      aesthetics and contemporary fashion. Meticulously crafted using premium materials, 
-                      this piece showcases authentic African patterns and motifs that celebrate the rich 
-                      cultural heritage of the continent.
-                    </p>
-                    <h4 className="font-semibold mt-4 mb-2">Features:</h4>
-                    <ul className="list-disc pl-6 space-y-1">
-                      <li>Premium quality fabric with authentic African prints</li>
-                      <li>Modern cut and tailoring for contemporary style</li>
-                      <li>Breathable and comfortable for all-day wear</li>
-                      <li>Machine washable with care instructions included</li>
-                      <li>Ethically sourced and responsibly manufactured</li>
-                    </ul>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="sizing" className="mt-6">
-              <Card>
-                <CardContent className="p-6">
-                  <h3 className="font-semibold mb-4">Size Guide</h3>
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse border border-border">
-                      <thead>
-                        <tr className="bg-muted">
-                          <th className="border border-border p-2 text-left">Size</th>
-                          <th className="border border-border p-2 text-left">Chest (cm)</th>
-                          <th className="border border-border p-2 text-left">Waist (cm)</th>
-                          <th className="border border-border p-2 text-left">Length (cm)</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr><td className="border border-border p-2">S</td><td className="border border-border p-2">88-92</td><td className="border border-border p-2">78-82</td><td className="border border-border p-2">68</td></tr>
-                        <tr><td className="border border-border p-2">M</td><td className="border border-border p-2">96-100</td><td className="border border-border p-2">86-90</td><td className="border border-border p-2">70</td></tr>
-                        <tr><td className="border border-border p-2">L</td><td className="border border-border p-2">104-108</td><td className="border border-border p-2">94-98</td><td className="border border-border p-2">72</td></tr>
-                        <tr><td className="border border-border p-2">XL</td><td className="border border-border p-2">112-116</td><td className="border border-border p-2">102-106</td><td className="border border-border p-2">74</td></tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="reviews" className="mt-6">
-              <ReviewSection productId={product.id} />
-            </TabsContent>
-          </Tabs>
-        </div>
-
         {/* Related Products */}
         {relatedProducts.length > 0 && (
-          <div>
-            <h2 className="text-2xl font-bold mb-8">You May Also Like</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="mb-16">
+            <h2 className="text-2xl font-bold mb-6">Related Products</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {relatedProducts.map((relatedProduct) => (
-              <ProductCard
-                key={relatedProduct.id}
-                product={relatedProduct}
-                onAddToCart={addToCart}
-                onToggleWishlist={() => {}}
-                onQuickView={handleQuickView}
-                isWishlisted={false}
-              />
+                <ProductCard
+                  key={relatedProduct.id}
+                  product={{
+                    ...relatedProduct,
+                    image: relatedProduct.image_url || relatedProduct.images?.[0],
+                    inStock: relatedProduct.stock > 0,
+                  }}
+                  onAddToCart={addToCart}
+                  onToggleWishlist={() => {}}
+                  onQuickView={handleQuickView}
+                  isWishlisted={false}
+                />
               ))}
             </div>
-
-            {/* Quick View Modal */}
-            <QuickView
-              product={quickViewProduct}
-              isOpen={isQuickViewOpen}
-              onClose={() => setIsQuickViewOpen(false)}
-              onToggleWishlist={() => {}}
-              isWishlisted={false}
-            />
           </div>
         )}
 
-        {/* Size Guide Modal */}
-        <SizeGuideModal
-          isOpen={isSizeGuideOpen}
-          onClose={() => setIsSizeGuideOpen(false)}
-          category={product.category}
+        <ReviewSection productId={product.id} />
+        <ShippingCalculator subtotal={product.price * quantity} />
+        <SizeGuideModal isOpen={isSizeGuideOpen} onClose={() => setIsSizeGuideOpen(false)} />
+        
+        <QuickView
+          product={quickViewProduct}
+          isOpen={isQuickViewOpen}
+          onClose={() => setIsQuickViewOpen(false)}
+          onToggleWishlist={() => {}}
+          isWishlisted={false}
         />
       </div>
     </div>

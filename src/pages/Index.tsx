@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Star, Truck, Shield, Headphones } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,17 +6,45 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import ProductCard from '@/components/Product/ProductCard';
 import QuickView from '@/components/Product/QuickView';
-import { products } from '@/data/products';
 import { useCart } from '@/contexts/CartContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [quickViewProduct, setQuickViewProduct] = useState<any>(null);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
+  const { toast } = useToast();
 
-  const featuredProducts = products.filter(p => p.isNew || p.isSale).slice(0, 8);
-  const newArrivals = products.filter(p => p.isNew).slice(0, 4);
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error: any) {
+      toast({
+        title: 'Error loading products',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const featuredProducts = products.filter(p => p.featured).slice(0, 8);
+  const newArrivals = products.slice(0, 4);
 
   const handleToggleWishlist = (productId: string) => {
     setWishlist(prev => 
@@ -112,17 +140,29 @@ const Index = () => {
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
-            {featuredProducts.map((product, index) => (
-              <div key={product.id} className={`animate-fade-in stagger-${(index % 4) + 1}`}>
-                <ProductCard
-                  product={product}
-                  onAddToCart={addToCart}
-                  onToggleWishlist={handleToggleWishlist}
-                  onQuickView={handleQuickView}
-                  isWishlisted={wishlist.includes(product.id)}
-                />
-              </div>
-            ))}
+            {loading ? (
+              <div className="col-span-full text-center py-8 text-muted-foreground">Loading products...</div>
+            ) : featuredProducts.length === 0 ? (
+              <div className="col-span-full text-center py-8 text-muted-foreground">No featured products available</div>
+            ) : (
+              featuredProducts.map((product, index) => (
+                <div key={product.id} className={`animate-fade-in stagger-${(index % 4) + 1}`}>
+                  <ProductCard
+                    product={{
+                      ...product,
+                      image: product.image_url || product.images?.[0],
+                      sizes: product.sizes || [],
+                      colors: product.colors || [],
+                      inStock: product.stock > 0,
+                    }}
+                    onAddToCart={addToCart}
+                    onToggleWishlist={handleToggleWishlist}
+                    onQuickView={handleQuickView}
+                    isWishlisted={wishlist.includes(product.id)}
+                  />
+                </div>
+              ))
+            )}
           </div>
 
           <div className="text-center mt-12 md:mt-16">
@@ -149,16 +189,28 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-            {newArrivals.map((product) => (
+            {loading ? (
+              <div className="col-span-full text-center py-8 text-muted-foreground">Loading products...</div>
+            ) : newArrivals.length === 0 ? (
+              <div className="col-span-full text-center py-8 text-muted-foreground">No new arrivals available</div>
+            ) : (
+              newArrivals.map((product) => (
                 <ProductCard
                   key={product.id}
-                  product={product}
+                  product={{
+                    ...product,
+                    image: product.image_url || product.images?.[0],
+                    sizes: product.sizes || [],
+                    colors: product.colors || [],
+                    inStock: product.stock > 0,
+                  }}
                   onAddToCart={addToCart}
                   onToggleWishlist={handleToggleWishlist}
                   onQuickView={handleQuickView}
                   isWishlisted={wishlist.includes(product.id)}
                 />
-            ))}
+              ))
+            )}
           </div>
         </div>
       </section>

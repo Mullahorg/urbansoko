@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Filter, Grid, List, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,9 +8,10 @@ import { Slider } from '@/components/ui/slider';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import ProductCard from '@/components/Product/ProductCard';
 import QuickView from '@/components/Product/QuickView';
-import { products } from '@/data/products';
 import { useCart } from '@/contexts/CartContext';
 import { formatPrice } from '@/utils/currency';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const ProductsPage = () => {
   const [wishlist, setWishlist] = useState<string[]>([]);
@@ -23,7 +24,34 @@ const ProductsPage = () => {
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error: any) {
+      toast({
+        title: 'Error loading products',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Filter and sort products
   const filteredProducts = useMemo(() => {
@@ -44,14 +72,14 @@ const ProductsPage = () => {
     // Apply size filter
     if (selectedSizes.length > 0) {
       filtered = filtered.filter(product =>
-        product.sizes.some(size => selectedSizes.includes(size))
+        product.sizes?.some((size: string) => selectedSizes.includes(size))
       );
     }
 
     // Apply color filter
     if (selectedColors.length > 0) {
       filtered = filtered.filter(product =>
-        product.colors.some(color => selectedColors.includes(color))
+        product.colors?.some((color: string) => selectedColors.includes(color))
       );
     }
 
@@ -67,18 +95,14 @@ const ProductsPage = () => {
         filtered.sort((a, b) => a.name.localeCompare(b.name));
         break;
       case 'newest':
-        filtered.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
+        filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         break;
       default:
-        filtered.sort((a, b) => {
-          const aScore = (a.isNew ? 2 : 0) + (a.isSale ? 1 : 0);
-          const bScore = (b.isNew ? 2 : 0) + (b.isSale ? 1 : 0);
-          return bScore - aScore;
-        });
+        filtered.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
     }
 
     return filtered;
-  }, [priceRange, selectedCategories, selectedSizes, selectedColors, sortBy]);
+  }, [products, priceRange, selectedCategories, selectedSizes, selectedColors, sortBy]);
 
   const handleToggleWishlist = (productId: string) => {
     setWishlist(prev => 
@@ -126,8 +150,8 @@ const ProductsPage = () => {
 
   // Get unique values
   const categories = [...new Set(products.map(p => p.category))];
-  const availableSizes = [...new Set(products.flatMap(p => p.sizes))];
-  const availableColors = [...new Set(products.flatMap(p => p.colors))];
+  const availableSizes = [...new Set(products.flatMap(p => p.sizes || []))];
+  const availableColors = [...new Set(products.flatMap(p => p.colors || []))];
 
   const FilterContent = () => (
     <div className="space-y-6">
@@ -152,7 +176,7 @@ const ProductsPage = () => {
       <div>
         <h3 className="font-semibold mb-3">Categories</h3>
         <div className="space-y-2">
-          {categories.map(category => (
+          {categories.map((category: any) => (
             <div key={category} className="flex items-center space-x-2">
               <Checkbox
                 id={`cat-${category}`}
@@ -173,7 +197,7 @@ const ProductsPage = () => {
       <div>
         <h3 className="font-semibold mb-3">Sizes</h3>
         <div className="grid grid-cols-3 gap-2">
-          {availableSizes.map(size => (
+          {availableSizes.map((size: any) => (
             <div key={size} className="flex items-center space-x-2">
               <Checkbox
                 id={`size-${size}`}
@@ -194,7 +218,7 @@ const ProductsPage = () => {
       <div>
         <h3 className="font-semibold mb-3">Colors</h3>
         <div className="grid grid-cols-2 gap-2">
-          {availableColors.map(color => (
+          {availableColors.map((color: any) => (
             <div key={color} className="flex items-center space-x-2">
               <Checkbox
                 id={`color-${color}`}
@@ -218,10 +242,17 @@ const ProductsPage = () => {
     </div>
   );
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Loading products...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-6 md:py-8">
-        {/* Header */}
         <div className="mb-6 md:mb-8">
           <h1 className="text-2xl md:text-3xl font-bold mb-2">All Products</h1>
           <p className="text-sm md:text-base text-muted-foreground">
@@ -230,7 +261,6 @@ const ProductsPage = () => {
         </div>
 
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-          {/* Desktop Filters */}
           <aside className="hidden lg:block w-64 flex-shrink-0">
             <Card>
               <CardContent className="p-6">
@@ -243,9 +273,7 @@ const ProductsPage = () => {
             </Card>
           </aside>
 
-          {/* Main Content */}
           <div className="flex-1 min-w-0">
-            {/* Controls */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-6 p-3 md:p-4 bg-muted/30 rounded-lg">
               <div className="flex items-center gap-2 md:gap-4">
                 <Sheet open={showFilters} onOpenChange={setShowFilters}>
@@ -302,7 +330,6 @@ const ProductsPage = () => {
               </div>
             </div>
 
-            {/* Products Grid */}
             {filteredProducts.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-muted-foreground mb-4">No products found matching your criteria</p>
@@ -317,7 +344,13 @@ const ProductsPage = () => {
                 {filteredProducts.map((product) => (
                   <ProductCard
                     key={product.id}
-                    product={product}
+                    product={{
+                      ...product,
+                      image: product.image_url || product.images?.[0],
+                      sizes: product.sizes || [],
+                      colors: product.colors || [],
+                      inStock: product.stock > 0,
+                    }}
                     onAddToCart={addToCart}
                     onToggleWishlist={handleToggleWishlist}
                     onQuickView={handleQuickView}
@@ -329,7 +362,6 @@ const ProductsPage = () => {
           </div>
         </div>
 
-        {/* Quick View Modal */}
         <QuickView
           product={quickViewProduct}
           isOpen={isQuickViewOpen}

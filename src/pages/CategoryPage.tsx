@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Filter, Grid, List, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,12 +10,13 @@ import { Slider } from '@/components/ui/slider';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import ProductCard from '@/components/Product/ProductCard';
 import QuickView from '@/components/Product/QuickView';
-import { products } from '@/data/products';
 import { useCart } from '@/contexts/CartContext';
 import { formatPrice } from '@/utils/currency';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const CategoryPage = () => {
-  const { category, subcategory } = useParams();
+  const { category } = useParams();
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [quickViewProduct, setQuickViewProduct] = useState<any>(null);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
@@ -25,7 +26,34 @@ const CategoryPage = () => {
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error: any) {
+      toast({
+        title: 'Error loading products',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Filter products by category
   const filteredProducts = useMemo(() => {
@@ -41,14 +69,14 @@ const CategoryPage = () => {
     // Apply size filter
     if (selectedSizes.length > 0) {
       filtered = filtered.filter(product =>
-        product.sizes.some(size => selectedSizes.includes(size))
+        product.sizes?.some((size: string) => selectedSizes.includes(size))
       );
     }
 
     // Apply color filter
     if (selectedColors.length > 0) {
       filtered = filtered.filter(product =>
-        product.colors.some(color => selectedColors.includes(color))
+        product.colors?.some((color: string) => selectedColors.includes(color))
       );
     }
 
@@ -64,19 +92,15 @@ const CategoryPage = () => {
         filtered.sort((a, b) => a.name.localeCompare(b.name));
         break;
       case 'newest':
-        filtered.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
+        filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         break;
       default:
-        // Featured - show new and sale items first
-        filtered.sort((a, b) => {
-          const aScore = (a.isNew ? 2 : 0) + (a.isSale ? 1 : 0);
-          const bScore = (b.isNew ? 2 : 0) + (b.isSale ? 1 : 0);
-          return bScore - aScore;
-        });
+        // Featured
+        filtered.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
     }
 
     return filtered;
-  }, [category, priceRange, selectedSizes, selectedColors, sortBy]);
+  }, [products, category, priceRange, selectedSizes, selectedColors, sortBy]);
 
   const handleToggleWishlist = (productId: string) => {
     setWishlist(prev => 
@@ -115,8 +139,8 @@ const CategoryPage = () => {
 
   // Get unique sizes and colors from filtered category products
   const categoryProducts = products.filter(p => p.category.toLowerCase() === category?.toLowerCase());
-  const availableSizes = [...new Set(categoryProducts.flatMap(p => p.sizes))];
-  const availableColors = [...new Set(categoryProducts.flatMap(p => p.colors))];
+  const availableSizes = [...new Set(categoryProducts.flatMap(p => p.sizes || []))];
+  const availableColors = [...new Set(categoryProducts.flatMap(p => p.colors || []))];
 
   const FilterContent = () => (
     <div className="space-y-6">
@@ -141,7 +165,7 @@ const CategoryPage = () => {
       <div>
         <h3 className="font-semibold mb-3">Sizes</h3>
         <div className="grid grid-cols-3 gap-2">
-          {availableSizes.map(size => (
+          {availableSizes.map((size: any) => (
             <div key={size} className="flex items-center space-x-2">
               <Checkbox
                 id={`size-${size}`}
@@ -162,7 +186,7 @@ const CategoryPage = () => {
       <div>
         <h3 className="font-semibold mb-3">Colors</h3>
         <div className="grid grid-cols-2 gap-2">
-          {availableColors.map(color => (
+          {availableColors.map((color: any) => (
             <div key={color} className="flex items-center space-x-2">
               <Checkbox
                 id={`color-${color}`}
@@ -186,6 +210,14 @@ const CategoryPage = () => {
     </div>
   );
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Loading products...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-4 sm:py-6 lg:py-8">
@@ -195,15 +227,9 @@ const CategoryPage = () => {
             <span className="whitespace-nowrap">Home</span>
             <span>/</span>
             <span className="capitalize whitespace-nowrap">{category}</span>
-            {subcategory && (
-              <>
-                <span>/</span>
-                <span className="capitalize whitespace-nowrap">{subcategory.replace('-', ' ')}</span>
-              </>
-            )}
           </div>
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold capitalize mb-2">
-            {subcategory ? subcategory.replace('-', ' ') : category}
+            {category}
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground">
             Discover our collection of {filteredProducts.length} premium {category?.toLowerCase()}
@@ -290,28 +316,6 @@ const CategoryPage = () => {
               </div>
             </div>
 
-            {/* Active Filters Display */}
-            {(selectedSizes.length > 0 || selectedColors.length > 0 || priceRange[0] > 0 || priceRange[1] < 50000) && (
-              <div className="flex flex-wrap items-center gap-2 mb-4 p-3 bg-card border rounded-lg animate-fade-in">
-                <span className="text-xs sm:text-sm font-medium">Active filters:</span>
-                {selectedSizes.map(size => (
-                  <Badge key={size} variant="secondary" className="text-xs">
-                    Size: {size}
-                    <button onClick={() => handleSizeToggle(size)} className="ml-1 hover:text-destructive">×</button>
-                  </Badge>
-                ))}
-                {selectedColors.map(color => (
-                  <Badge key={color} variant="secondary" className="text-xs">
-                    {color}
-                    <button onClick={() => handleColorToggle(color)} className="ml-1 hover:text-destructive">×</button>
-                  </Badge>
-                ))}
-                <Button variant="ghost" size="sm" onClick={clearFilters} className="h-6 text-xs ml-auto">
-                  Clear all
-                </Button>
-              </div>
-            )}
-
             {/* Products Grid */}
             {filteredProducts.length === 0 ? (
               <div className="text-center py-12 sm:py-16 animate-fade-in">
@@ -333,7 +337,13 @@ const CategoryPage = () => {
                     style={{ animationDelay: `${index * 0.05}s` }}
                   >
                     <ProductCard
-                      product={product}
+                      product={{
+                        ...product,
+                        image: product.image_url || product.images?.[0],
+                        sizes: product.sizes || [],
+                        colors: product.colors || [],
+                        inStock: product.stock > 0,
+                      }}
                       onAddToCart={addToCart}
                       onToggleWishlist={handleToggleWishlist}
                       onQuickView={handleQuickView}

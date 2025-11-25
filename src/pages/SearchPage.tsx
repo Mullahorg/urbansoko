@@ -1,17 +1,45 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import ProductCard from '@/components/Product/ProductCard';
-import { products } from '@/data/products';
 import { useCart } from '@/contexts/CartContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const SearchPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [wishlist, setWishlist] = useState<string[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error: any) {
+      toast({
+        title: 'Error loading products',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,9 +53,11 @@ const SearchPage = () => {
     return products.filter(product =>
       product.name.toLowerCase().includes(query) ||
       product.category.toLowerCase().includes(query) ||
-      product.colors.some(color => color.toLowerCase().includes(query))
+      product.description?.toLowerCase().includes(query) ||
+      product.colors?.some((color: string) => color.toLowerCase().includes(query)) ||
+      product.sizes?.some((size: string) => size.toLowerCase().includes(query))
     );
-  }, [searchParams]);
+  }, [products, searchParams]);
 
   const handleToggleWishlist = (productId: string) => {
     setWishlist(prev => 
@@ -36,6 +66,14 @@ const SearchPage = () => {
         : [...prev, productId]
     );
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -74,7 +112,13 @@ const SearchPage = () => {
                 {searchResults.map((product) => (
                   <ProductCard
                     key={product.id}
-                    product={product}
+                    product={{
+                      ...product,
+                      image: product.image_url || product.images?.[0],
+                      sizes: product.sizes || [],
+                      colors: product.colors || [],
+                      inStock: product.stock > 0,
+                    }}
                     onAddToCart={addToCart}
                     onToggleWishlist={handleToggleWishlist}
                     isWishlisted={wishlist.includes(product.id)}
