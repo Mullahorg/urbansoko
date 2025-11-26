@@ -2,22 +2,21 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Save, Key } from 'lucide-react';
-
-interface Setting {
-  key: string;
-  value: string;
-  description: string;
-}
+import { Save } from 'lucide-react';
 
 const AdminSettings = () => {
-  const [settings, setSettings] = useState<Record<string, string>>({});
+  const [settings, setSettings] = useState({
+    siteName: '',
+    contactEmail: '',
+    supportPhone: '',
+    shippingFee: '',
+    customCss: '',
+  });
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -26,21 +25,27 @@ const AdminSettings = () => {
 
   const fetchSettings = async () => {
     try {
-      const { data, error } = await supabase
-        .from('settings')
-        .select('key, value, description')
-        .like('key', 'mpesa_%');
-
+      const { data, error } = await supabase.from('settings').select('*');
       if (error) throw error;
 
-      const settingsMap: Record<string, string> = {};
-      data?.forEach((setting: Setting) => {
-        settingsMap[setting.key] = setting.value;
+      const settingsMap = {
+        site_name: data.find((s: any) => s.key === 'site_name')?.value || '',
+        contact_email: data.find((s: any) => s.key === 'contact_email')?.value || '',
+        support_phone: data.find((s: any) => s.key === 'support_phone')?.value || '',
+        shipping_fee: data.find((s: any) => s.key === 'shipping_fee')?.value || '0',
+        custom_css: data.find((s: any) => s.key === 'custom_css')?.value || '',
+      };
+
+      setSettings({
+        siteName: settingsMap.site_name,
+        contactEmail: settingsMap.contact_email,
+        supportPhone: settingsMap.support_phone,
+        shippingFee: settingsMap.shipping_fee,
+        customCss: settingsMap.custom_css,
       });
-      setSettings(settingsMap);
     } catch (error: any) {
       toast({
-        title: 'Error',
+        title: 'Error loading settings',
         description: error.message,
         variant: 'destructive',
       });
@@ -49,147 +54,109 @@ const AdminSettings = () => {
     }
   };
 
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      const updates = Object.entries(settings).map(([key, value]) => ({
-        key,
-        value,
-        updated_by: user?.id,
-      }));
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
 
+    const updates = [
+      { key: 'site_name', value: settings.siteName },
+      { key: 'contact_email', value: settings.contactEmail },
+      { key: 'support_phone', value: settings.supportPhone },
+      { key: 'shipping_fee', value: settings.shippingFee },
+      { key: 'custom_css', value: settings.customCss },
+    ];
+
+    try {
       for (const update of updates) {
         const { error } = await supabase
           .from('settings')
-          .update({ value: update.value, updated_by: update.updated_by })
-          .eq('key', update.key);
-
+          .upsert(update, { onConflict: 'key' });
         if (error) throw error;
       }
-
-      toast({
-        title: 'Success',
-        description: 'M-Pesa settings updated successfully',
-      });
+      toast({ title: 'Settings saved successfully' });
     } catch (error: any) {
       toast({
-        title: 'Error',
+        title: 'Error saving settings',
         description: error.message,
         variant: 'destructive',
       });
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin" />
-      </div>
-    );
-  }
-
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Settings</h1>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-3xl font-bold">General Settings</h2>
+        <p className="text-muted-foreground">Configure your store settings</p>
+      </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Key className="w-5 h-5" />
-            M-Pesa Configuration
-          </CardTitle>
-          <CardDescription>
-            Configure your M-Pesa payment gateway credentials. Leave empty to use demo mode.
-          </CardDescription>
+          <CardTitle>Store Information</CardTitle>
+          <CardDescription>Basic information about your store</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="environment">Environment</Label>
-            <Select
-              value={settings.mpesa_environment || 'sandbox'}
-              onValueChange={(value) => setSettings({ ...settings, mpesa_environment: value })}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="sandbox">Sandbox (Testing)</SelectItem>
-                <SelectItem value="production">Production (Live)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="siteName">Site Name</Label>
+              <Input
+                id="siteName"
+                value={settings.siteName}
+                onChange={(e) => setSettings({ ...settings, siteName: e.target.value })}
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="consumer_key">Consumer Key</Label>
-            <Input
-              id="consumer_key"
-              type="text"
-              value={settings.mpesa_consumer_key || ''}
-              onChange={(e) => setSettings({ ...settings, mpesa_consumer_key: e.target.value })}
-              placeholder="Enter your M-Pesa Consumer Key"
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="contactEmail">Contact Email</Label>
+              <Input
+                id="contactEmail"
+                type="email"
+                value={settings.contactEmail}
+                onChange={(e) => setSettings({ ...settings, contactEmail: e.target.value })}
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="consumer_secret">Consumer Secret</Label>
-            <Input
-              id="consumer_secret"
-              type="password"
-              value={settings.mpesa_consumer_secret || ''}
-              onChange={(e) => setSettings({ ...settings, mpesa_consumer_secret: e.target.value })}
-              placeholder="Enter your M-Pesa Consumer Secret"
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="supportPhone">Support Phone</Label>
+              <Input
+                id="supportPhone"
+                value={settings.supportPhone}
+                onChange={(e) => setSettings({ ...settings, supportPhone: e.target.value })}
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="shortcode">Business Shortcode</Label>
-            <Input
-              id="shortcode"
-              type="text"
-              value={settings.mpesa_shortcode || ''}
-              onChange={(e) => setSettings({ ...settings, mpesa_shortcode: e.target.value })}
-              placeholder="e.g., 174379"
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="shippingFee">Shipping Fee (KES)</Label>
+              <Input
+                id="shippingFee"
+                type="number"
+                value={settings.shippingFee}
+                onChange={(e) => setSettings({ ...settings, shippingFee: e.target.value })}
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="passkey">Passkey</Label>
-            <Input
-              id="passkey"
-              type="password"
-              value={settings.mpesa_passkey || ''}
-              onChange={(e) => setSettings({ ...settings, mpesa_passkey: e.target.value })}
-              placeholder="Enter your M-Pesa Passkey"
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="customCss">Custom CSS</Label>
+              <Textarea
+                id="customCss"
+                value={settings.customCss}
+                onChange={(e) => setSettings({ ...settings, customCss: e.target.value })}
+                placeholder="/* Add your custom CSS here */&#10;.my-custom-class {&#10;  color: #ff0000;&#10;}"
+                rows={12}
+                className="font-mono text-sm"
+              />
+              <p className="text-sm text-muted-foreground">
+                Add custom CSS to override site styles. Changes apply immediately after saving. Use this to customize colors, fonts, spacing, and any other design elements.
+              </p>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="callback_url">Callback URL (Optional)</Label>
-            <Input
-              id="callback_url"
-              type="url"
-              value={settings.mpesa_callback_url || ''}
-              onChange={(e) => setSettings({ ...settings, mpesa_callback_url: e.target.value })}
-              placeholder="Leave empty to use default"
-            />
-          </div>
-
-          <Button onClick={handleSave} disabled={saving} className="w-full">
-            {saving ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="w-4 h-4 mr-2" />
-                Save Settings
-              </>
-            )}
-          </Button>
+            <Button type="submit" disabled={loading}>
+              <Save className="h-4 w-4 mr-2" />
+              {loading ? 'Saving...' : 'Save Settings'}
+            </Button>
+          </form>
         </CardContent>
       </Card>
     </div>

@@ -24,6 +24,7 @@ import RoleRoute from "./components/RoleRoute";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminProducts from "./pages/admin/AdminProducts";
+import AdminCategories from "./pages/admin/AdminCategories";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminInventory from "./pages/admin/AdminInventory";
 import AdminOrders from "./pages/admin/AdminOrders";
@@ -97,6 +98,7 @@ const AppContent = () => {
           <Route path="/admin" element={<RoleRoute requiredRole="admin"><AdminLayout /></RoleRoute>}>
             <Route index element={<AdminDashboard />} />
             <Route path="products" element={<AdminProducts />} />
+            <Route path="categories" element={<AdminCategories />} />
             <Route path="analytics" element={<AdminAnalytics />} />
             <Route path="inventory" element={<AdminInventory />} />
             <Route path="orders" element={<AdminOrders />} />
