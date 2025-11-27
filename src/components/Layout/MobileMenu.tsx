@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronDown, ChevronRight, User, Package, Heart, Trophy, Store, Shield, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -16,40 +17,26 @@ interface MobileMenuProps {
 
 const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [categories, setCategories] = useState<any[]>([]);
   const { user, signOut } = useAuth();
   const { isAdmin, isVendor } = useUserRole();
   const { t } = useLanguage();
 
-  const categories = [
-    {
-      name: 'Shirts',
-      subcategories: ['Casual Shirts', 'Formal Shirts', 'Polo Shirts']
-    },
-    {
-      name: 'Pants',
-      subcategories: ['Chinos', 'Trousers', 'Joggers']
-    },
-    {
-      name: 'Suits',
-      subcategories: ['Business Suits', 'Formal Suits', 'Blazers']
-    },
-    {
-      name: 'Sport Shoes',
-      subcategories: ['Running Shoes', 'Basketball Shoes', 'Football Boots', 'Training Shoes']
-    },
-    {
-      name: 'Formal Shoes',
-      subcategories: ['Oxford Shoes', 'Loafers', 'Boots', 'Derby Shoes']
-    },
-    {
-      name: 'Traditional Wear',
-      subcategories: ['Kanzu', 'Kikoy', 'Wedding Suits', 'Ceremonial Wear']
-    },
-    {
-      name: 'Accessories',
-      subcategories: ['Ties', 'Belts', 'Watches', 'Hats']
-    }
-  ];
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const { data } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true });
+      
+      if (data) {
+        setCategories(data);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const toggleCategory = (categoryName: string) => {
     setExpandedCategory(expandedCategory === categoryName ? null : categoryName);
@@ -168,39 +155,15 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
                 </h3>
                 
                 {categories.map((category) => (
-                  <div key={category.name} className="mb-2">
-                    <button
-                      onClick={() => toggleCategory(category.name)}
+                  <div key={category.id} className="mb-2">
+                    <Link
+                      to={`/category/${category.slug}`}
                       className="flex items-center justify-between w-full py-3 text-left hover:text-primary transition-colors"
+                      onClick={onClose}
                     >
                       <span className="font-medium">{category.name}</span>
-                      {expandedCategory === category.name ? 
-                        <ChevronDown className="h-4 w-4" /> : 
-                        <ChevronRight className="h-4 w-4" />
-                      }
-                    </button>
-                    
-                    {expandedCategory === category.name && (
-                      <div className="ml-4 mb-2">
-                        <Link
-                          to={`/category/${category.name.toLowerCase()}`}
-                          className="block py-2 text-sm text-muted-foreground hover:text-primary transition-colors"
-                          onClick={onClose}
-                        >
-                          All {category.name}
-                        </Link>
-                        {category.subcategories.map((sub) => (
-                          <Link
-                            key={sub}
-                            to={`/category/${category.name.toLowerCase()}/${sub.toLowerCase().replace(' ', '-')}`}
-                            className="block py-2 text-sm text-muted-foreground hover:text-primary transition-colors"
-                            onClick={onClose}
-                          >
-                            {sub}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
+                      <ChevronRight className="h-4 w-4" />
+                    </Link>
                   </div>
                 ))}
               </div>
