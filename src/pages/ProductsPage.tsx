@@ -25,26 +25,38 @@ const ProductsPage = () => {
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchProducts();
+    fetchData();
   }, []);
 
-  const fetchProducts = async () => {
+  const fetchData = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch products
+      const { data: productsData, error: productsError } = await supabase
         .from('products')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setProducts(data || []);
+      if (productsError) throw productsError;
+      setProducts(productsData || []);
+
+      // Fetch categories
+      const { data: categoriesData, error: categoriesError } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('is_active', true)
+        .order('name', { ascending: true });
+
+      if (categoriesError) throw categoriesError;
+      setCategories(categoriesData || []);
     } catch (error: any) {
       toast({
-        title: 'Error loading products',
+        title: 'Error loading data',
         description: error.message,
         variant: 'destructive',
       });
@@ -149,7 +161,6 @@ const ProductsPage = () => {
   };
 
   // Get unique values
-  const categories = [...new Set(products.map(p => p.category))];
   const availableSizes = [...new Set(products.flatMap(p => p.sizes || []))];
   const availableColors = [...new Set(products.flatMap(p => p.colors || []))];
 
@@ -177,17 +188,17 @@ const ProductsPage = () => {
         <h3 className="font-semibold mb-3">Categories</h3>
         <div className="space-y-2">
           {categories.map((category: any) => (
-            <div key={category} className="flex items-center space-x-2">
+            <div key={category.id} className="flex items-center space-x-2">
               <Checkbox
-                id={`cat-${category}`}
-                checked={selectedCategories.includes(category)}
-                onCheckedChange={() => handleCategoryToggle(category)}
+                id={`cat-${category.id}`}
+                checked={selectedCategories.includes(category.name)}
+                onCheckedChange={() => handleCategoryToggle(category.name)}
               />
               <label
-                htmlFor={`cat-${category}`}
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                htmlFor={`cat-${category.id}`}
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
               >
-                {category}
+                {category.name}
               </label>
             </div>
           ))}

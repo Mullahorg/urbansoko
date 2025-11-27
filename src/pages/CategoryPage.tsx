@@ -31,12 +31,27 @@ const CategoryPage = () => {
   const { addToCart } = useCart();
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
+  const [categoryData, setCategoryData] = useState<any>(null);
 
-  const fetchProducts = async () => {
+  useEffect(() => {
+    fetchCategoryAndProducts();
+  }, [category]);
+
+  const fetchCategoryAndProducts = async () => {
+    setLoading(true);
     try {
+      // Fetch category data by slug
+      const { data: categoryInfo, error: categoryError } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('slug', category)
+        .eq('is_active', true)
+        .single();
+
+      if (categoryError) throw categoryError;
+      setCategoryData(categoryInfo);
+
+      // Fetch all products
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -55,10 +70,12 @@ const CategoryPage = () => {
     }
   };
 
-  // Filter products by category
+  // Filter products by category name
   const filteredProducts = useMemo(() => {
+    if (!categoryData) return [];
+    
     let filtered = products.filter(product => 
-      product.category.toLowerCase() === category?.toLowerCase()
+      product.category.toLowerCase() === categoryData.name.toLowerCase()
     );
 
     // Apply price filter
@@ -100,7 +117,7 @@ const CategoryPage = () => {
     }
 
     return filtered;
-  }, [products, category, priceRange, selectedSizes, selectedColors, sortBy]);
+  }, [products, categoryData, priceRange, selectedSizes, selectedColors, sortBy]);
 
   const handleToggleWishlist = (productId: string) => {
     setWishlist(prev => 
@@ -138,7 +155,9 @@ const CategoryPage = () => {
   };
 
   // Get unique sizes and colors from filtered category products
-  const categoryProducts = products.filter(p => p.category.toLowerCase() === category?.toLowerCase());
+  const categoryProducts = categoryData 
+    ? products.filter(p => p.category.toLowerCase() === categoryData.name.toLowerCase())
+    : [];
   const availableSizes = [...new Set(categoryProducts.flatMap(p => p.sizes || []))];
   const availableColors = [...new Set(categoryProducts.flatMap(p => p.colors || []))];
 
@@ -218,6 +237,17 @@ const CategoryPage = () => {
     );
   }
 
+  if (!categoryData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">Category Not Found</h2>
+          <p className="text-muted-foreground">The category you're looking for doesn't exist.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-4 sm:py-6 lg:py-8">
@@ -226,13 +256,18 @@ const CategoryPage = () => {
           <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mb-2 overflow-x-auto scrollbar-hide">
             <span className="whitespace-nowrap">Home</span>
             <span>/</span>
-            <span className="capitalize whitespace-nowrap">{category}</span>
+            <span className="capitalize whitespace-nowrap">{categoryData.name}</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold capitalize mb-2">
-            {category}
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">
+            {categoryData.name}
           </h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Discover our collection of {filteredProducts.length} premium {category?.toLowerCase()}
+          {categoryData.description && (
+            <p className="text-sm sm:text-base text-muted-foreground mb-2">
+              {categoryData.description}
+            </p>
+          )}
+          <p className="text-sm text-muted-foreground">
+            {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'} available
           </p>
         </div>
 
