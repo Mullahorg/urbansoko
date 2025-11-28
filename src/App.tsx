@@ -37,6 +37,7 @@ import AdminSettings from "./pages/admin/AdminSettings";
 import AdminPaymentSettings from "./pages/admin/AdminPaymentSettings";
 import AdminProductImport from "./pages/admin/AdminProductImport";
 import AdminDataMigration from "./pages/admin/AdminDataMigration";
+import AdminLanguages from "./pages/admin/AdminLanguages";
 
 // Vendor Pages
 import VendorDashboard from "./pages/vendor/VendorDashboard";
@@ -107,6 +108,7 @@ const AppContent = () => {
             <Route path="vendors" element={<AdminVendors />} />
             <Route path="subscribers" element={<AdminSubscribers />} />
             <Route path="content" element={<AdminContent />} />
+            <Route path="languages" element={<AdminLanguages />} />
             <Route path="settings" element={<AdminSettings />} />
             <Route path="payment" element={<AdminPaymentSettings />} />
             <Route path="import" element={<AdminProductImport />} />
