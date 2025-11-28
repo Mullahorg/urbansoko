@@ -25,16 +25,36 @@ interface ThemeProviderProps {
   children: ReactNode;
 }
 
-export const ThemeProvider = ({ children }: ThemeProviderProps) => {
-  const [theme, setTheme] = useState<Theme>(() => {
+const getSystemTheme = (): Theme => {
+  if (typeof window !== 'undefined' && window.matchMedia) {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  return 'light';
+};
+
+const getInitialTheme = (): Theme => {
+  if (typeof window !== 'undefined') {
     const saved = localStorage.getItem('theme');
-    return (saved as Theme) || 'light';
-  });
-  
-  const [colorScheme, setColorSchemeState] = useState<ColorScheme>(() => {
+    if (saved === 'light' || saved === 'dark') {
+      return saved;
+    }
+  }
+  return getSystemTheme();
+};
+
+const getInitialColorScheme = (): ColorScheme => {
+  if (typeof window !== 'undefined') {
     const saved = localStorage.getItem('colorScheme');
-    return (saved as ColorScheme) || 'default';
-  });
+    if (saved === 'default' || saved === 'green' || saved === 'african') {
+      return saved;
+    }
+  }
+  return 'default';
+};
+
+export const ThemeProvider = ({ children }: ThemeProviderProps) => {
+  const [theme, setTheme] = useState<Theme>(getInitialTheme);
+  const [colorScheme, setColorSchemeState] = useState<ColorScheme>(getInitialColorScheme);
 
   const toggleTheme = () => {
     setTheme(prev => prev === 'light' ? 'dark' : 'light');
@@ -44,10 +64,10 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
     setColorSchemeState(scheme);
   };
 
+  // Apply theme classes and persist
   useEffect(() => {
     localStorage.setItem('theme', theme);
     
-    // Apply theme classes
     const root = document.documentElement;
     root.classList.remove('dark', 'theme-green', 'theme-african');
     
@@ -62,9 +82,26 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
     }
   }, [theme, colorScheme]);
 
+  // Persist color scheme
   useEffect(() => {
     localStorage.setItem('colorScheme', colorScheme);
   }, [colorScheme]);
+
+  // Listen for system theme changes (only if user hasn't set a preference)
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    const handleChange = (e: MediaQueryListEvent) => {
+      // Only update if user hasn't explicitly set a theme
+      const savedTheme = localStorage.getItem('theme');
+      if (!savedTheme) {
+        setTheme(e.matches ? 'dark' : 'light');
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
 
   return (
     <ThemeContext.Provider value={{
