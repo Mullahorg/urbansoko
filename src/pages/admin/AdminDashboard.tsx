@@ -146,60 +146,60 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="space-y-4 md:space-y-6 max-w-full overflow-x-hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 md:gap-4">
         <div>
-          <h2 className="text-3xl font-bold">Dashboard</h2>
-          <p className="text-muted-foreground">Overview of your eCommerce store</p>
+          <h2 className="text-xl md:text-3xl font-bold">Dashboard</h2>
+          <p className="text-sm md:text-base text-muted-foreground">Overview of your eCommerce store</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => navigate('/admin/products')}>Manage Products</Button>
-          <Button variant="outline" onClick={() => navigate('/admin/orders')}>View Orders</Button>
+          <Button size="sm" className="text-xs md:text-sm" onClick={() => navigate('/admin/products')}>Manage Products</Button>
+          <Button size="sm" variant="outline" className="text-xs md:text-sm" onClick={() => navigate('/admin/orders')}>View Orders</Button>
         </div>
       </div>
 
       {/* Main Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {statCards.map((stat) => (
           <Card key={stat.title} className="hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-              <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                <stat.icon className={`h-5 w-5 ${stat.color}`} />
+            <CardHeader className="flex flex-row items-center justify-between pb-2 p-3 md:p-6 md:pb-2">
+              <CardTitle className="text-xs md:text-sm font-medium">{stat.title}</CardTitle>
+              <div className={`p-1.5 md:p-2 rounded-lg ${stat.bgColor}`}>
+                <stat.icon className={`h-4 w-4 md:h-5 md:w-5 ${stat.color}`} />
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
+            <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+              <div className="text-lg md:text-2xl font-bold truncate">{stat.value}</div>
             </CardContent>
           </Card>
         ))}
       </div>
 
       {/* Alerts & Today's Activity */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {alertCards.map((alert) => (
           <Card 
             key={alert.title} 
             className={`hover:shadow-lg transition-all cursor-pointer ${alert.action ? 'hover:border-primary' : ''}`}
             onClick={alert.action}
           >
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">{alert.title}</CardTitle>
-              <div className={`p-2 rounded-lg ${alert.bgColor}`}>
-                <alert.icon className={`h-5 w-5 ${alert.color}`} />
+            <CardHeader className="flex flex-row items-center justify-between pb-2 p-3 md:p-6 md:pb-2">
+              <CardTitle className="text-xs md:text-sm font-medium">{alert.title}</CardTitle>
+              <div className={`p-1.5 md:p-2 rounded-lg ${alert.bgColor}`}>
+                <alert.icon className={`h-4 w-4 md:h-5 md:w-5 ${alert.color}`} />
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{alert.value}</div>
+            <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+              <div className="text-lg md:text-2xl font-bold truncate">{alert.value}</div>
               {alert.action && (
-                <p className="text-xs text-muted-foreground mt-1">Click to view</p>
+                <p className="text-xs text-muted-foreground mt-1 hidden md:block">Click to view</p>
               )}
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {/* Recent Orders */}
         <Card>
           <CardHeader>

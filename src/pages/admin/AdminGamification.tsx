@@ -98,7 +98,7 @@ const AdminGamification = () => {
   };
 
   if (isLoading) {
-    return <div className="p-6">Loading gamification settings...</div>;
+    return <div className="p-4 md:p-6">Loading gamification settings...</div>;
   }
 
   const welcomePopup = getSetting('welcome_popup');
@@ -110,16 +110,16 @@ const AdminGamification = () => {
   const confetti = getSetting('confetti_animations');
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6 max-w-full overflow-x-hidden">
       <div>
-        <h1 className="text-3xl font-bold">Gamification Settings</h1>
-        <p className="text-muted-foreground">Manage popups, badges, animations, and engagement features</p>
+        <h1 className="text-xl md:text-3xl font-bold">Gamification Settings</h1>
+        <p className="text-sm md:text-base text-muted-foreground">Manage popups, badges, animations, and engagement features</p>
       </div>
 
       <Tabs defaultValue="features" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="features">Features</TabsTrigger>
-          <TabsTrigger value="flash-sales">Flash Sales</TabsTrigger>
+        <TabsList className="w-full md:w-auto flex">
+          <TabsTrigger value="features" className="flex-1 md:flex-none text-xs md:text-sm">Features</TabsTrigger>
+          <TabsTrigger value="flash-sales" className="flex-1 md:flex-none text-xs md:text-sm">Flash Sales</TabsTrigger>
         </TabsList>
 
         <TabsContent value="features" className="space-y-4">

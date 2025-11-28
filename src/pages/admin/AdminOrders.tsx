@@ -65,53 +65,53 @@ const AdminOrders = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6 max-w-full overflow-x-hidden">
       <div>
-        <h2 className="text-3xl font-bold">Orders</h2>
-        <p className="text-muted-foreground">Manage customer orders</p>
+        <h2 className="text-xl md:text-3xl font-bold">Orders</h2>
+        <p className="text-sm md:text-base text-muted-foreground">Manage customer orders</p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3 md:space-y-4">
         {orders.map((order) => (
           <Card key={order.id}>
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="text-lg">Order #{order.id.slice(0, 8)}</CardTitle>
-                  <p className="text-sm text-muted-foreground mt-1">
+            <CardHeader className="p-3 md:p-6">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+                <div className="min-w-0">
+                  <CardTitle className="text-base md:text-lg truncate">Order #{order.id.slice(0, 8)}</CardTitle>
+                  <p className="text-xs md:text-sm text-muted-foreground mt-1 truncate">
                     {order.profiles?.email || 'Unknown customer'}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {new Date(order.created_at).toLocaleString()}
                   </p>
                 </div>
-                <div className="text-right">
-                  <p className="text-xl font-bold text-primary">
+                <div className="sm:text-right">
+                  <p className="text-lg md:text-xl font-bold text-primary">
                     {formatKES(order.total_amount)}
                   </p>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Phone</p>
-                  <p className="font-medium">{order.phone}</p>
+            <CardContent className="p-3 md:p-6 pt-0 md:pt-0 space-y-3 md:space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                <div className="min-w-0">
+                  <p className="text-xs md:text-sm text-muted-foreground">Phone</p>
+                  <p className="text-sm md:text-base font-medium truncate">{order.phone}</p>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Delivery Address</p>
-                  <p className="font-medium">{order.shipping_address}</p>
+                <div className="min-w-0">
+                  <p className="text-xs md:text-sm text-muted-foreground">Delivery Address</p>
+                  <p className="text-sm md:text-base font-medium break-words">{order.shipping_address}</p>
                 </div>
               </div>
 
-              <div className="flex gap-4 items-center">
-                <div className="flex-1">
-                  <Label className="text-sm text-muted-foreground mb-1 block">Order Status</Label>
+              <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
+                <div className="flex-1 min-w-0">
+                  <Label className="text-xs md:text-sm text-muted-foreground mb-1 block">Order Status</Label>
                   <Select
                     value={order.status}
                     onValueChange={(value) => updateOrderStatus(order.id, value)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="text-sm">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -124,13 +124,13 @@ const AdminOrders = () => {
                   </Select>
                 </div>
 
-                <div className="flex-1">
-                  <Label className="text-sm text-muted-foreground mb-1 block">Payment Status</Label>
+                <div className="flex-1 min-w-0">
+                  <Label className="text-xs md:text-sm text-muted-foreground mb-1 block">Payment Status</Label>
                   <Select
                     value={order.payment_status}
                     onValueChange={(value) => updatePaymentStatus(order.id, value)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="text-sm">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
