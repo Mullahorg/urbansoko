@@ -5,19 +5,41 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useSiteContent } from '@/hooks/useSiteContent';
+import { supabase } from '@/integrations/supabase/client';
 
 export const Footer = () => {
   const [email, setEmail] = useState('');
+  const [subscribing, setSubscribing] = useState(false);
   const { toast } = useToast();
+  const { content } = useSiteContent();
+  const footer = content.footer;
+  const header = content.header;
 
-  const handleNewsletterSubmit = (e: React.FormEvent) => {
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) {
-      toast({
-        title: "Subscribed!",
-        description: "Thank you for subscribing to our newsletter.",
-      });
-      setEmail('');
+    if (!email) return;
+
+    setSubscribing(true);
+    try {
+      const { error } = await supabase
+        .from('newsletter_subscribers')
+        .insert({ email, source: 'footer' });
+
+      if (error) {
+        if (error.code === '23505') {
+          toast({ title: "Already subscribed", description: "This email is already on our list." });
+        } else {
+          throw error;
+        }
+      } else {
+        toast({ title: "Subscribed!", description: "Thank you for subscribing to our newsletter." });
+        setEmail('');
+      }
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setSubscribing(false);
     }
   };
 
@@ -40,9 +62,9 @@ export const Footer = () => {
                 className="flex-1"
                 required
               />
-              <Button type="submit" className="sm:w-auto w-full">
+              <Button type="submit" className="sm:w-auto w-full" disabled={subscribing}>
                 <Send className="w-4 h-4 mr-2" />
-                Subscribe
+                {subscribing ? 'Subscribing...' : 'Subscribe'}
               </Button>
             </form>
           </div>
@@ -59,44 +81,50 @@ export const Footer = () => {
               <Link to="/" className="inline-flex items-center gap-3 mb-4 group">
                 <img 
                   src={logo} 
-                  alt="Male Afrique Wear" 
+                  alt={header.siteName} 
                   className="h-10 w-10 sm:h-12 sm:w-12 object-contain rounded-lg shadow-md group-hover:shadow-lg transition-shadow" 
                 />
                 <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                  Male Afrique
+                  {header.siteName}
                 </span>
               </Link>
               <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-                Premium African fashion and traditional wear for the modern gentleman.
+                {footer.description}
               </p>
               <div className="flex gap-4">
-                <a 
-                  href="https://facebook.com" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="w-10 h-10 rounded-full bg-primary/10 hover:bg-primary flex items-center justify-center text-muted-foreground hover:text-primary-foreground transition-all hover:scale-110"
-                  aria-label="Facebook"
-                >
-                  <Facebook size={18} />
-                </a>
-                <a 
-                  href="https://twitter.com" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full bg-primary/10 hover:bg-primary flex items-center justify-center text-muted-foreground hover:text-primary-foreground transition-all hover:scale-110"
-                  aria-label="Twitter"
-                >
-                  <Twitter size={18} />
-                </a>
-                <a 
-                  href="https://instagram.com" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full bg-primary/10 hover:bg-primary flex items-center justify-center text-muted-foreground hover:text-primary-foreground transition-all hover:scale-110"
-                  aria-label="Instagram"
-                >
-                  <Instagram size={18} />
-                </a>
+                {footer.social?.facebook && (
+                  <a 
+                    href={footer.social.facebook} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="w-10 h-10 rounded-full bg-primary/10 hover:bg-primary flex items-center justify-center text-muted-foreground hover:text-primary-foreground transition-all hover:scale-110"
+                    aria-label="Facebook"
+                  >
+                    <Facebook size={18} />
+                  </a>
+                )}
+                {footer.social?.twitter && (
+                  <a 
+                    href={footer.social.twitter} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 rounded-full bg-primary/10 hover:bg-primary flex items-center justify-center text-muted-foreground hover:text-primary-foreground transition-all hover:scale-110"
+                    aria-label="Twitter"
+                  >
+                    <Twitter size={18} />
+                  </a>
+                )}
+                {footer.social?.instagram && (
+                  <a 
+                    href={footer.social.instagram} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 rounded-full bg-primary/10 hover:bg-primary flex items-center justify-center text-muted-foreground hover:text-primary-foreground transition-all hover:scale-110"
+                    aria-label="Instagram"
+                  >
+                    <Instagram size={18} />
+                  </a>
+                )}
               </div>
             </div>
 
@@ -176,24 +204,24 @@ export const Footer = () => {
             <ul className="space-y-4 text-sm mb-8">
               <li className="flex items-start gap-3 text-muted-foreground group">
                 <MapPin size={18} className="mt-0.5 flex-shrink-0 text-primary" />
-                <span className="group-hover:text-foreground transition-colors">Nairobi, Kenya</span>
+                <span className="group-hover:text-foreground transition-colors">{footer.address}</span>
               </li>
               <li>
                 <a 
-                  href="tel:+254700000000" 
+                  href={`tel:${footer.phone?.replace(/\s/g, '')}`} 
                   className="flex items-center gap-3 text-muted-foreground hover:text-primary transition-colors group"
                 >
                   <Phone size={18} className="flex-shrink-0 text-primary" />
-                  <span>+254 700 000 000</span>
+                  <span>{footer.phone}</span>
                 </a>
               </li>
               <li>
                 <a 
-                  href="mailto:info@maleafrique.com" 
+                  href={`mailto:${footer.email}`} 
                   className="flex items-center gap-3 text-muted-foreground hover:text-primary transition-colors group"
                 >
                   <Mail size={18} className="flex-shrink-0 text-primary" />
-                  <span className="break-all">info@maleafrique.com</span>
+                  <span className="break-all">{footer.email}</span>
                 </a>
               </li>
             </ul>
@@ -215,9 +243,9 @@ export const Footer = () => {
       <div className="border-t border-border/50">
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-xs sm:text-sm text-muted-foreground">
-            <p>&copy; {new Date().getFullYear()} Male Afrique Wear. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} {footer.copyright}. All rights reserved.</p>
             <p className="flex items-center gap-2">
-              Made with <span className="text-red-500 animate-pulse">♥</span> in Kenya
+              {footer.madeInText}
             </p>
           </div>
         </div>

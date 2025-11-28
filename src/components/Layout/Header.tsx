@@ -20,6 +20,7 @@ import { MainNav } from './MainNav';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useSiteContent } from '@/hooks/useSiteContent';
 
 interface HeaderProps {
   cartCount: number;
@@ -32,7 +33,7 @@ const Header = ({ cartCount }: HeaderProps) => {
   const { user, signOut } = useAuth();
   const { role, isAdmin, isVendor } = useUserRole();
   const { t } = useLanguage();
-
+  const { content } = useSiteContent();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,8 +60,8 @@ const Header = ({ cartCount }: HeaderProps) => {
 
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2">
-              <img src={logo} alt="Male Afrique Wear" className="h-8 w-8 object-contain" />
-              <span className="text-lg md:text-xl font-bold text-primary">Male Afrique</span>
+              <img src={logo} alt={content.header.siteName} className="h-8 w-8 object-contain" />
+              <span className="text-lg md:text-xl font-bold text-primary">{content.header.siteName}</span>
             </Link>
 
           {/* Search bar - hidden on mobile */}
