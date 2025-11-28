@@ -5,32 +5,51 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import confetti from 'canvas-confetti';
+import { useGamificationSettings } from '@/hooks/useGamificationSettings';
+import { supabase } from '@/integrations/supabase/client';
 
-interface WelcomePopupProps {
-  delay?: number;
-}
-
-const WelcomePopup = ({ delay = 3000 }: WelcomePopupProps) => {
+const WelcomePopup = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [hasSubscribed, setHasSubscribed] = useState(false);
   const { toast } = useToast();
+  const { data: settings } = useGamificationSettings();
+  
+  const welcomeSettings = settings?.find(s => s.feature === 'welcome_popup');
+  const isEnabled = welcomeSettings?.enabled ?? true;
+  const delay = welcomeSettings?.settings?.delay ?? 3000;
+  const discountPercent = welcomeSettings?.settings?.discount_percent ?? 10;
+  const discountCode = welcomeSettings?.settings?.discount_code ?? 'WELCOME10';
+  const title = welcomeSettings?.settings?.title ?? 'Welcome Gift!';
+  const subtitle = welcomeSettings?.settings?.subtitle ?? `Subscribe now and get ${discountPercent}% OFF your first order!`;
 
   useEffect(() => {
+    if (!isEnabled) return;
+    
     const hasSeenPopup = localStorage.getItem('hasSeenWelcomePopup');
     if (!hasSeenPopup) {
       const timer = setTimeout(() => setIsOpen(true), delay);
       return () => clearTimeout(timer);
     }
-  }, [delay]);
+  }, [isEnabled, delay]);
 
   const handleClose = () => {
     setIsOpen(false);
     localStorage.setItem('hasSeenWelcomePopup', 'true');
   };
 
-  const handleSubscribe = () => {
+  const handleSubscribe = async () => {
     if (!email) return;
+    
+    // Save to newsletter subscribers
+    try {
+      await supabase.from('newsletter_subscribers').insert({
+        email,
+        source: 'welcome_popup',
+      });
+    } catch (error) {
+      console.error('Failed to save subscriber:', error);
+    }
     
     // Trigger confetti
     confetti({
@@ -42,11 +61,13 @@ const WelcomePopup = ({ delay = 3000 }: WelcomePopupProps) => {
     setHasSubscribed(true);
     toast({
       title: "🎉 Welcome aboard!",
-      description: "Your 10% discount code: WELCOME10",
+      description: `Your ${discountPercent}% discount code: ${discountCode}`,
     });
 
     setTimeout(handleClose, 2000);
   };
+
+  if (!isEnabled) return null;
 
   return (
     <AnimatePresence>
@@ -93,11 +114,13 @@ const WelcomePopup = ({ delay = 3000 }: WelcomePopupProps) => {
                   <div className="space-y-2">
                     <h2 className="text-2xl font-bold flex items-center justify-center gap-2">
                       <Sparkles className="h-5 w-5 text-yellow-500" />
-                      Welcome Gift!
+                      {title}
                       <Sparkles className="h-5 w-5 text-yellow-500" />
                     </h2>
                     <p className="text-muted-foreground">
-                      Subscribe now and get <span className="text-primary font-bold">10% OFF</span> your first order!
+                      {subtitle.includes('{percent}') 
+                        ? subtitle.replace('{percent}', String(discountPercent)) 
+                        : `Subscribe now and get ${discountPercent}% OFF your first order!`}
                     </p>
                   </div>
 
@@ -125,7 +148,7 @@ const WelcomePopup = ({ delay = 3000 }: WelcomePopupProps) => {
                 <div className="space-y-2">
                   <h2 className="text-2xl font-bold text-primary">🎉 You're In!</h2>
                   <p className="text-muted-foreground">
-                    Use code <span className="font-mono font-bold text-primary">WELCOME10</span> at checkout
+                    Use code <span className="font-mono font-bold text-primary">{discountCode}</span> at checkout
                   </p>
                 </div>
               )}

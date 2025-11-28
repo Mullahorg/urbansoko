@@ -50,6 +50,69 @@ export type Database = {
         }
         Relationships: []
       }
+      flash_sales: {
+        Row: {
+          created_at: string
+          discount_percent: number
+          end_time: string
+          id: string
+          is_active: boolean
+          name: string
+          product_ids: string[] | null
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          discount_percent?: number
+          end_time: string
+          id?: string
+          is_active?: boolean
+          name: string
+          product_ids?: string[] | null
+          start_time: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          discount_percent?: number
+          end_time?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          product_ids?: string[] | null
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      gamification_settings: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          feature: string
+          id: string
+          settings: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          feature: string
+          id?: string
+          settings?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          feature?: string
+          id?: string
+          settings?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       language_packs: {
         Row: {
           code: string

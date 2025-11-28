@@ -1,43 +1,71 @@
 import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
+import { useGamificationSettings } from '@/hooks/useGamificationSettings';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 
-const socialProofMessages = [
-  { name: 'John K.', location: 'Nairobi', action: 'just purchased', product: 'African Print Shirt' },
-  { name: 'Mary W.', location: 'Mombasa', action: 'just purchased', product: 'Dashiki Collection' },
-  { name: 'Peter M.', location: 'Kisumu', action: 'added to cart', product: 'Kente Fabric Set' },
-  { name: 'Grace A.', location: 'Nakuru', action: 'just purchased', product: 'Safari Jacket' },
-  { name: 'David O.', location: 'Eldoret', action: 'is viewing', product: 'Maasai Beaded Accessories' },
-  { name: 'Sarah N.', location: 'Nairobi', action: 'just reviewed', product: 'Ankara Blazer' },
-  { name: 'James K.', location: 'Thika', action: 'just purchased', product: 'Traditional Kikoi' },
-  { name: 'Ann M.', location: 'Nyeri', action: 'added to wishlist', product: 'Printed Kaftan' },
-];
+const locations = ['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret', 'Thika', 'Nyeri', 'Malindi', 'Machakos', 'Kakamega'];
+const firstNames = ['John', 'Mary', 'Peter', 'Grace', 'David', 'Sarah', 'James', 'Ann', 'Michael', 'Lucy', 'Joseph', 'Alice'];
 
-interface SocialProofToastProps {
-  enabled?: boolean;
-  interval?: number;
-}
-
-const SocialProofToast = ({ enabled = true, interval = 30000 }: SocialProofToastProps) => {
+const SocialProofToast = () => {
   const indexRef = useRef(0);
+  const { data: settings } = useGamificationSettings();
+  
+  const socialProofSettings = settings?.find(s => s.feature === 'social_proof_toast');
+  const isEnabled = socialProofSettings?.enabled ?? true;
+  const interval = socialProofSettings?.settings?.interval ?? 30000;
+  const showPurchases = socialProofSettings?.settings?.show_purchases ?? true;
+  const showCartAdds = socialProofSettings?.settings?.show_cart_adds ?? true;
+  const showReviews = socialProofSettings?.settings?.show_reviews ?? true;
+
+  // Fetch real products for realistic messages
+  const { data: products } = useQuery({
+    queryKey: ['products-for-social-proof'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('products')
+        .select('name')
+        .limit(20);
+      return data || [];
+    },
+    enabled: isEnabled,
+  });
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!isEnabled || !products?.length) return;
+
+    const generateMessage = () => {
+      const name = firstNames[Math.floor(Math.random() * firstNames.length)];
+      const initial = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+      const location = locations[Math.floor(Math.random() * locations.length)];
+      const product = products[Math.floor(Math.random() * products.length)]?.name || 'African Print Shirt';
+
+      const actions: { action: string; icon: string; enabled: boolean }[] = [];
+      if (showPurchases) actions.push({ action: 'just purchased', icon: '🛒', enabled: true });
+      if (showCartAdds) actions.push({ action: 'added to cart', icon: '🛍️', enabled: true });
+      if (showReviews) actions.push({ action: 'just reviewed', icon: '⭐', enabled: true });
+      actions.push({ action: 'is viewing', icon: '👀', enabled: true });
+      actions.push({ action: 'added to wishlist', icon: '❤️', enabled: true });
+
+      const enabledActions = actions.filter(a => a.enabled);
+      const selectedAction = enabledActions[Math.floor(Math.random() * enabledActions.length)];
+
+      return {
+        name: `${name} ${initial}.`,
+        location,
+        action: selectedAction.action,
+        icon: selectedAction.icon,
+        product,
+      };
+    };
 
     const showNotification = () => {
-      const message = socialProofMessages[indexRef.current % socialProofMessages.length];
+      const message = generateMessage();
       indexRef.current++;
-
-      const icons: Record<string, string> = {
-        'just purchased': '🛒',
-        'added to cart': '🛍️',
-        'is viewing': '👀',
-        'just reviewed': '⭐',
-        'added to wishlist': '❤️',
-      };
 
       toast(
         <div className="flex items-center gap-3">
-          <div className="text-2xl">{icons[message.action] || '🛒'}</div>
+          <div className="text-2xl">{message.icon}</div>
           <div className="flex-1">
             <p className="font-medium text-sm">
               {message.name} from {message.location}
@@ -65,7 +93,7 @@ const SocialProofToast = ({ enabled = true, interval = 30000 }: SocialProofToast
       clearTimeout(initialTimer);
       clearInterval(intervalTimer);
     };
-  }, [enabled, interval]);
+  }, [isEnabled, interval, showPurchases, showCartAdds, showReviews, products]);
 
   return null;
 };

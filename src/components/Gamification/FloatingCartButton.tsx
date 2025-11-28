@@ -2,64 +2,58 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/CartContext';
-import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { formatPrice } from '@/utils/currency';
+import CartSheet from '@/components/Cart/CartSheet';
+import { useGamificationSettings } from '@/hooks/useGamificationSettings';
 
-interface FloatingCartButtonProps {
-  onClick?: () => void;
-  className?: string;
-}
-
-const FloatingCartButton = ({ onClick, className }: FloatingCartButtonProps) => {
+const FloatingCartButton = () => {
   const { getTotalItems, getTotalPrice } = useCart();
-  const itemCount = getTotalItems();
+  const isMobile = useIsMobile();
+  
+  const { data: settings } = useGamificationSettings();
+  const floatingCartSettings = settings?.find(s => s.feature === 'floating_cart');
+  const isEnabled = floatingCartSettings?.enabled ?? true;
+  const showOnMobile = floatingCartSettings?.settings?.show_on_mobile ?? true;
+  const showTotal = floatingCartSettings?.settings?.show_total ?? true;
 
-  if (itemCount === 0) return null;
+  const totalItems = getTotalItems();
+  const totalPrice = getTotalPrice();
+
+  // Only show on mobile when enabled and has items
+  if (!isEnabled || !showOnMobile || !isMobile || totalItems === 0) return null;
 
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0, opacity: 0 }}
-        className={cn(
-          "fixed bottom-6 right-6 z-40 md:hidden",
-          className
-        )}
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: 100, opacity: 0 }}
+        className="fixed bottom-4 right-4 z-40"
       >
-        <Button
-          onClick={onClick}
-          size="lg"
-          className="rounded-full h-16 w-16 shadow-2xl bg-gradient-to-br from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 relative overflow-hidden"
-        >
-          {/* Animated ring */}
-          <motion.div
-            className="absolute inset-0 rounded-full border-2 border-primary-foreground/30"
-            animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0, 0.5] }}
-            transition={{ repeat: Infinity, duration: 2 }}
-          />
-          
-          <ShoppingCart className="h-6 w-6" />
-          
-          {/* Badge */}
-          <motion.span
-            key={itemCount}
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center"
-          >
-            {itemCount}
-          </motion.span>
-        </Button>
-
-        {/* Price tooltip */}
-        <motion.div
-          initial={{ opacity: 0, x: 10 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-background border shadow-lg rounded-lg px-3 py-2 whitespace-nowrap"
-        >
-          <p className="text-xs text-muted-foreground">Cart Total</p>
-          <p className="font-bold text-primary">KES {getTotalPrice().toLocaleString()}</p>
-        </motion.div>
+        <CartSheet
+          trigger={
+            <Button
+              size="lg"
+              className="rounded-full h-14 px-4 shadow-lg bg-primary hover:bg-primary/90 gap-2"
+            >
+              <div className="relative">
+                <ShoppingCart className="h-5 w-5" />
+                <motion.span
+                  key={totalItems}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold"
+                >
+                  {totalItems}
+                </motion.span>
+              </div>
+              {showTotal && (
+                <span className="font-bold">{formatPrice(totalPrice)}</span>
+              )}
+            </Button>
+          }
+        />
       </motion.div>
     </AnimatePresence>
   );

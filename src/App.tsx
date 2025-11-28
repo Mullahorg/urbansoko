@@ -46,6 +46,7 @@ import AdminPaymentSettings from "./pages/admin/AdminPaymentSettings";
 import AdminProductImport from "./pages/admin/AdminProductImport";
 import AdminDataMigration from "./pages/admin/AdminDataMigration";
 import AdminLanguages from "./pages/admin/AdminLanguages";
+import AdminGamification from "./pages/admin/AdminGamification";
 
 // Vendor Pages
 import VendorDashboard from "./pages/vendor/VendorDashboard";
@@ -118,6 +119,7 @@ const AppContent = () => {
             <Route path="vendors" element={<AdminVendors />} />
             <Route path="subscribers" element={<AdminSubscribers />} />
             <Route path="content" element={<AdminContent />} />
+            <Route path="gamification" element={<AdminGamification />} />
             <Route path="languages" element={<AdminLanguages />} />
             <Route path="settings" element={<AdminSettings />} />
             <Route path="payment" element={<AdminPaymentSettings />} />
