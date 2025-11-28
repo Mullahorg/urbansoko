@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, Download, FileSpreadsheet, ClipboardPaste } from 'lucide-react';
+import { Upload, Download, FileSpreadsheet, ClipboardPaste, Copy, Check } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,6 +14,8 @@ const AdminProductImport = () => {
   const [importing, setImporting] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [csvText, setCsvText] = useState('');
+  const [exportedCsv, setExportedCsv] = useState('');
+  const [copied, setCopied] = useState(false);
   const { toast } = useToast();
 
   const handleExport = async () => {
@@ -47,6 +49,11 @@ const AdminProductImport = () => {
       });
 
       const csvContent = csvRows.join('\n');
+      
+      // Store for display
+      setExportedCsv(csvContent);
+
+      // Download file
       const blob = new Blob([csvContent], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -67,6 +74,24 @@ const AdminProductImport = () => {
       });
     } finally {
       setExporting(false);
+    }
+  };
+
+  const handleCopyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(exportedCsv);
+      setCopied(true);
+      toast({
+        title: 'Copied!',
+        description: 'CSV data copied to clipboard',
+      });
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      toast({
+        title: 'Copy failed',
+        description: 'Unable to copy to clipboard',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -219,7 +244,7 @@ const AdminProductImport = () => {
               Export Products
             </CardTitle>
             <CardDescription>
-              Download all products as CSV file
+              Download all products as CSV file or copy to clipboard
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -231,6 +256,38 @@ const AdminProductImport = () => {
               <FileSpreadsheet className="mr-2 h-4 w-4" />
               {exporting ? 'Exporting...' : 'Export to CSV'}
             </Button>
+            
+            {exportedCsv && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>Exported CSV Data</Label>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCopyToClipboard}
+                    className="gap-2"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="h-4 w-4" />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4" />
+                        Copy to Clipboard
+                      </>
+                    )}
+                  </Button>
+                </div>
+                <Textarea
+                  value={exportedCsv}
+                  readOnly
+                  rows={8}
+                  className="font-mono text-xs"
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
 
