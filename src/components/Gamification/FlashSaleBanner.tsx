@@ -3,39 +3,47 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Zap, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { useGamificationSettings, useActiveFlashSale } from '@/hooks/useGamificationSettings';
 
-interface FlashSaleBannerProps {
-  endTime?: Date;
-  discount?: number;
-  show?: boolean;
-}
-
-const FlashSaleBanner = ({ 
-  endTime = new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
-  discount = 20,
-  show = true
-}: FlashSaleBannerProps) => {
-  const [isVisible, setIsVisible] = useState(show);
+const FlashSaleBanner = () => {
+  const [isVisible, setIsVisible] = useState(true);
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
+  
+  const { data: settings } = useGamificationSettings();
+  const { data: activeFlashSale } = useActiveFlashSale();
+  
+  const bannerSettings = settings?.find(s => s.feature === 'flash_sale_banner');
+  const isEnabled = bannerSettings?.enabled ?? true;
+  const showCountdown = bannerSettings?.settings?.show_countdown ?? true;
 
   useEffect(() => {
+    if (!activeFlashSale) return;
+
     const calculateTimeLeft = () => {
+      const endTime = new Date(activeFlashSale.end_time);
       const difference = endTime.getTime() - Date.now();
+      
       if (difference > 0) {
         setTimeLeft({
           hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
           minutes: Math.floor((difference / 1000 / 60) % 60),
           seconds: Math.floor((difference / 1000) % 60),
         });
+      } else {
+        setTimeLeft({ hours: 0, minutes: 0, seconds: 0 });
       }
     };
 
     calculateTimeLeft();
     const timer = setInterval(calculateTimeLeft, 1000);
     return () => clearInterval(timer);
-  }, [endTime]);
+  }, [activeFlashSale]);
 
-  if (!isVisible) return null;
+  // Don't show if disabled, no active sale, or user dismissed
+  if (!isEnabled || !activeFlashSale || !isVisible) return null;
+
+  const discount = activeFlashSale.discount_percent;
+  const hasProductFilter = activeFlashSale.product_ids && activeFlashSale.product_ids.length > 0;
 
   return (
     <AnimatePresence>
@@ -61,17 +69,19 @@ const FlashSaleBanner = ({
           </motion.div>
 
           <span className="font-bold text-sm md:text-base">
-            ⚡ FLASH SALE: {discount}% OFF Everything!
+            ⚡ {activeFlashSale.name}: {discount}% OFF {hasProductFilter ? 'Selected Items' : 'Everything'}!
           </span>
 
-          <div className="flex items-center gap-1 bg-black/20 rounded-lg px-3 py-1">
-            <Clock className="h-4 w-4" />
-            <span className="font-mono font-bold">
-              {String(timeLeft.hours).padStart(2, '0')}:
-              {String(timeLeft.minutes).padStart(2, '0')}:
-              {String(timeLeft.seconds).padStart(2, '0')}
-            </span>
-          </div>
+          {showCountdown && (
+            <div className="flex items-center gap-1 bg-black/20 rounded-lg px-3 py-1">
+              <Clock className="h-4 w-4" />
+              <span className="font-mono font-bold">
+                {String(timeLeft.hours).padStart(2, '0')}:
+                {String(timeLeft.minutes).padStart(2, '0')}:
+                {String(timeLeft.seconds).padStart(2, '0')}
+              </span>
+            </div>
+          )}
 
           <Link to="/products">
             <Button 
