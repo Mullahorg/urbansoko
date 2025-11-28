@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Save, Plus, Trash2 } from 'lucide-react';
+import AdminContentTestimonials from './AdminContentTestimonials';
+import AdminContentStyles from './AdminContentStyles';
 
 interface HeroContent {
   title: string;
@@ -43,11 +45,31 @@ interface HeaderContent {
   tagline: string;
 }
 
+interface TestimonialItem {
+  name: string;
+  initials: string;
+  role: string;
+  comment: string;
+  rating: number;
+}
+
+interface CustomStyles {
+  headerCss: string;
+  contentCss: string;
+  footerCss: string;
+  primaryColor: string;
+  secondaryColor: string;
+  fontFamily: string;
+  borderRadius: string;
+}
+
 interface SiteContent {
   hero: HeroContent;
   features: FeatureItem[];
   footer: FooterContent;
   header: HeaderContent;
+  testimonials: TestimonialItem[];
+  customStyles: CustomStyles;
 }
 
 const defaultContent: SiteContent = {
@@ -77,6 +99,20 @@ const defaultContent: SiteContent = {
   header: {
     siteName: 'Male Afrique',
     tagline: 'African Fashion'
+  },
+  testimonials: [
+    { name: 'John Doe', initials: 'JD', role: 'Verified Customer', comment: 'Amazing quality and beautiful designs.', rating: 5 },
+    { name: 'Michael Ochieng', initials: 'MO', role: 'Verified Customer', comment: 'Fast delivery and excellent service!', rating: 5 },
+    { name: 'David Mwangi', initials: 'DM', role: 'Verified Customer', comment: 'Perfect fit and outstanding quality.', rating: 5 }
+  ],
+  customStyles: {
+    headerCss: '',
+    contentCss: '',
+    footerCss: '',
+    primaryColor: '',
+    secondaryColor: '',
+    fontFamily: '',
+    borderRadius: ''
   }
 };
 
@@ -370,152 +406,168 @@ const AdminContent = () => {
               <Plus className="mr-2 h-4 w-4" />
               Add Feature
             </Button>
-            <Button onClick={() => handleSave('features', content.features)} disabled={saving}>
-              <Save className="mr-2 h-4 w-4" />
-              Save Features
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Footer Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Footer Content</CardTitle>
-          <CardDescription>Footer description, contact info and social links</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="footer-desc">Description</Label>
-            <Textarea
-              id="footer-desc"
-              value={content.footer?.description || ''}
-              onChange={(e) => setContent({
-                ...content,
-                footer: { ...content.footer, description: e.target.value }
-              })}
-              rows={2}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="footer-address">Address</Label>
-              <Input
-                id="footer-address"
-                value={content.footer?.address || ''}
-                onChange={(e) => setContent({
-                  ...content,
-                  footer: { ...content.footer, address: e.target.value }
-                })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="footer-phone">Phone</Label>
-              <Input
-                id="footer-phone"
-                value={content.footer?.phone || ''}
-                onChange={(e) => setContent({
-                  ...content,
-                  footer: { ...content.footer, phone: e.target.value }
-                })}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="footer-email">Email</Label>
-              <Input
-                id="footer-email"
-                value={content.footer?.email || ''}
-                onChange={(e) => setContent({
-                  ...content,
-                  footer: { ...content.footer, email: e.target.value }
-                })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="footer-copyright">Copyright Text</Label>
-              <Input
-                id="footer-copyright"
-                value={content.footer?.copyright || ''}
-                onChange={(e) => setContent({
-                  ...content,
-                  footer: { ...content.footer, copyright: e.target.value }
-                })}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="footer-madein">Made In Text</Label>
-            <Input
-              id="footer-madein"
-              value={content.footer?.madeInText || ''}
-              onChange={(e) => setContent({
-                ...content,
-                footer: { ...content.footer, madeInText: e.target.value }
-              })}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Social Media Links</Label>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="fb" className="text-xs">Facebook URL</Label>
-                <Input
-                  id="fb"
-                  value={content.footer?.social?.facebook || ''}
-                  onChange={(e) => setContent({
-                    ...content,
-                    footer: {
-                      ...content.footer,
-                      social: { ...content.footer?.social, facebook: e.target.value }
-                    }
-                  })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="ig" className="text-xs">Instagram URL</Label>
-                <Input
-                  id="ig"
-                  value={content.footer?.social?.instagram || ''}
-                  onChange={(e) => setContent({
-                    ...content,
-                    footer: {
-                      ...content.footer,
-                      social: { ...content.footer?.social, instagram: e.target.value }
-                    }
-                  })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="tw" className="text-xs">Twitter URL</Label>
-                <Input
-                  id="tw"
-                  value={content.footer?.social?.twitter || ''}
-                  onChange={(e) => setContent({
-                    ...content,
-                    footer: {
-                      ...content.footer,
-                      social: { ...content.footer?.social, twitter: e.target.value }
-                    }
-                  })}
-                />
-              </div>
-            </div>
-          </div>
-
-          <Button onClick={() => handleSave('footer', content.footer)} disabled={saving}>
+          <Button onClick={() => handleSave('features', content.features)} disabled={saving}>
             <Save className="mr-2 h-4 w-4" />
-            Save Footer
+            Save Features
           </Button>
-        </CardContent>
-      </Card>
-    </div>
-  );
+        </div>
+      </CardContent>
+    </Card>
+
+    {/* Testimonials Section */}
+    <AdminContentTestimonials
+      testimonials={content.testimonials || defaultContent.testimonials}
+      onChange={(testimonials) => setContent({ ...content, testimonials })}
+      onSave={() => handleSave('testimonials', content.testimonials)}
+      saving={saving}
+    />
+
+    {/* Footer Section */}
+    <Card>
+      <CardHeader>
+        <CardTitle>Footer Content</CardTitle>
+        <CardDescription>Footer description, contact info and social links</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="footer-desc">Description</Label>
+          <Textarea
+            id="footer-desc"
+            value={content.footer?.description || ''}
+            onChange={(e) => setContent({
+              ...content,
+              footer: { ...content.footer, description: e.target.value }
+            })}
+            rows={2}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="footer-address">Address</Label>
+            <Input
+              id="footer-address"
+              value={content.footer?.address || ''}
+              onChange={(e) => setContent({
+                ...content,
+                footer: { ...content.footer, address: e.target.value }
+              })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="footer-phone">Phone</Label>
+            <Input
+              id="footer-phone"
+              value={content.footer?.phone || ''}
+              onChange={(e) => setContent({
+                ...content,
+                footer: { ...content.footer, phone: e.target.value }
+              })}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="footer-email">Email</Label>
+            <Input
+              id="footer-email"
+              value={content.footer?.email || ''}
+              onChange={(e) => setContent({
+                ...content,
+                footer: { ...content.footer, email: e.target.value }
+              })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="footer-copyright">Copyright Text</Label>
+            <Input
+              id="footer-copyright"
+              value={content.footer?.copyright || ''}
+              onChange={(e) => setContent({
+                ...content,
+                footer: { ...content.footer, copyright: e.target.value }
+              })}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="footer-madein">Made In Text</Label>
+          <Input
+            id="footer-madein"
+            value={content.footer?.madeInText || ''}
+            onChange={(e) => setContent({
+              ...content,
+              footer: { ...content.footer, madeInText: e.target.value }
+            })}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Social Media Links</Label>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="fb" className="text-xs">Facebook URL</Label>
+              <Input
+                id="fb"
+                value={content.footer?.social?.facebook || ''}
+                onChange={(e) => setContent({
+                  ...content,
+                  footer: {
+                    ...content.footer,
+                    social: { ...content.footer?.social, facebook: e.target.value }
+                  }
+                })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="ig" className="text-xs">Instagram URL</Label>
+              <Input
+                id="ig"
+                value={content.footer?.social?.instagram || ''}
+                onChange={(e) => setContent({
+                  ...content,
+                  footer: {
+                    ...content.footer,
+                    social: { ...content.footer?.social, instagram: e.target.value }
+                  }
+                })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="tw" className="text-xs">Twitter URL</Label>
+              <Input
+                id="tw"
+                value={content.footer?.social?.twitter || ''}
+                onChange={(e) => setContent({
+                  ...content,
+                  footer: {
+                    ...content.footer,
+                    social: { ...content.footer?.social, twitter: e.target.value }
+                  }
+                })}
+              />
+            </div>
+          </div>
+        </div>
+
+        <Button onClick={() => handleSave('footer', content.footer)} disabled={saving}>
+          <Save className="mr-2 h-4 w-4" />
+          Save Footer
+        </Button>
+      </CardContent>
+    </Card>
+
+    {/* Custom Styles Section */}
+    <AdminContentStyles
+      styles={content.customStyles || defaultContent.customStyles}
+      onChange={(customStyles) => setContent({ ...content, customStyles })}
+      onSave={() => handleSave('customStyles', content.customStyles)}
+      saving={saving}
+    />
+  </div>
+);
 };
 
 export default AdminContent;
