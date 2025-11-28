@@ -13,6 +13,14 @@ import Header from "./components/Layout/Header";
 import { Footer } from "./components/Layout/Footer";
 import InstallPrompt from "./components/PWA/InstallPrompt";
 import ErrorBoundary from "./components/ErrorBoundary";
+import CustomStylesLoader from "./components/CustomStylesLoader";
+
+// Gamification Components
+import WelcomePopup from "./components/Gamification/WelcomePopup";
+import FlashSaleBanner from "./components/Gamification/FlashSaleBanner";
+import SocialProofToast from "./components/Gamification/SocialProofToast";
+import FloatingCartButton from "./components/Gamification/FloatingCartButton";
+import ScrollToTop from "./components/Gamification/ScrollToTop";
 
 import Index from "./pages/Index";
 import AuthPage from "./pages/AuthPage";
@@ -72,7 +80,9 @@ const AppContent = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <FlashSaleBanner />
       <Header cartCount={getTotalItems()} />
+      <CustomStylesLoader />
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<Index />} />
@@ -130,6 +140,10 @@ const AppContent = () => {
       </main>
       <Footer />
       <InstallPrompt />
+      <WelcomePopup />
+      <SocialProofToast />
+      <FloatingCartButton />
+      <ScrollToTop />
     </div>
   );
 };
