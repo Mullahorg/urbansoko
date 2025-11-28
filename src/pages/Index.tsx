@@ -222,31 +222,31 @@ const Index = () => {
       </section>
 
       {/* Testimonials */}
-      <section className="py-12 md:py-16">
+      <section className="py-12 md:py-16 testimonials-section">
         <div className="container mx-auto px-4">
           <div className="text-center mb-8 md:mb-12">
             <h2 className="text-2xl md:text-3xl font-bold mb-4">What Our Customers Say</h2>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[1, 2, 3].map((i) => (
+            {content.testimonials?.map((testimonial, i) => (
               <Card key={i}>
                 <CardContent className="pt-6">
                   <div className="flex mb-4">
-                    {[...Array(5)].map((_, j) => (
+                    {[...Array(testimonial.rating || 5)].map((_, j) => (
                       <Star key={j} className="h-4 w-4 fill-current text-primary" />
                     ))}
                   </div>
                   <p className="text-muted-foreground mb-4">
-                    "Amazing quality and beautiful designs. The African prints are authentic and stylish."
+                    "{testimonial.comment}"
                   </p>
                   <div className="flex items-center">
                     <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center mr-3">
-                      <span className="text-sm font-semibold">JD</span>
+                      <span className="text-sm font-semibold">{testimonial.initials}</span>
                     </div>
                     <div>
-                      <p className="font-semibold">John Doe</p>
-                      <p className="text-sm text-muted-foreground">Verified Customer</p>
+                      <p className="font-semibold">{testimonial.name}</p>
+                      <p className="text-sm text-muted-foreground">{testimonial.role}</p>
                     </div>
                   </div>
                 </CardContent>

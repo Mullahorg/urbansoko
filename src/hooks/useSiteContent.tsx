@@ -36,11 +36,31 @@ interface HeaderContent {
   tagline: string;
 }
 
+interface TestimonialItem {
+  name: string;
+  initials: string;
+  role: string;
+  comment: string;
+  rating: number;
+}
+
+interface CustomStyles {
+  headerCss: string;
+  contentCss: string;
+  footerCss: string;
+  primaryColor: string;
+  secondaryColor: string;
+  fontFamily: string;
+  borderRadius: string;
+}
+
 export interface SiteContent {
   hero: HeroContent;
   features: FeatureItem[];
   footer: FooterContent;
   header: HeaderContent;
+  testimonials: TestimonialItem[];
+  customStyles: CustomStyles;
 }
 
 const defaultContent: SiteContent = {
@@ -70,6 +90,20 @@ const defaultContent: SiteContent = {
   header: {
     siteName: 'Male Afrique',
     tagline: 'African Fashion'
+  },
+  testimonials: [
+    { name: 'John Doe', initials: 'JD', role: 'Verified Customer', comment: 'Amazing quality and beautiful designs. The African prints are authentic and stylish.', rating: 5 },
+    { name: 'Michael Ochieng', initials: 'MO', role: 'Verified Customer', comment: 'Fast delivery and excellent customer service. Will definitely order again!', rating: 5 },
+    { name: 'David Mwangi', initials: 'DM', role: 'Verified Customer', comment: 'Perfect fit and the fabric quality is outstanding. Highly recommend!', rating: 5 }
+  ],
+  customStyles: {
+    headerCss: '',
+    contentCss: '',
+    footerCss: '',
+    primaryColor: '',
+    secondaryColor: '',
+    fontFamily: '',
+    borderRadius: ''
   }
 };
 
