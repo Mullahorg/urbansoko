@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Star, Truck, Shield, Headphones } from 'lucide-react';
+import { ArrowRight, Star, Truck, Shield, Headphones, Package, Award, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +9,18 @@ import QuickView from '@/components/Product/QuickView';
 import { useCart } from '@/contexts/CartContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useSiteContent } from '@/hooks/useSiteContent';
+
+// Icon mapping for dynamic features
+const iconMap: Record<string, React.ComponentType<any>> = {
+  Truck,
+  Shield,
+  Headphones,
+  Package,
+  Award,
+  Clock,
+  Star
+};
 
 const Index = () => {
   const [wishlist, setWishlist] = useState<string[]>([]);
@@ -18,6 +30,7 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
   const { toast } = useToast();
+  const { content, loading: contentLoading } = useSiteContent();
 
   useEffect(() => {
     fetchProducts();
@@ -59,23 +72,10 @@ const Index = () => {
     setIsQuickViewOpen(true);
   };
 
-  const features = [
-    {
-      icon: Truck,
-      title: 'Free Shipping',
-      description: 'Free shipping on orders over KSh 5,000'
-    },
-    {
-      icon: Shield,
-      title: 'Secure Payment',
-      description: 'Your payment information is safe'
-    },
-    {
-      icon: Headphones,
-      title: '24/7 Support',
-      description: 'Get help whenever you need it'
-    }
-  ];
+  // Get icon component from string name
+  const getIcon = (iconName: string) => {
+    return iconMap[iconName] || Star;
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -84,46 +84,52 @@ const Index = () => {
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utb3BhY2l0eT0iMC4wNSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-40" />
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
-            <Badge className="mb-6 bg-accent text-accent-foreground animate-slide-in-down shadow-lg">
-              New Collection 2024
-            </Badge>
+            {content.hero.badge && (
+              <Badge className="mb-6 bg-accent text-accent-foreground animate-slide-in-down shadow-lg">
+                {content.hero.badge}
+              </Badge>
+            )}
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 md:mb-8 text-foreground leading-tight animate-fade-in">
-              Discover Your
-              <span className="block mt-2 gradient-text"> African Style</span>
+              {content.hero.title?.split(' ').slice(0, 2).join(' ')}
+              <span className="block mt-2 gradient-text"> {content.hero.title?.split(' ').slice(2).join(' ')}</span>
             </h1>
             <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground mb-8 md:mb-12 max-w-3xl mx-auto leading-relaxed animate-slide-in-up">
-              Embrace your heritage with our modern African-inspired menswear. 
-              From traditional prints to contemporary designs.
+              {content.hero.subtitle}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center items-stretch sm:items-center animate-scale-in">
               <Button size="lg" className="w-full sm:w-auto text-base md:text-lg px-8 py-6 shadow-lg hover:shadow-xl" asChild>
-                <Link to="/products">
-                  Shop Now <ArrowRight className="ml-2 h-5 w-5" />
+                <Link to={content.hero.ctaLink || '/products'}>
+                  {content.hero.ctaText || 'Shop Now'} <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" className="w-full sm:w-auto text-base md:text-lg px-8 py-6" asChild>
-                <Link to="/category/suits">View Collections</Link>
-              </Button>
+              {content.hero.secondaryCtaText && (
+                <Button size="lg" variant="outline" className="w-full sm:w-auto text-base md:text-lg px-8 py-6" asChild>
+                  <Link to={content.hero.secondaryCtaLink || '/products'}>{content.hero.secondaryCtaText}</Link>
+                </Button>
+              )}
             </div>
           </div>
         </div>
       </section>
 
-        {/* Features */}
+      {/* Features */}
       <section className="py-16 md:py-20 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-            {features.map((feature, index) => (
-              <Card key={index} className="text-center card-interactive border-none shadow-md hover:shadow-xl">
-                <CardContent className="pt-8 pb-6 px-6">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-6">
-                    <feature.icon className="h-8 w-8 text-primary" />
-                  </div>
-                  <h3 className="font-semibold text-lg mb-3">{feature.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
-                </CardContent>
-              </Card>
-            ))}
+            {content.features?.map((feature, index) => {
+              const IconComponent = getIcon(feature.icon);
+              return (
+                <Card key={index} className="text-center card-interactive border-none shadow-md hover:shadow-xl">
+                  <CardContent className="pt-8 pb-6 px-6">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-6">
+                      <IconComponent className="h-8 w-8 text-primary" />
+                    </div>
+                    <h3 className="font-semibold text-lg mb-3">{feature.title}</h3>
+                    <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </div>
       </section>
