@@ -1,6 +1,6 @@
 # Male Afrique E-Commerce Platform
 
-A modern, full-featured e-commerce platform for African fashion built with React, TypeScript, and Supabase. This platform offers a complete shopping experience with multi-language support, dynamic theming, vendor management, and comprehensive admin controls.
+A modern, full-featured e-commerce platform for African fashion built with React, TypeScript, and Supabase. This platform offers a complete shopping experience with multi-language support, dynamic theming, vendor management, gamification features, and comprehensive admin controls.
 
 ## 🌟 Features
 
@@ -15,6 +15,15 @@ A modern, full-featured e-commerce platform for African fashion built with React
 - **Product Reviews**: Rate and review purchased products
 - **M-Pesa Payment**: Manual verification workflow with transaction screenshots
 
+### Gamification Features
+- **Welcome Popup**: First-time visitor discount popup with confetti
+- **Flash Sale Banner**: Animated countdown sale banner with real products
+- **Social Proof Toasts**: "X just purchased..." notifications
+- **Product Badges**: NEW, HOT, SALE, TRENDING, LOW STOCK badges
+- **Floating Cart Button**: Mobile floating cart with total
+- **Scroll to Top**: Smooth scroll button
+- **Confetti Animations**: On add-to-cart and purchase
+
 ### Vendor Features
 - **Vendor Registration**: Apply to become a vendor
 - **Product Management**: Add and manage products
@@ -27,7 +36,8 @@ A modern, full-featured e-commerce platform for African fashion built with React
 - **User Management**: Role assignment (User, Vendor, Admin)
 - **Order Management**: Approve/reject orders with M-Pesa verification
 - **Inventory Management**: Track and update stock levels
-- **Content Management**: Edit hero section, features, and footer
+- **Content Management**: Edit hero section, features, testimonials, and footer
+- **Gamification Settings**: Control all gamification features
 - **Custom CSS**: Apply custom styling through admin panel
 - **Newsletter Management**: Manage subscribers with export functionality
 - **Payment Settings**: Configure M-Pesa details
@@ -37,88 +47,50 @@ A modern, full-featured e-commerce platform for African fashion built with React
 - **Frontend**: React 18, TypeScript, Vite
 - **Styling**: Tailwind CSS, shadcn/ui components
 - **Backend**: Supabase (PostgreSQL database, Auth, Storage, Edge Functions)
-- **State Management**: React Context API
+- **State Management**: React Context API, TanStack Query
 - **Routing**: React Router v6
 - **Forms**: React Hook Form with Zod validation
 - **Charts**: Recharts
+- **Animations**: Framer Motion, Canvas Confetti
 - **Icons**: Lucide React
 
 ## 📋 Prerequisites
 
 - Node.js (v18 or higher)
-- npm or yarn
+- npm, yarn, or bun
 - Supabase account (for backend services)
 
-## 🚀 Getting Started
+---
 
-### 1. Clone the Repository
+## 🚀 Self-Hosting Guide (Complete Independence from Lovable)
 
-```bash
-git clone <your-repository-url>
-cd <project-directory>
-```
+This section provides complete instructions for hosting this application on your own infrastructure without any dependency on Lovable's services.
 
-### 2. Install Dependencies
+### Step 1: Export Your Code
 
-```bash
-npm install
-```
+1. Connect your Lovable project to GitHub (if not already done)
+2. Clone the repository to your local machine:
+   ```bash
+   git clone https://github.com/your-username/your-repo-name.git
+   cd your-repo-name
+   ```
 
-### 3. Environment Setup
+### Step 2: Set Up Your Own Supabase Project
 
-Create a `.env` file in the root directory with the following variables:
+1. Create a new project at [supabase.com](https://supabase.com)
+2. Note down your project credentials:
+   - **Project URL**: `https://your-project-id.supabase.co`
+   - **Anon Key**: Found in Project Settings > API
+   - **Service Role Key**: Found in Project Settings > API (keep this secret!)
 
-```env
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
-VITE_SUPABASE_PROJECT_ID=your_supabase_project_id
-```
+### Step 3: Run Database Migrations
 
-To get these values:
-1. Create a project at [supabase.com](https://supabase.com)
-2. Go to Project Settings > API
-3. Copy the Project URL and anon/public key
+Navigate to your Supabase SQL Editor and run the migrations in order:
 
-### 4. Database Setup
+1. Go to the `supabase/migrations/` directory in your code
+2. Run each `.sql` file in chronological order (sorted by timestamp)
 
-#### Run Migrations
-
-Execute the SQL migrations in your Supabase SQL editor in order:
-
-1. Navigate to `supabase/migrations/` directory
-2. Run each migration file in chronological order (sorted by timestamp)
-
-The migrations will create:
-- User profiles and roles tables
-- Products and categories tables
-- Orders and order items tables
-- Reviews and wishlist tables
-- Vendor management tables
-- Rewards system tables
-- Settings and content management tables
-
-#### Enable Row Level Security (RLS)
-
-All tables have RLS policies defined in the migrations. Ensure RLS is enabled on all tables through the Supabase dashboard.
-
-#### Configure Storage
-
-Create the following storage buckets in Supabase:
-1. `product-images` (public access)
-
-Set up storage policies for secure file uploads.
-
-### 5. Authentication Configuration
-
-In your Supabase dashboard:
-1. Go to Authentication > Settings
-2. Enable Email provider
-3. Configure Email templates (optional)
-4. Enable auto-confirm for development (disable in production)
-
-### 6. Edge Functions Setup (Optional)
-
-If you need to deploy edge functions:
+Or use the Supabase CLI:
 
 ```bash
 # Install Supabase CLI
@@ -130,64 +102,148 @@ supabase login
 # Link your project
 supabase link --project-ref your_project_id
 
-# Deploy edge functions
-supabase functions deploy
+# Push migrations
+supabase db push
 ```
 
-### 7. Admin Account Setup
+### Step 4: Configure Storage Buckets
 
-After running migrations, create your first admin account:
+Create these storage buckets in Supabase Dashboard > Storage:
 
-1. Sign up through the app
-2. In Supabase SQL editor, run:
+1. **product-images** (Public)
+   - Go to Policies and add: "Allow public access for viewing"
+   
+2. **transaction-screenshots** (Public or Authenticated)
+   - Add appropriate policies for uploads
+
+### Step 5: Configure Authentication
+
+In Supabase Dashboard > Authentication > Settings:
+
+1. Enable Email provider
+2. **For Production**: Disable "Enable email confirmations" or set up proper SMTP
+3. **For Development**: Enable "Confirm email" auto-confirm
+
+### Step 6: Set Up Environment Variables
+
+Create a `.env` file in your project root:
+
+```env
+VITE_SUPABASE_URL=https://your-project-id.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=your_anon_key
+VITE_SUPABASE_PROJECT_ID=your_project_id
+```
+
+### Step 7: Update Supabase Client
+
+The `src/integrations/supabase/client.ts` file should automatically use these environment variables. Verify it looks like:
+
+```typescript
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+export const supabase = createClient(supabaseUrl, supabaseKey);
+```
+
+### Step 8: Deploy Edge Functions (If Needed)
+
+If you use edge functions for M-Pesa or email:
+
+```bash
+# Deploy all functions
+supabase functions deploy
+
+# Or deploy specific function
+supabase functions deploy mpesa-stk-push
+
+# Set secrets for edge functions
+supabase secrets set MPESA_CONSUMER_KEY=your_key
+supabase secrets set MPESA_CONSUMER_SECRET=your_secret
+```
+
+### Step 9: Create Admin Account
+
+After migrations are complete:
+
+1. Sign up through your app's auth page
+2. Run this SQL in Supabase SQL Editor:
 
 ```sql
-INSERT INTO user_roles (user_id, role)
-VALUES ('your_user_id', 'admin');
+-- Get your user ID first
+SELECT id, email FROM auth.users WHERE email = 'your-email@example.com';
+
+-- Then assign admin role (replace YOUR_USER_ID)
+INSERT INTO public.user_roles (user_id, role)
+VALUES ('YOUR_USER_ID', 'admin');
 ```
 
-Get your user_id from the `auth.users` table or `profiles` table.
-
-### 8. Run the Development Server
-
-```bash
-npm run dev
-```
-
-The application will be available at `http://localhost:5173`
-
-## 🏗️ Build for Production
-
-```bash
-npm run build
-```
-
-The build output will be in the `dist/` directory.
+---
 
 ## 📦 Deployment Options
 
-### Vercel
+### Option A: Vercel (Recommended)
 
-1. Install Vercel CLI: `npm i -g vercel`
-2. Run: `vercel`
-3. Follow the prompts
-4. Add environment variables in Vercel dashboard
+1. Push your code to GitHub
+2. Go to [vercel.com](https://vercel.com) and import your repository
+3. Add environment variables in Vercel dashboard:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_PUBLISHABLE_KEY`
+   - `VITE_SUPABASE_PROJECT_ID`
+4. Deploy
 
-### Netlify
+```bash
+# Or use Vercel CLI
+npm i -g vercel
+vercel
+```
 
-1. Install Netlify CLI: `npm i -g netlify-cli`
-2. Run: `netlify deploy`
-3. Follow the prompts
-4. Add environment variables in Netlify dashboard
+### Option B: Netlify
 
-### Self-Hosted (Docker)
+1. Push your code to GitHub
+2. Go to [netlify.com](https://netlify.com) and import your repository
+3. Set build command: `npm run build`
+4. Set publish directory: `dist`
+5. Add environment variables in Netlify dashboard
+6. Deploy
+
+```bash
+# Or use Netlify CLI
+npm i -g netlify-cli
+netlify deploy --prod
+```
+
+### Option C: Cloudflare Pages
+
+1. Push your code to GitHub
+2. Go to Cloudflare Pages and connect your repository
+3. Set:
+   - Build command: `npm run build`
+   - Build output directory: `dist`
+4. Add environment variables
+5. Deploy
+
+### Option D: Docker (Self-Hosted VPS)
+
+Create `Dockerfile`:
 
 ```dockerfile
-FROM node:18-alpine as builder
+FROM node:18-alpine AS builder
+
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
+
+# Build with environment variables
+ARG VITE_SUPABASE_URL
+ARG VITE_SUPABASE_PUBLISHABLE_KEY
+ARG VITE_SUPABASE_PROJECT_ID
+ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
+ENV VITE_SUPABASE_PUBLISHABLE_KEY=$VITE_SUPABASE_PUBLISHABLE_KEY
+ENV VITE_SUPABASE_PROJECT_ID=$VITE_SUPABASE_PROJECT_ID
+
 RUN npm run build
 
 FROM nginx:alpine
@@ -206,36 +262,111 @@ server {
     root /usr/share/nginx/html;
     index index.html;
 
+    # Gzip compression
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css text/xml text/javascript application/javascript application/json application/xml;
+
+    # SPA fallback
     location / {
         try_files $uri $uri/ /index.html;
     }
 
+    # Cache static assets
     location /assets {
         expires 1y;
         add_header Cache-Control "public, immutable";
     }
+
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
 }
 ```
 
 Build and run:
 
 ```bash
-docker build -t male-afrique .
-docker run -p 80:80 male-afrique
+# Build image
+docker build \
+  --build-arg VITE_SUPABASE_URL=https://your-project.supabase.co \
+  --build-arg VITE_SUPABASE_PUBLISHABLE_KEY=your_anon_key \
+  --build-arg VITE_SUPABASE_PROJECT_ID=your_project_id \
+  -t male-afrique .
+
+# Run container
+docker run -d -p 80:80 --name male-afrique male-afrique
 ```
 
-## 🔐 Security Configuration
+### Option E: Docker Compose (with SSL)
+
+Create `docker-compose.yml`:
+
+```yaml
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      args:
+        - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+        - VITE_SUPABASE_PUBLISHABLE_KEY=${VITE_SUPABASE_PUBLISHABLE_KEY}
+        - VITE_SUPABASE_PROJECT_ID=${VITE_SUPABASE_PROJECT_ID}
+    restart: unless-stopped
+    networks:
+      - web
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - web
+    depends_on:
+      - app
+
+networks:
+  web:
+
+volumes:
+  caddy_data:
+  caddy_config:
+```
+
+Create `Caddyfile`:
+
+```
+yourdomain.com {
+    reverse_proxy app:80
+}
+```
+
+Run:
+
+```bash
+docker-compose up -d
+```
+
+---
+
+## 🔐 Security Best Practices
 
 ### Environment Variables
-
-Never commit `.env` files. Use environment-specific configurations:
-
-- **Development**: `.env.local`
-- **Production**: Set via hosting provider dashboard
+- Never commit `.env` files to git
+- Use different keys for development and production
+- Rotate keys periodically
 
 ### Supabase RLS Policies
-
-Review and ensure all RLS policies are properly configured:
+All tables have Row Level Security enabled. Verify policies:
 
 ```sql
 -- Check RLS is enabled
@@ -244,108 +375,97 @@ FROM pg_tables
 WHERE schemaname = 'public';
 
 -- View policies
-SELECT * FROM pg_policies WHERE schemaname = 'public';
+SELECT tablename, policyname, cmd, qual 
+FROM pg_policies 
+WHERE schemaname = 'public';
 ```
 
-### API Keys
+### API Security
+- Use the anon key only on the client
+- Keep the service_role key secret (server-side only)
+- Implement rate limiting on your hosting provider
 
-Store sensitive keys in Supabase Secrets:
-
-```bash
-supabase secrets set SECRET_NAME=value
-```
+---
 
 ## 📊 Initial Setup Checklist
 
-- [ ] Create Supabase project
-- [ ] Set up environment variables
-- [ ] Run database migrations
-- [ ] Configure authentication
-- [ ] Create storage buckets
-- [ ] Set up admin account
+After deployment, complete this checklist in the admin panel:
+
 - [ ] Configure M-Pesa payment settings (Admin > Payment Settings)
 - [ ] Create product categories (Admin > Categories)
-- [ ] Import initial products (Admin > Products > Import)
+- [ ] Import or add initial products (Admin > Products)
 - [ ] Customize site content (Admin > Content)
-- [ ] Test order flow end-to-end
+- [ ] Configure gamification settings (Admin > Gamification)
+- [ ] Set up flash sales if needed
+- [ ] Add language packs (Admin > Languages)
+- [ ] Test complete order flow
+
+---
 
 ## 🎨 Customization
 
 ### Theming
 
-The app supports dynamic theming through:
+Edit these files for theme customization:
 - `src/index.css` - CSS variables for colors
 - `tailwind.config.ts` - Tailwind theme configuration
-- Admin panel - Custom CSS field for on-the-fly styling
+- Admin Panel > Content > Custom Styles - Runtime CSS
 
 ### Color Schemes
 
 Three built-in schemes:
-1. **Classic Gold** (Default): Purple/blue primary with coral accents
+1. **Classic Gold**: Purple/blue primary with coral accents
 2. **Forest Green**: Nature-inspired green tones
 3. **African Heritage**: Green, gold, and orange Pan-African colors
 
-### Custom Styling
+---
 
-Admins can add custom CSS through:
-Admin Dashboard > Settings > Custom CSS
-
-## 📱 Features Configuration
-
-### M-Pesa Integration
-
-Configure in Admin > Payment Settings:
-- Paybill/Till Number
-- Business Name
-- Account Number (optional)
-
-Orders require manual verification with transaction screenshots.
-
-### Rewards Program
-
-Automatic calculation: 1 point per 100 KES spent
-Configure tiers by modifying the `award_points_on_order()` database function.
-
-### Email Notifications
-
-Edge functions are set up for:
-- Order confirmation
-- Order status updates
-
-Configure SMTP or use Supabase's email service.
-
-## 🧪 Testing
+## 🧪 Development
 
 ```bash
-# Run tests (if configured)
-npm test
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev
 
 # Type checking
-npm run type-check
+npx tsc --noEmit
 
-# Linting
-npm run lint
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
 ```
+
+---
 
 ## 🐛 Troubleshooting
 
 ### Build Errors
-
-1. Clear cache: `rm -rf node_modules dist .vite && npm install`
-2. Check Node version: `node -v` (should be 18+)
-3. Verify environment variables are set
+```bash
+rm -rf node_modules dist .vite
+npm install
+npm run build
+```
 
 ### Database Connection Issues
-
 1. Verify Supabase URL and keys in `.env`
 2. Check RLS policies aren't blocking access
 3. Ensure migrations have run successfully
 
 ### Authentication Problems
-
 1. Verify email provider is enabled in Supabase
-2. Check auto-confirm settings for development
+2. Check auto-confirm settings
 3. Review user_roles table for proper role assignment
+
+### Edge Functions Not Working
+1. Check function logs in Supabase Dashboard
+2. Verify all secrets are set
+3. Ensure CORS headers are configured
+
+---
 
 ## 📄 License
 
@@ -359,9 +479,12 @@ npm run lint
 
 [Your Support Information]
 
+---
+
 ## 🙏 Acknowledgments
 
 - [Supabase](https://supabase.com) - Backend infrastructure
 - [shadcn/ui](https://ui.shadcn.com) - UI components
 - [Tailwind CSS](https://tailwindcss.com) - Styling framework
 - [Lucide](https://lucide.dev) - Icons
+- [Framer Motion](https://www.framer.com/motion/) - Animations

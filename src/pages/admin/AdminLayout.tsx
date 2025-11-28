@@ -63,15 +63,15 @@ const AdminLayout = () => {
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
         <AdminSidebar />
-        <div className="flex-1 flex flex-col">
-          <header className="h-16 border-b flex items-center px-4 gap-4 bg-background sticky top-0 z-10">
+        <div className="flex-1 flex flex-col min-w-0">
+          <header className="h-14 md:h-16 border-b flex items-center px-3 md:px-4 gap-2 md:gap-4 bg-background sticky top-0 z-10">
             <SidebarTrigger />
             <div className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-primary" />
-              <h1 className="text-xl font-bold">Admin Panel</h1>
+              <Shield className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+              <h1 className="text-base md:text-xl font-bold truncate">Admin Panel</h1>
             </div>
           </header>
-          <main className="flex-1 p-6">
+          <main className="flex-1 p-3 md:p-6 overflow-x-hidden">
             <Outlet /> {/* Nested admin pages render here */}
           </main>
         </div>
