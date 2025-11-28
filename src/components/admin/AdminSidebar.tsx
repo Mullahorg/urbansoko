@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Package, ShoppingCart, Users, LayoutDashboard, Database, Store, Settings, FileSpreadsheet, CheckSquare, CreditCard, BarChart3, FileText, Mail, Archive, Layers, Globe, Sparkles } from "lucide-react";
+import { Package, ShoppingCart, Users, LayoutDashboard, Database, Store, Settings, FileSpreadsheet, CheckSquare, CreditCard, BarChart3, FileText, Mail, Archive, Layers, Globe, Sparkles, HardDrive } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { useUserRole } from "@/hooks/useUserRole";
 
@@ -20,6 +20,7 @@ const adminItems = [
   { title: "Languages", url: "/admin/languages", icon: Globe },
   { title: "Payment Settings", url: "/admin/payment", icon: CreditCard },
   { title: "Settings", url: "/admin/settings", icon: Settings },
+  { title: "Database Export", url: "/admin/database", icon: HardDrive },
   { title: "Data Migration", url: "/admin/migrate", icon: Database },
 ];
 
