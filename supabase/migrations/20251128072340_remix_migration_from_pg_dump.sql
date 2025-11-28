@@ -163,6 +163,23 @@ $$;
 SET default_table_access_method = heap;
 
 --
+-- Name: categories; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.categories (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    name text NOT NULL,
+    slug text NOT NULL,
+    description text,
+    icon text,
+    display_order integer DEFAULT 0,
+    is_active boolean DEFAULT true,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now()
+);
+
+
+--
 -- Name: newsletter_subscribers; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -409,6 +426,30 @@ CREATE TABLE public.wishlist (
 
 
 --
+-- Name: categories categories_name_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.categories
+    ADD CONSTRAINT categories_name_key UNIQUE (name);
+
+
+--
+-- Name: categories categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.categories
+    ADD CONSTRAINT categories_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: categories categories_slug_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.categories
+    ADD CONSTRAINT categories_slug_key UNIQUE (slug);
+
+
+--
 -- Name: newsletter_subscribers newsletter_subscribers_email_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -626,6 +667,13 @@ CREATE TRIGGER order_status_change_trigger AFTER UPDATE ON public.orders FOR EAC
 
 
 --
+-- Name: categories update_categories_updated_at; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_categories_updated_at BEFORE UPDATE ON public.categories FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+
+
+--
 -- Name: orders update_orders_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -818,6 +866,13 @@ CREATE POLICY "Admins can manage all vendors" ON public.vendors USING (public.ha
 
 
 --
+-- Name: categories Admins can manage categories; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Admins can manage categories" ON public.categories USING (public.has_role(auth.uid(), 'admin'::public.app_role));
+
+
+--
 -- Name: order_status_history Admins can manage order status history; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -906,6 +961,13 @@ CREATE POLICY "Anyone can create orders" ON public.orders FOR INSERT WITH CHECK 
 --
 
 CREATE POLICY "Anyone can subscribe" ON public.newsletter_subscribers FOR INSERT WITH CHECK (true);
+
+
+--
+-- Name: categories Anyone can view active categories; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Anyone can view active categories" ON public.categories FOR SELECT USING (((is_active = true) OR (auth.uid() IS NOT NULL)));
 
 
 --
@@ -1058,6 +1120,12 @@ CREATE POLICY "Users can view their own wishlist" ON public.wishlist FOR SELECT 
 
 CREATE POLICY "Vendors can update their own profile" ON public.vendors FOR UPDATE USING ((auth.uid() = user_id));
 
+
+--
+-- Name: categories; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: newsletter_subscribers; Type: ROW SECURITY; Schema: public; Owner: -
