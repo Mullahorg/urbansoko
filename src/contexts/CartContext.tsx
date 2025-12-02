@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Product } from '@/components/Product/ProductCard';
 import { useToast } from '@/hooks/use-toast';
 
@@ -33,8 +33,16 @@ interface CartProviderProps {
 }
 
 export const CartProvider = ({ children }: CartProviderProps) => {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const [items, setItems] = useState<CartItem[]>(() => {
+    const savedCart = localStorage.getItem('cart');
+    return savedCart ? JSON.parse(savedCart) : [];
+  });
   const { toast } = useToast();
+
+  // Persist cart to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('cart', JSON.stringify(items));
+  }, [items]);
 
   const addToCart = (product: Product, size?: string, color?: string) => {
     setItems(prevItems => {
@@ -95,6 +103,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
 
   const clearCart = () => {
     setItems([]);
+    localStorage.removeItem('cart');
     toast({
       title: "Cart Cleared",
       description: "All items have been removed from your cart",
