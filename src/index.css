@@ -362,4 +362,48 @@
   .glass {
     @apply bg-background/80 backdrop-blur-md border border-border/50;
   }
+
+  /* Admin Panel Enhancements */
+  .admin-card {
+    @apply bg-card rounded-lg border border-border shadow-sm hover:shadow-md transition-all duration-300;
+  }
+
+  .admin-card-hover {
+    @apply admin-card hover:border-primary/50 hover:shadow-lg;
+  }
+
+  .admin-stat-card {
+    @apply admin-card p-6 space-y-3 hover:scale-[1.02] cursor-pointer;
+  }
+
+  .admin-header-gradient {
+    @apply bg-gradient-to-r from-card via-card/95 to-card;
+  }
+
+  /* Smooth sidebar animations */
+  [data-sidebar] {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  /* Better focus states for admin forms */
+  .admin-input:focus-within {
+    @apply ring-2 ring-primary/20 border-primary;
+  }
+
+  /* Status badges */
+  .status-badge-success {
+    @apply bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20;
+  }
+
+  .status-badge-warning {
+    @apply bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20;
+  }
+
+  .status-badge-danger {
+    @apply bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20;
+  }
+
+  .status-badge-info {
+    @apply bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20;
+  }
 }
