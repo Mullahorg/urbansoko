@@ -406,4 +406,56 @@
   .status-badge-info {
     @apply bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20;
   }
+
+  /* Adaptive UI Enhancements */
+  .adaptive-ui {
+    /* Enhanced spacing */
+    --adaptive-spacing: 1.2;
+    --adaptive-radius: 1.3;
+    --adaptive-shadow: 1.5;
+  }
+
+  .adaptive-ui .card,
+  .adaptive-ui .admin-card {
+    border-radius: calc(var(--radius) * var(--adaptive-radius, 1));
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, calc(0.1 * var(--adaptive-shadow, 1))),
+                0 2px 4px -1px rgba(0, 0, 0, calc(0.06 * var(--adaptive-shadow, 1)));
+  }
+
+  .adaptive-ui .admin-card-hover:hover {
+    transform: translateY(-2px) scale(1.01);
+  }
+
+  .adaptive-ui button,
+  .adaptive-ui .button {
+    border-radius: calc(var(--radius) * var(--adaptive-radius, 1));
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .adaptive-ui button:hover,
+  .adaptive-ui .button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, calc(0.15 * var(--adaptive-shadow, 1)));
+  }
+
+  .adaptive-ui .space-y-6 > * + * {
+    margin-top: calc(1.5rem * var(--adaptive-spacing, 1));
+  }
+
+  .adaptive-ui .space-y-4 > * + * {
+    margin-top: calc(1rem * var(--adaptive-spacing, 1));
+  }
+
+  .adaptive-ui .p-6 {
+    padding: calc(1.5rem * var(--adaptive-spacing, 1));
+  }
+
+  .adaptive-ui .p-4 {
+    padding: calc(1rem * var(--adaptive-spacing, 1));
+  }
+
+  /* Smooth transitions for adaptive changes */
+  .adaptive-ui * {
+    transition-duration: 0.3s;
+  }
 }
