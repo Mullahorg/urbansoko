@@ -4,9 +4,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Save } from 'lucide-react';
+import { useAdaptiveUI } from '@/contexts/AdaptiveUIContext';
+import { Save, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const AdminSettings = () => {
   const [settings, setSettings] = useState({
@@ -18,6 +21,7 @@ const AdminSettings = () => {
   });
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { adaptiveEnabled, setAdaptiveEnabled } = useAdaptiveUI();
 
   useEffect(() => {
     fetchSettings();
@@ -34,7 +38,10 @@ const AdminSettings = () => {
         support_phone: data.find((s: any) => s.key === 'support_phone')?.value || '',
         shipping_fee: data.find((s: any) => s.key === 'shipping_fee')?.value || '0',
         custom_css: data.find((s: any) => s.key === 'custom_css')?.value || '',
+        adaptive_ui: data.find((s: any) => s.key === 'adaptive_ui')?.value || 'false',
       };
+
+      setAdaptiveEnabled(settingsMap.adaptive_ui === 'true');
 
       setSettings({
         siteName: settingsMap.site_name,
@@ -64,6 +71,7 @@ const AdminSettings = () => {
       { key: 'support_phone', value: settings.supportPhone },
       { key: 'shipping_fee', value: settings.shippingFee },
       { key: 'custom_css', value: settings.customCss },
+      { key: 'adaptive_ui', value: adaptiveEnabled.toString() },
     ];
 
     try {
@@ -87,12 +95,58 @@ const AdminSettings = () => {
 
   return (
     <div className="space-y-6">
-      <div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
         <h2 className="text-3xl font-bold">General Settings</h2>
         <p className="text-muted-foreground">Configure your store settings</p>
-      </div>
+      </motion.div>
 
-      <Card>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
+        <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              Adaptive UI
+            </CardTitle>
+            <CardDescription>
+              Enable intelligent UI adaptations for enhanced user experience
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="space-y-1 flex-1">
+                <Label htmlFor="adaptive-ui" className="text-base font-semibold">
+                  Adaptive UI Mode
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  When enabled, the UI automatically adjusts spacing, shadows, and visual elements 
+                  for improved clarity and modern aesthetics. Includes enhanced animations and 
+                  smoother transitions throughout the site.
+                </p>
+              </div>
+              <Switch
+                id="adaptive-ui"
+                checked={adaptiveEnabled}
+                onCheckedChange={setAdaptiveEnabled}
+                className="ml-4"
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <Card>
         <CardHeader>
           <CardTitle>Store Information</CardTitle>
           <CardDescription>Basic information about your store</CardDescription>
@@ -159,6 +213,7 @@ const AdminSettings = () => {
           </form>
         </CardContent>
       </Card>
+      </motion.div>
     </div>
   );
 };

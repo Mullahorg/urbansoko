@@ -8,6 +8,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { CartProvider, useCart } from "./contexts/CartContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
+import { AdaptiveUIProvider } from "./contexts/AdaptiveUIContext";
 
 import Header from "./components/Layout/Header";
 import { Footer } from "./components/Layout/Footer";
@@ -158,15 +159,17 @@ const App = () => (
       <TooltipProvider>
         <LanguageProvider>
           <ThemeProvider>
-            <AuthProvider>
-              <CartProvider>
-                <Toaster />
-                <Sonner />
-                <BrowserRouter>
-                  <AppContent />
-                </BrowserRouter>
-              </CartProvider>
-            </AuthProvider>
+            <AdaptiveUIProvider>
+              <AuthProvider>
+                <CartProvider>
+                  <Toaster />
+                  <Sonner />
+                  <BrowserRouter>
+                    <AppContent />
+                  </BrowserRouter>
+                </CartProvider>
+              </AuthProvider>
+            </AdaptiveUIProvider>
           </ThemeProvider>
         </LanguageProvider>
       </TooltipProvider>
