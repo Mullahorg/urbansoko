@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Gift, Sparkles, PartyPopper } from 'lucide-react';
+import { X, Gift, Sparkles, PartyPopper, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -60,7 +60,8 @@ const WelcomePopup = () => {
 
     setHasSubscribed(true);
     toast({
-      title: "🎉 Welcome aboard!",
+      title: "Welcome aboard!"
+      ,
       description: `Your ${discountPercent}% discount code: ${discountCode}`,
     });
 
@@ -136,7 +137,8 @@ const WelcomePopup = () => {
                       onClick={handleSubscribe} 
                       className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
                     >
-                      Claim My Discount 🎁
+                      <Tag className="h-4 w-4 mr-2" />
+                      Claim My Discount
                     </Button>
                   </div>
 
@@ -146,7 +148,10 @@ const WelcomePopup = () => {
                 </>
               ) : (
                 <div className="space-y-2">
-                  <h2 className="text-2xl font-bold text-primary">🎉 You're In!</h2>
+                  <h2 className="text-2xl font-bold text-primary flex items-center justify-center gap-2">
+                    <PartyPopper className="h-6 w-6" />
+                    You're In!
+                  </h2>
                   <p className="text-muted-foreground">
                     Use code <span className="font-mono font-bold text-primary">{discountCode}</span> at checkout
                   </p>

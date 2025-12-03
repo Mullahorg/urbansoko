@@ -53,7 +53,7 @@ const ProductCard = ({ product, onAddToCart, onToggleWishlist, onQuickView, isWi
     onAddToCart(product);
     
     toast({
-      title: "🛒 Added to Cart!",
+      title: "Added to Cart!",
       description: `${product.name} has been added to your cart`,
     });
 
@@ -65,7 +65,7 @@ const ProductCard = ({ product, onAddToCart, onToggleWishlist, onQuickView, isWi
     triggerAddToCartAnimation();
     onAddToCart(product);
     toast({
-      title: "⚡ Proceeding to Checkout",
+      title: "Proceeding to Checkout",
       description: `${product.name} - Redirecting to payment...`,
     });
   };

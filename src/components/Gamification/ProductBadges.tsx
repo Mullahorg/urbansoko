@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Flame, Sparkles, Clock, TrendingUp, Percent, Star } from 'lucide-react';
+import { Flame, Sparkles, Clock, TrendingUp, Percent, Star, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface BadgeProps {
@@ -127,10 +127,12 @@ export const LowStockBadge = ({ stock, className }: BadgeProps & { stock: number
     )}
   >
     <motion.span 
+      className="flex items-center gap-1"
       animate={{ scale: [1, 1.05, 1] }}
       transition={{ repeat: Infinity, duration: 2 }}
     >
-      🔥 Only {stock} left!
+      <AlertTriangle className="h-3 w-3" />
+      Only {stock} left!
     </motion.span>
   </motion.div>
 );

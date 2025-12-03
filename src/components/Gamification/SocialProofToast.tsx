@@ -1,11 +1,20 @@
 import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
+import { ShoppingCart, ShoppingBag, Star, Eye, Heart } from 'lucide-react';
 import { useGamificationSettings } from '@/hooks/useGamificationSettings';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 
 const locations = ['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret', 'Thika', 'Nyeri', 'Malindi', 'Machakos', 'Kakamega'];
 const firstNames = ['John', 'Mary', 'Peter', 'Grace', 'David', 'Sarah', 'James', 'Ann', 'Michael', 'Lucy', 'Joseph', 'Alice'];
+
+const actionIcons = {
+  purchased: ShoppingCart,
+  cart: ShoppingBag,
+  reviewed: Star,
+  viewing: Eye,
+  wishlist: Heart,
+};
 
 const SocialProofToast = () => {
   const indexRef = useRef(0);
@@ -40,12 +49,12 @@ const SocialProofToast = () => {
       const location = locations[Math.floor(Math.random() * locations.length)];
       const product = products[Math.floor(Math.random() * products.length)]?.name || 'African Print Shirt';
 
-      const actions: { action: string; icon: string; enabled: boolean }[] = [];
-      if (showPurchases) actions.push({ action: 'just purchased', icon: '🛒', enabled: true });
-      if (showCartAdds) actions.push({ action: 'added to cart', icon: '🛍️', enabled: true });
-      if (showReviews) actions.push({ action: 'just reviewed', icon: '⭐', enabled: true });
-      actions.push({ action: 'is viewing', icon: '👀', enabled: true });
-      actions.push({ action: 'added to wishlist', icon: '❤️', enabled: true });
+      const actions: { action: string; iconKey: keyof typeof actionIcons; enabled: boolean }[] = [];
+      if (showPurchases) actions.push({ action: 'just purchased', iconKey: 'purchased', enabled: true });
+      if (showCartAdds) actions.push({ action: 'added to cart', iconKey: 'cart', enabled: true });
+      if (showReviews) actions.push({ action: 'just reviewed', iconKey: 'reviewed', enabled: true });
+      actions.push({ action: 'is viewing', iconKey: 'viewing', enabled: true });
+      actions.push({ action: 'added to wishlist', iconKey: 'wishlist', enabled: true });
 
       const enabledActions = actions.filter(a => a.enabled);
       const selectedAction = enabledActions[Math.floor(Math.random() * enabledActions.length)];
@@ -54,7 +63,7 @@ const SocialProofToast = () => {
         name: `${name} ${initial}.`,
         location,
         action: selectedAction.action,
-        icon: selectedAction.icon,
+        iconKey: selectedAction.iconKey,
         product,
       };
     };
@@ -62,10 +71,13 @@ const SocialProofToast = () => {
     const showNotification = () => {
       const message = generateMessage();
       indexRef.current++;
+      const IconComponent = actionIcons[message.iconKey];
 
       toast(
         <div className="flex items-center gap-3">
-          <div className="text-2xl">{message.icon}</div>
+          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <IconComponent className="h-5 w-5 text-primary" />
+          </div>
           <div className="flex-1">
             <p className="font-medium text-sm">
               {message.name} from {message.location}
