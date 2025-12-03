@@ -13,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ShoppingBag, MapPin, Upload, FileImage } from 'lucide-react';
 import { ShippingCalculator } from '@/components/Product/ShippingCalculator';
 import { Textarea } from '@/components/ui/textarea';
+import { triggerPurchaseAnimation } from '@/components/Gamification/AddToCartAnimation';
 
 const CheckoutPage = () => {
   const { user } = useAuth();
@@ -180,6 +181,9 @@ const CheckoutPage = () => {
         .insert(orderItems);
 
       if (itemsError) throw itemsError;
+
+      // Trigger celebration animation
+      triggerPurchaseAnimation();
 
       toast({
         title: "Order submitted!",

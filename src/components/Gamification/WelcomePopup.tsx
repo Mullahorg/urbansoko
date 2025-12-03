@@ -4,9 +4,9 @@ import { X, Gift, Sparkles, PartyPopper, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import confetti from 'canvas-confetti';
 import { useGamificationSettings } from '@/hooks/useGamificationSettings';
 import { supabase } from '@/integrations/supabase/client';
+import { triggerRewardAnimation } from '@/components/Gamification/AddToCartAnimation';
 
 const WelcomePopup = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -51,12 +51,8 @@ const WelcomePopup = () => {
       console.error('Failed to save subscriber:', error);
     }
     
-    // Trigger confetti
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 }
-    });
+    // Trigger confetti (respects settings)
+    triggerRewardAnimation();
 
     setHasSubscribed(true);
     toast({
