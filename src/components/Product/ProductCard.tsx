@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { WishlistButton } from './WishlistButton';
 import { NewBadge, HotBadge, SaleBadge, LowStockBadge, TrendingBadge } from '@/components/Gamification/ProductBadges';
 import { triggerAddToCartAnimation } from '@/components/Gamification/AddToCartAnimation';
+import { useGamificationSettings } from '@/hooks/useGamificationSettings';
 
 export interface Product {
   id: string;
@@ -41,6 +42,17 @@ const ProductCard = ({ product, onAddToCart, onToggleWishlist, onQuickView, isWi
   const [isHovered, setIsHovered] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const { toast } = useToast();
+  
+  // Get gamification settings for badges
+  const { data: settings } = useGamificationSettings();
+  const badgeSettings = settings?.find(s => s.feature === 'product_badges');
+  const badgesEnabled = badgeSettings?.enabled ?? true;
+  const showNew = badgeSettings?.settings?.show_new ?? true;
+  const showHot = badgeSettings?.settings?.show_hot ?? true;
+  const showSale = badgeSettings?.settings?.show_sale ?? true;
+  const showTrending = badgeSettings?.settings?.show_trending ?? true;
+  const showLowStock = badgeSettings?.settings?.show_low_stock ?? true;
+  const lowStockThreshold = badgeSettings?.settings?.low_stock_threshold ?? 5;
 
   const discountPercentage = product.originalPrice 
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
@@ -70,16 +82,19 @@ const ProductCard = ({ product, onAddToCart, onToggleWishlist, onQuickView, isWi
     });
   };
 
-  // Determine which badge to show
+  // Determine which badge to show based on settings
   const getBadge = () => {
-    if (product.isSale && discountPercentage > 0) {
+    if (!badgesEnabled) return null;
+    if (product.isSale && discountPercentage > 0 && showSale) {
       return <SaleBadge discount={discountPercentage} />;
     }
-    if (product.isHot) return <HotBadge />;
-    if (product.isTrending) return <TrendingBadge />;
-    if (product.isNew) return <NewBadge />;
+    if (product.isHot && showHot) return <HotBadge />;
+    if (product.isTrending && showTrending) return <TrendingBadge />;
+    if (product.isNew && showNew) return <NewBadge />;
     return null;
   };
+  
+  const shouldShowLowStock = badgesEnabled && showLowStock && product.stock && product.stock > 0 && product.stock <= lowStockThreshold;
 
   return (
     <motion.div
@@ -113,8 +128,8 @@ const ProductCard = ({ product, onAddToCart, onToggleWishlist, onQuickView, isWi
             {getBadge()}
             
             {/* Low stock warning */}
-            {product.stock && product.stock > 0 && product.stock <= 5 && (
-              <LowStockBadge stock={product.stock} />
+            {shouldShowLowStock && (
+              <LowStockBadge stock={product.stock!} />
             )}
 
             {/* Out of stock overlay */}
