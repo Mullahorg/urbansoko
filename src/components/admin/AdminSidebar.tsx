@@ -1,9 +1,19 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Package, ShoppingCart, Users, LayoutDashboard, Database, Store, Settings, FileSpreadsheet, CheckSquare, CreditCard, BarChart3, FileText, Mail, Archive, Layers, Globe, Sparkles, HardDrive } from "lucide-react";
-import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar, SidebarHeader } from "@/components/ui/sidebar";
+import { 
+  Package, ShoppingCart, Users, LayoutDashboard, Database, Store, Settings, 
+  FileSpreadsheet, CheckSquare, CreditCard, BarChart3, FileText, Mail, 
+  Archive, Layers, Globe, Sparkles, HardDrive, ChevronRight, Crown
+} from "lucide-react";
+import { 
+  Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, 
+  SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, 
+  useSidebar, SidebarHeader, SidebarFooter 
+} from "@/components/ui/sidebar";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
+import patternFabric from "@/assets/pattern-fabric.png";
 
 const adminGroups = [
   {
@@ -64,39 +74,52 @@ export function AdminSidebar() {
   if (!isAdmin) return null;
 
   return (
-    <Sidebar collapsible="icon" className="border-r bg-sidebar">
-      <SidebarHeader className="border-b p-4">
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar">
+      {/* Header with pattern background */}
+      <SidebarHeader 
+        className="relative overflow-hidden border-b border-sidebar-border"
+        style={{
+          backgroundImage: `url(${patternFabric})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-primary/80 to-accent/70" />
         <motion.div 
-          className="flex items-center gap-3"
+          className="relative z-10 flex items-center gap-3 p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-            <LayoutDashboard className="h-4 w-4 text-white" />
-          </div>
+          <motion.div 
+            className="h-10 w-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg"
+            whileHover={{ scale: 1.05, rotate: 5 }}
+            transition={{ type: "spring", stiffness: 400 }}
+          >
+            <Crown className="h-5 w-5 text-white" />
+          </motion.div>
           {open && (
             <motion.div 
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               className="flex flex-col"
             >
-              <span className="font-bold text-sm">Admin Panel</span>
-              <span className="text-xs text-muted-foreground">Management Console</span>
+              <span className="font-bold text-sm text-white">Admin Panel</span>
+              <span className="text-xs text-white/70">Management Console</span>
             </motion.div>
           )}
         </motion.div>
       </SidebarHeader>
       
-      <SidebarContent className="px-2 py-4">
+      <SidebarContent className="px-2 py-3 scrollbar-thin scrollbar-thumb-sidebar-border scrollbar-track-transparent">
         {adminGroups.map((group, groupIndex) => (
-          <SidebarGroup key={group.label}>
+          <SidebarGroup key={group.label} className="mb-2">
             {open && (
-              <SidebarGroupLabel className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+              <SidebarGroupLabel className="px-3 text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mb-1.5">
                 {group.label}
               </SidebarGroupLabel>
             )}
             <SidebarGroupContent>
-              <SidebarMenu className="space-y-1">
+              <SidebarMenu className="space-y-0.5">
                 {group.items.map((item, itemIndex) => {
                   const isActive = item.end 
                     ? location.pathname === item.url 
@@ -108,39 +131,52 @@ export function AdminSidebar() {
                         <NavLink 
                           to={item.url} 
                           end={item.end}
-                          className={`
-                            relative group transition-all duration-200
-                            ${isActive 
-                              ? 'bg-primary text-primary-foreground shadow-md hover:bg-primary/90' 
-                              : 'hover:bg-muted/80 text-sidebar-foreground'
-                            }
-                            rounded-lg
-                          `}
+                          className={cn(
+                            "relative group transition-all duration-200 rounded-lg overflow-hidden",
+                            isActive 
+                              ? "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-md" 
+                              : "hover:bg-sidebar-accent text-sidebar-foreground"
+                          )}
                         >
                           <motion.div
-                            initial={{ scale: 0.8, opacity: 0 }}
+                            initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            transition={{ delay: (groupIndex * 0.1) + (itemIndex * 0.05) }}
-                            className="flex items-center gap-3 w-full"
+                            transition={{ delay: (groupIndex * 0.05) + (itemIndex * 0.02) }}
+                            className="flex items-center gap-3 w-full py-0.5"
                           >
-                            <item.icon className={`h-4 w-4 transition-transform group-hover:scale-110 ${isActive ? 'text-primary-foreground' : ''}`} />
+                            <div className={cn(
+                              "flex items-center justify-center w-8 h-8 rounded-lg transition-colors",
+                              isActive 
+                                ? "bg-white/20" 
+                                : "bg-sidebar-accent group-hover:bg-primary/10"
+                            )}>
+                              <item.icon className={cn(
+                                "h-4 w-4 transition-all",
+                                isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-primary"
+                              )} />
+                            </div>
                             {open && (
-                              <span className="flex-1 font-medium text-sm">{item.title}</span>
-                            )}
-                            {open && item.badge && (
-                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5">
-                                {item.badge}
-                              </Badge>
+                              <>
+                                <span className="flex-1 font-medium text-sm">{item.title}</span>
+                                {item.badge && (
+                                  <Badge 
+                                    className={cn(
+                                      "text-[9px] px-1.5 py-0 h-4 font-semibold",
+                                      isActive 
+                                        ? "bg-white/20 text-white border-0" 
+                                        : "bg-primary/10 text-primary border-primary/20"
+                                    )}
+                                  >
+                                    {item.badge}
+                                  </Badge>
+                                )}
+                                <ChevronRight className={cn(
+                                  "h-3 w-3 opacity-0 group-hover:opacity-100 transition-all",
+                                  isActive ? "text-primary-foreground opacity-100" : "text-muted-foreground"
+                                )} />
+                              </>
                             )}
                           </motion.div>
-                          {isActive && (
-                            <motion.div
-                              layoutId="activeIndicator"
-                              className="absolute left-0 top-0 bottom-0 w-1 bg-primary-foreground rounded-r"
-                              initial={false}
-                              transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                            />
-                          )}
                         </NavLink>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -151,6 +187,17 @@ export function AdminSidebar() {
           </SidebarGroup>
         ))}
       </SidebarContent>
+
+      {/* Footer with version info */}
+      {open && (
+        <SidebarFooter className="border-t border-sidebar-border p-3">
+          <div className="text-center">
+            <p className="text-[10px] text-muted-foreground/60 uppercase tracking-wider">
+              Admin Console v1.0
+            </p>
+          </div>
+        </SidebarFooter>
+      )}
     </Sidebar>
   );
 }
