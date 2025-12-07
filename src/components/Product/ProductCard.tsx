@@ -101,10 +101,10 @@ const ProductCard = ({ product, onAddToCart, onToggleWishlist, onQuickView, isWi
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -8 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
     >
       <Card 
-        className="group cursor-pointer overflow-hidden border-border/50 bg-card hover:shadow-xl hover:shadow-primary/10 transition-all duration-300"
+        className="group cursor-pointer overflow-hidden border-border/50 bg-card card-premium"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         tabIndex={0}
@@ -188,7 +188,7 @@ const ProductCard = ({ product, onAddToCart, onToggleWishlist, onQuickView, isWi
                 >
                   <div className="space-y-2">
                     <Button
-                      className="w-full text-sm h-10 shadow-lg hover:shadow-xl bg-gradient-to-r from-primary to-primary/80"
+                      className="w-full text-sm h-11 shadow-lg hover:shadow-xl btn-luxe font-semibold tracking-wide"
                       onClick={handleBuyNow}
                     >
                       <Zap className="h-4 w-4 mr-2" />
@@ -196,12 +196,12 @@ const ProductCard = ({ product, onAddToCart, onToggleWishlist, onQuickView, isWi
                     </Button>
                     <Button
                       variant="outline"
-                      className="w-full bg-background/90 backdrop-blur-sm border-border/50 text-sm h-10"
+                      className="w-full glass-premium text-sm h-11 font-medium"
                       onClick={handleAddToCart}
                     >
                       <motion.div
-                        animate={isAdding ? { rotate: [0, -10, 10, 0] } : {}}
-                        transition={{ duration: 0.3 }}
+                        animate={isAdding ? { rotate: [0, -10, 10, 0], scale: [1, 1.2, 1] } : {}}
+                        transition={{ duration: 0.4 }}
                       >
                         <ShoppingCart className="h-4 w-4 mr-2" />
                       </motion.div>
@@ -223,10 +223,11 @@ const ProductCard = ({ product, onAddToCart, onToggleWishlist, onQuickView, isWi
             
             <div className="flex items-center gap-2 flex-wrap mb-3">
               <motion.span 
-                className="font-bold text-lg text-primary"
+                className="font-bold text-xl text-gradient-primary"
                 key={product.price}
-                initial={{ scale: 1.1 }}
-                animate={{ scale: 1 }}
+                initial={{ scale: 1.1, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: 'spring', stiffness: 300 }}
               >
                 {formatPrice(product.price)}
               </motion.span>

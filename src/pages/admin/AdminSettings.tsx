@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAdaptiveUI } from '@/contexts/AdaptiveUIContext';
-import { Save, Sparkles } from 'lucide-react';
+import { Save, Sparkles, Smartphone, Wifi, Bell } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const AdminSettings = () => {
@@ -18,6 +18,10 @@ const AdminSettings = () => {
     supportPhone: '',
     shippingFee: '',
     customCss: '',
+  });
+  const [pwaSettings, setPwaSettings] = useState({
+    installPromptEnabled: true,
+    offlineSyncEnabled: true,
   });
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -39,9 +43,15 @@ const AdminSettings = () => {
         shipping_fee: data.find((s: any) => s.key === 'shipping_fee')?.value || '0',
         custom_css: data.find((s: any) => s.key === 'custom_css')?.value || '',
         adaptive_ui: data.find((s: any) => s.key === 'adaptive_ui')?.value || 'false',
+        pwa_install_prompt: data.find((s: any) => s.key === 'pwa_install_prompt')?.value || 'true',
+        pwa_offline_sync: data.find((s: any) => s.key === 'pwa_offline_sync')?.value || 'true',
       };
 
       setAdaptiveEnabled(settingsMap.adaptive_ui === 'true');
+      setPwaSettings({
+        installPromptEnabled: settingsMap.pwa_install_prompt === 'true',
+        offlineSyncEnabled: settingsMap.pwa_offline_sync === 'true',
+      });
 
       setSettings({
         siteName: settingsMap.site_name,
@@ -72,6 +82,8 @@ const AdminSettings = () => {
       { key: 'shipping_fee', value: settings.shippingFee },
       { key: 'custom_css', value: settings.customCss },
       { key: 'adaptive_ui', value: adaptiveEnabled.toString() },
+      { key: 'pwa_install_prompt', value: pwaSettings.installPromptEnabled.toString() },
+      { key: 'pwa_offline_sync', value: pwaSettings.offlineSyncEnabled.toString() },
     ];
 
     try {
@@ -144,7 +156,62 @@ const AdminSettings = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
+        transition={{ delay: 0.15 }}
+      >
+        <Card className="border-primary/20 bg-gradient-to-br from-secondary/5 to-primary/5">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Smartphone className="h-5 w-5 text-secondary" />
+              Progressive Web App (PWA)
+            </CardTitle>
+            <CardDescription>
+              Configure app installation prompts and offline functionality
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1 flex-1">
+                <Label htmlFor="pwa-install" className="text-base font-semibold flex items-center gap-2">
+                  <Bell className="h-4 w-4" />
+                  Install Prompt
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Show yearly install prompts to encourage users to add the app to their home screen.
+                </p>
+              </div>
+              <Switch
+                id="pwa-install"
+                checked={pwaSettings.installPromptEnabled}
+                onCheckedChange={(checked) => setPwaSettings(prev => ({ ...prev, installPromptEnabled: checked }))}
+                className="ml-4"
+              />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="space-y-1 flex-1">
+                <Label htmlFor="pwa-offline" className="text-base font-semibold flex items-center gap-2">
+                  <Wifi className="h-4 w-4" />
+                  Offline Sync
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Enable offline storage and automatic syncing when users reconnect to the internet.
+                </p>
+              </div>
+              <Switch
+                id="pwa-offline"
+                checked={pwaSettings.offlineSyncEnabled}
+                onCheckedChange={(checked) => setPwaSettings(prev => ({ ...prev, offlineSyncEnabled: checked }))}
+                className="ml-4"
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25 }}
       >
         <Card>
         <CardHeader>
