@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Download, X } from 'lucide-react';
+import { Download, X, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -8,11 +8,31 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
 }
 
+const PROMPT_STORAGE_KEY = 'pwa-prompt-last-shown';
+const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
+
 const InstallPrompt = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
+    // Check if app is already installed
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsInstalled(true);
+      return;
+    }
+
+    // Check if we should show the prompt (once per year)
+    const lastShown = localStorage.getItem(PROMPT_STORAGE_KEY);
+    if (lastShown) {
+      const lastShownDate = parseInt(lastShown, 10);
+      const timeSinceLastShown = Date.now() - lastShownDate;
+      if (timeSinceLastShown < ONE_YEAR_MS) {
+        return;
+      }
+    }
+
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
@@ -20,7 +40,17 @@ const InstallPrompt = () => {
     };
 
     window.addEventListener('beforeinstallprompt', handler);
-    return () => window.removeEventListener('beforeinstallprompt', handler);
+    
+    // Listen for successful installation
+    window.addEventListener('appinstalled', () => {
+      setIsInstalled(true);
+      setShowPrompt(false);
+      setDeferredPrompt(null);
+    });
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler);
+    };
   }, []);
 
   const handleInstall = async () => {
@@ -33,44 +63,62 @@ const InstallPrompt = () => {
       setDeferredPrompt(null);
       setShowPrompt(false);
     }
+    
+    // Record that we showed the prompt
+    localStorage.setItem(PROMPT_STORAGE_KEY, Date.now().toString());
   };
 
   const handleDismiss = () => {
     setShowPrompt(false);
-    localStorage.setItem('pwa-prompt-dismissed', 'true');
+    // Record that we showed the prompt (user dismissed)
+    localStorage.setItem(PROMPT_STORAGE_KEY, Date.now().toString());
   };
 
-  // Don't show if user already dismissed or if already installed
-  if (!showPrompt || !deferredPrompt || localStorage.getItem('pwa-prompt-dismissed')) {
+  if (!showPrompt || !deferredPrompt || isInstalled) {
     return null;
   }
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:max-w-sm">
-      <Card className="shadow-lg border-2 border-primary/20">
+    <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:max-w-sm animate-in slide-in-from-bottom-4 duration-500">
+      <Card className="shadow-2xl border-2 border-primary/30 bg-gradient-to-br from-background via-background to-primary/5 backdrop-blur-sm">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
-            <div className="bg-primary/10 p-2 rounded-lg">
-              <Download className="h-5 w-5 text-primary" />
+            <div className="bg-gradient-to-br from-primary/20 to-primary/10 p-3 rounded-xl shadow-inner">
+              <Smartphone className="h-6 w-6 text-primary" />
             </div>
             
             <div className="flex-1">
-              <h3 className="font-semibold text-sm mb-1">Install Male Afrique</h3>
-              <p className="text-xs text-muted-foreground mb-3">
-                Get the app for a better shopping experience with offline access and notifications.
+              <h3 className="font-bold text-sm mb-1 text-foreground">Install Male Afrique</h3>
+              <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
+                Get the app for faster shopping, offline access, and instant notifications on new arrivals!
               </p>
               
               <div className="flex gap-2">
-                <Button size="sm" onClick={handleInstall} className="text-xs">
-                  Install
+                <Button 
+                  size="sm" 
+                  onClick={handleInstall} 
+                  className="text-xs gap-1.5 shadow-lg hover:shadow-xl transition-all"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  Install Now
                 </Button>
-                <Button size="sm" variant="ghost" onClick={handleDismiss} className="text-xs">
-                  Later
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  onClick={handleDismiss} 
+                  className="text-xs text-muted-foreground hover:text-foreground"
+                >
+                  Maybe Later
                 </Button>
               </div>
             </div>
             
-            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={handleDismiss}>
+            <Button 
+              size="icon" 
+              variant="ghost" 
+              className="h-7 w-7 text-muted-foreground hover:text-foreground" 
+              onClick={handleDismiss}
+            >
               <X className="h-4 w-4" />
             </Button>
           </div>

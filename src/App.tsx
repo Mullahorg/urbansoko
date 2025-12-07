@@ -13,6 +13,7 @@ import { AdaptiveUIProvider } from "./contexts/AdaptiveUIContext";
 import Header from "./components/Layout/Header";
 import { Footer } from "./components/Layout/Footer";
 import InstallPrompt from "./components/PWA/InstallPrompt";
+import OfflineIndicator from "./components/PWA/OfflineIndicator";
 import ErrorBoundary from "./components/ErrorBoundary";
 import CustomStylesLoader from "./components/CustomStylesLoader";
 
@@ -145,6 +146,7 @@ const AppContent = () => {
       </main>
       <Footer />
       <InstallPrompt />
+      <OfflineIndicator />
       <WelcomePopup />
       <SocialProofToast />
       <FloatingCartButton />
