@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Download, X, Smartphone } from 'lucide-react';
+import { Download, X, Smartphone, Sparkles } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -36,7 +37,8 @@ const InstallPrompt = () => {
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setShowPrompt(true);
+      // Delay showing prompt for better UX
+      setTimeout(() => setShowPrompt(true), 3000);
     };
 
     window.addEventListener('beforeinstallprompt', handler);
@@ -79,52 +81,81 @@ const InstallPrompt = () => {
   }
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:max-w-sm animate-in slide-in-from-bottom-4 duration-500">
-      <Card className="shadow-2xl border-2 border-primary/30 bg-gradient-to-br from-background via-background to-primary/5 backdrop-blur-sm">
-        <CardContent className="p-4">
-          <div className="flex items-start gap-3">
-            <div className="bg-gradient-to-br from-primary/20 to-primary/10 p-3 rounded-xl shadow-inner">
-              <Smartphone className="h-6 w-6 text-primary" />
-            </div>
-            
-            <div className="flex-1">
-              <h3 className="font-bold text-sm mb-1 text-foreground">Install Male Afrique</h3>
-              <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
-                Get the app for faster shopping, offline access, and instant notifications on new arrivals!
-              </p>
+    <AnimatePresence>
+      <motion.div 
+        initial={{ opacity: 0, y: 100, scale: 0.9 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 100, scale: 0.9 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:max-w-sm"
+      >
+        <Card className="shadow-2xl border-2 border-primary/20 glass-premium overflow-hidden">
+          {/* Animated background gradient */}
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5"
+            animate={{ 
+              opacity: [0.5, 0.8, 0.5],
+              scale: [1, 1.02, 1]
+            }}
+            transition={{ duration: 4, repeat: Infinity }}
+          />
+          
+          <CardContent className="p-5 relative">
+            <div className="flex items-start gap-4">
+              <motion.div 
+                className="bg-gradient-to-br from-primary/20 to-primary/5 p-3.5 rounded-2xl shadow-inner relative"
+                animate={{ rotate: [0, 5, -5, 0] }}
+                transition={{ duration: 4, repeat: Infinity }}
+              >
+                <Smartphone className="h-7 w-7 text-primary" />
+                <motion.div
+                  className="absolute -top-1 -right-1"
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <Sparkles className="h-4 w-4 text-accent" />
+                </motion.div>
+              </motion.div>
               
-              <div className="flex gap-2">
-                <Button 
-                  size="sm" 
-                  onClick={handleInstall} 
-                  className="text-xs gap-1.5 shadow-lg hover:shadow-xl transition-all"
-                >
-                  <Download className="h-3.5 w-3.5" />
-                  Install Now
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
-                  onClick={handleDismiss} 
-                  className="text-xs text-muted-foreground hover:text-foreground"
-                >
-                  Maybe Later
-                </Button>
+              <div className="flex-1">
+                <h3 className="font-bold text-base mb-1.5 text-foreground">Install Male Afrique</h3>
+                <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+                  Get the app for faster shopping, offline access & exclusive notifications!
+                </p>
+                
+                <div className="flex gap-2.5">
+                  <Button 
+                    size="sm" 
+                    onClick={handleInstall} 
+                    className="text-sm gap-2 shadow-lg hover:shadow-xl btn-luxe px-4"
+                  >
+                    <Download className="h-4 w-4" />
+                    Install Now
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    onClick={handleDismiss} 
+                    className="text-sm text-muted-foreground hover:text-foreground"
+                  >
+                    Maybe Later
+                  </Button>
+                </div>
               </div>
+              
+              <Button 
+                size="icon" 
+                variant="ghost" 
+                className="h-8 w-8 text-muted-foreground hover:text-foreground shrink-0" 
+                onClick={handleDismiss}
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
-            
-            <Button 
-              size="icon" 
-              variant="ghost" 
-              className="h-7 w-7 text-muted-foreground hover:text-foreground" 
-              onClick={handleDismiss}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    </AnimatePresence>
   );
 };
 

@@ -14,21 +14,34 @@ interface ReviewData {
   comment?: string;
 }
 
+interface CartItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  selectedSize?: string;
+  selectedColor?: string;
+  image?: string;
+}
+
 interface PendingAction {
   id: string;
-  type: 'order' | 'wishlist' | 'review';
-  action: 'create' | 'update' | 'delete';
-  data: WishlistData | ReviewData | { id: string };
+  type: 'order' | 'wishlist' | 'review' | 'cart';
+  action: 'create' | 'update' | 'delete' | 'sync';
+  data: WishlistData | ReviewData | { id: string } | CartItem[];
   timestamp: number;
 }
 
 const PENDING_ACTIONS_KEY = 'offline-pending-actions';
 const OFFLINE_DATA_KEY = 'offline-cached-data';
+const OFFLINE_PRODUCTS_KEY = 'offline-products-cache';
+const OFFLINE_CATEGORIES_KEY = 'offline-categories-cache';
 
 export const useOfflineSync = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [pendingActions, setPendingActions] = useState<PendingAction[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
   const { toast } = useToast();
 
   // Load pending actions from localStorage
@@ -36,6 +49,11 @@ export const useOfflineSync = () => {
     const stored = localStorage.getItem(PENDING_ACTIONS_KEY);
     if (stored) {
       setPendingActions(JSON.parse(stored));
+    }
+    
+    const lastSync = localStorage.getItem('last-sync-time');
+    if (lastSync) {
+      setLastSyncTime(new Date(lastSync));
     }
   }, []);
 
@@ -78,6 +96,63 @@ export const useOfflineSync = () => {
       syncPendingActions();
     }
   }, [isOnline]);
+
+  // Cache products for offline use
+  const cacheProductsForOffline = useCallback(async () => {
+    if (!isOnline) return;
+    
+    try {
+      const { data: products } = await supabase
+        .from('products')
+        .select('*')
+        .limit(50);
+      
+      if (products) {
+        localStorage.setItem(OFFLINE_PRODUCTS_KEY, JSON.stringify({
+          data: products,
+          timestamp: Date.now()
+        }));
+      }
+
+      const { data: categories } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('is_active', true);
+      
+      if (categories) {
+        localStorage.setItem(OFFLINE_CATEGORIES_KEY, JSON.stringify({
+          data: categories,
+          timestamp: Date.now()
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to cache products for offline:', error);
+    }
+  }, [isOnline]);
+
+  // Get cached products when offline
+  const getOfflineProducts = useCallback(() => {
+    const cached = localStorage.getItem(OFFLINE_PRODUCTS_KEY);
+    if (cached) {
+      const { data, timestamp } = JSON.parse(cached);
+      // Cache valid for 24 hours
+      if (Date.now() - timestamp < 24 * 60 * 60 * 1000) {
+        return data;
+      }
+    }
+    return null;
+  }, []);
+
+  const getOfflineCategories = useCallback(() => {
+    const cached = localStorage.getItem(OFFLINE_CATEGORIES_KEY);
+    if (cached) {
+      const { data, timestamp } = JSON.parse(cached);
+      if (Date.now() - timestamp < 24 * 60 * 60 * 1000) {
+        return data;
+      }
+    }
+    return null;
+  }, []);
 
   const addPendingAction = useCallback((action: Omit<PendingAction, 'id' | 'timestamp'>) => {
     const newAction: PendingAction = {
@@ -130,6 +205,11 @@ export const useOfflineSync = () => {
     // Remove successful actions
     setPendingActions(prev => prev.filter(a => !successfulIds.includes(a.id)));
     setIsSyncing(false);
+    
+    // Update last sync time
+    const now = new Date();
+    setLastSyncTime(now);
+    localStorage.setItem('last-sync-time', now.toISOString());
 
     if (successfulIds.length > 0) {
       toast({
@@ -137,6 +217,9 @@ export const useOfflineSync = () => {
         description: `${successfulIds.length} pending changes synced successfully.`,
       });
     }
+
+    // Refresh offline cache after sync
+    cacheProductsForOffline();
   };
 
   // Cache data for offline use
@@ -155,14 +238,42 @@ export const useOfflineSync = () => {
     return cached[key]?.data || null;
   }, []);
 
+  // Clear expired cache
+  const clearExpiredCache = useCallback(() => {
+    const cached = JSON.parse(localStorage.getItem(OFFLINE_DATA_KEY) || '{}');
+    const now = Date.now();
+    const maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+    Object.keys(cached).forEach(key => {
+      if (now - cached[key].timestamp > maxAge) {
+        delete cached[key];
+      }
+    });
+
+    localStorage.setItem(OFFLINE_DATA_KEY, JSON.stringify(cached));
+  }, []);
+
+  // Initialize - cache products and clear expired cache
+  useEffect(() => {
+    if (isOnline) {
+      cacheProductsForOffline();
+      clearExpiredCache();
+    }
+  }, [isOnline, cacheProductsForOffline, clearExpiredCache]);
+
   return {
     isOnline,
     isSyncing,
     pendingActions,
     pendingCount: pendingActions.length,
+    lastSyncTime,
     addPendingAction,
     syncPendingActions,
     cacheData,
     getCachedData,
+    cacheProductsForOffline,
+    getOfflineProducts,
+    getOfflineCategories,
+    clearExpiredCache,
   };
 };
