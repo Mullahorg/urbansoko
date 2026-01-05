@@ -1,11 +1,20 @@
-import { WifiOff, RefreshCw, Cloud, CloudOff, Check } from 'lucide-react';
+import { WifiOff, RefreshCw, Cloud, CloudOff, Check, Download, HardDrive } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 
 const OfflineIndicator = () => {
-  const { isOnline, isSyncing, pendingCount, syncPendingActions, lastSyncTime } = useOfflineSync();
+  const { 
+    isOnline, 
+    isSyncing, 
+    pendingCount, 
+    syncPendingActions, 
+    lastSyncTime,
+    cacheProgress,
+    cacheProductsForOffline
+  } = useOfflineSync();
 
   const formatLastSync = () => {
     if (!lastSyncTime) return null;
@@ -18,9 +27,44 @@ const OfflineIndicator = () => {
     return lastSyncTime.toLocaleDateString();
   };
 
+  const isCaching = cacheProgress.total > 0;
+  const cachePercent = isCaching ? Math.round((cacheProgress.current / cacheProgress.total) * 100) : 0;
+
   return (
     <AnimatePresence>
-      {(!isOnline || pendingCount > 0) && (
+      {/* Caching progress indicator */}
+      {isCaching && (
+        <motion.div
+          initial={{ opacity: 0, y: -20, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -20, scale: 0.95 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+          className="fixed top-20 left-1/2 -translate-x-1/2 z-50"
+        >
+          <motion.div 
+            className="flex items-center gap-3 bg-gradient-to-r from-blue-500/95 to-blue-600/85 text-white px-5 py-3 rounded-full shadow-xl backdrop-blur-md border border-blue-500/20 min-w-[280px]"
+          >
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+            >
+              <Download className="h-5 w-5" />
+            </motion.div>
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-semibold">Caching for offline</span>
+                <span className="text-xs opacity-80">{cachePercent}%</span>
+              </div>
+              <Progress value={cachePercent} className="h-1.5 bg-white/20" />
+              <span className="text-xs opacity-70 mt-1 block">
+                {cacheProgress.current} / {cacheProgress.total} images
+              </span>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {(!isOnline || pendingCount > 0) && !isCaching && (
         <motion.div
           initial={{ opacity: 0, y: -20, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -30,9 +74,9 @@ const OfflineIndicator = () => {
         >
           {!isOnline ? (
             <motion.div 
-              className="flex items-center gap-3 bg-gradient-to-r from-destructive/95 to-destructive/85 text-destructive-foreground px-5 py-3 rounded-full shadow-xl backdrop-blur-md border border-destructive/20"
+              className="flex items-center gap-3 bg-gradient-to-r from-amber-500/95 to-amber-600/85 text-white px-5 py-3 rounded-full shadow-xl backdrop-blur-md border border-amber-500/20"
               animate={{ 
-                boxShadow: ['0 10px 40px -10px rgba(239, 68, 68, 0.4)', '0 10px 40px -10px rgba(239, 68, 68, 0.6)', '0 10px 40px -10px rgba(239, 68, 68, 0.4)']
+                boxShadow: ['0 10px 40px -10px rgba(245, 158, 11, 0.4)', '0 10px 40px -10px rgba(245, 158, 11, 0.6)', '0 10px 40px -10px rgba(245, 158, 11, 0.4)']
               }}
               transition={{ duration: 2, repeat: Infinity }}
             >
@@ -40,14 +84,14 @@ const OfflineIndicator = () => {
                 animate={{ rotate: [0, -10, 10, 0] }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
-                <CloudOff className="h-5 w-5" />
+                <HardDrive className="h-5 w-5" />
               </motion.div>
               <div className="flex flex-col">
-                <span className="text-sm font-semibold">You're offline</span>
-                <span className="text-xs opacity-80">Changes saved locally</span>
+                <span className="text-sm font-semibold">Offline Mode</span>
+                <span className="text-xs opacity-80">Browsing cached products</span>
               </div>
               {pendingCount > 0 && (
-                <Badge variant="secondary" className="ml-2 bg-background/20 text-destructive-foreground border-none">
+                <Badge variant="secondary" className="ml-2 bg-white/20 text-white border-none">
                   {pendingCount} pending
                 </Badge>
               )}
@@ -90,7 +134,7 @@ const OfflineIndicator = () => {
       )}
       
       {/* Sync success toast */}
-      {isOnline && pendingCount === 0 && lastSyncTime && (
+      {isOnline && pendingCount === 0 && lastSyncTime && !isCaching && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

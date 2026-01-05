@@ -1,17 +1,19 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Filter, Grid, List, SlidersHorizontal } from 'lucide-react';
+import { Filter, Grid, List, SlidersHorizontal, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Badge } from '@/components/ui/badge';
 import ProductCard from '@/components/Product/ProductCard';
 import QuickView from '@/components/Product/QuickView';
 import { useCart } from '@/contexts/CartContext';
 import { formatPrice } from '@/utils/currency';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useOfflineSync } from '@/hooks/useOfflineSync';
 
 const ProductsPage = () => {
   const [wishlist, setWishlist] = useState<string[]>([]);
@@ -27,41 +29,86 @@ const ProductsPage = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isUsingOfflineData, setIsUsingOfflineData] = useState(false);
   const { addToCart } = useCart();
   const { toast } = useToast();
+  const { 
+    isOnline, 
+    getOfflineProducts, 
+    getOfflineCategories, 
+    cacheProductsForOffline,
+    cacheProductDetail 
+  } = useOfflineSync();
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [isOnline]);
 
   const fetchData = async () => {
-    try {
-      // Fetch products
-      const { data: productsData, error: productsError } = await supabase
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false });
+    setLoading(true);
+    
+    // Try to fetch from network first
+    if (isOnline) {
+      try {
+        const { data: productsData, error: productsError } = await supabase
+          .from('products')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-      if (productsError) throw productsError;
-      setProducts(productsData || []);
+        if (productsError) throw productsError;
+        setProducts(productsData || []);
+        setIsUsingOfflineData(false);
 
-      // Fetch categories
-      const { data: categoriesData, error: categoriesError } = await supabase
-        .from('categories')
-        .select('*')
-        .eq('is_active', true)
-        .order('name', { ascending: true });
+        const { data: categoriesData, error: categoriesError } = await supabase
+          .from('categories')
+          .select('*')
+          .eq('is_active', true)
+          .order('name', { ascending: true });
 
-      if (categoriesError) throw categoriesError;
-      setCategories(categoriesData || []);
-    } catch (error: any) {
+        if (categoriesError) throw categoriesError;
+        setCategories(categoriesData || []);
+
+        // Cache data for offline use
+        cacheProductsForOffline(true);
+      } catch (error: any) {
+        toast({
+          title: 'Error loading data',
+          description: error.message,
+          variant: 'destructive',
+        });
+        // Fall back to cached data on network error
+        loadFromCache();
+      }
+    } else {
+      // Load from cache when offline
+      loadFromCache();
+    }
+    
+    setLoading(false);
+  };
+
+  const loadFromCache = () => {
+    const cachedProducts = getOfflineProducts();
+    const cachedCategories = getOfflineCategories();
+    
+    if (cachedProducts) {
+      setProducts(cachedProducts);
+      setIsUsingOfflineData(true);
       toast({
-        title: 'Error loading data',
-        description: error.message,
-        variant: 'destructive',
+        title: "Browsing Offline",
+        description: `Showing ${cachedProducts.length} cached products`,
       });
-    } finally {
-      setLoading(false);
+    }
+    
+    if (cachedCategories) {
+      setCategories(cachedCategories);
+    }
+  };
+
+  // Cache product details when viewing them
+  const handleProductView = (product: any) => {
+    if (isOnline) {
+      cacheProductDetail(product);
     }
   };
 
@@ -127,6 +174,7 @@ const ProductsPage = () => {
   const handleQuickView = (product: any) => {
     setQuickViewProduct(product);
     setIsQuickViewOpen(true);
+    handleProductView(product);
   };
 
   const handleCategoryToggle = (category: string) => {
@@ -265,9 +313,18 @@ const ProductsPage = () => {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-6 md:py-8">
         <div className="mb-6 md:mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold mb-2">All Products</h1>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-2xl md:text-3xl font-bold">All Products</h1>
+            {isUsingOfflineData && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <WifiOff className="h-3 w-3" />
+                Offline Mode
+              </Badge>
+            )}
+          </div>
           <p className="text-sm md:text-base text-muted-foreground">
             Browse our complete collection of {filteredProducts.length} premium items
+            {isUsingOfflineData && " (cached for offline)"}
           </p>
         </div>
 

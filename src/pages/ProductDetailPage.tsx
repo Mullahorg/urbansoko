@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Heart, ShoppingCart, Star, Truck, Shield, RotateCcw, Share, Zap, Ruler, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Heart, ShoppingCart, Star, Truck, Shield, RotateCcw, Share, Zap, Ruler, ChevronLeft, ChevronRight, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,6 +16,7 @@ import { useCart } from '@/contexts/CartContext';
 import { formatPrice } from '@/utils/currency';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useOfflineSync } from '@/hooks/useOfflineSync';
 
 const ProductDetailPage = () => {
   const { id } = useParams();
@@ -30,50 +31,130 @@ const ProductDetailPage = () => {
   const [quickViewProduct, setQuickViewProduct] = useState<any>(null);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
+  const [isUsingOfflineData, setIsUsingOfflineData] = useState(false);
+  const [cachedImageUrls, setCachedImageUrls] = useState<Record<string, string>>({});
   const { addToCart } = useCart();
   const { toast } = useToast();
+  const { 
+    isOnline, 
+    getCachedProductDetail, 
+    cacheProductDetail, 
+    getCachedImage,
+    getOfflineProducts,
+    preloadCategoryProducts 
+  } = useOfflineSync();
 
   useEffect(() => {
     if (id) {
       fetchProduct();
     }
-  }, [id]);
+  }, [id, isOnline]);
 
   const fetchProduct = async () => {
-    try {
-      const { data: productData, error: productError } = await supabase
-        .from('products')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (productError) throw productError;
-      
-      setProduct(productData);
-      
-      if (productData) {
-        setSelectedColor(productData.colors?.[0] || '');
-        setSelectedSize(productData.sizes?.[0] || '');
-
-        // Fetch related products
-        const { data: related } = await supabase
+    setLoading(true);
+    
+    // Try to fetch from network first
+    if (isOnline) {
+      try {
+        const { data: productData, error: productError } = await supabase
           .from('products')
           .select('*')
-          .eq('category', productData.category)
-          .neq('id', id)
-          .limit(4);
+          .eq('id', id)
+          .single();
+
+        if (productError) throw productError;
         
-        setRelatedProducts(related || []);
+        setProduct(productData);
+        setIsUsingOfflineData(false);
+        
+        if (productData) {
+          setSelectedColor(productData.colors?.[0] || '');
+          setSelectedSize(productData.sizes?.[0] || '');
+
+          // Cache this product for offline use
+          cacheProductDetail(productData);
+
+          // Preload related products for offline
+          preloadCategoryProducts(productData.category);
+
+          // Fetch related products
+          const { data: related } = await supabase
+            .from('products')
+            .select('*')
+            .eq('category', productData.category)
+            .neq('id', id)
+            .limit(4);
+          
+          setRelatedProducts(related || []);
+        }
+      } catch (error: any) {
+        toast({
+          title: 'Error loading product',
+          description: error.message,
+          variant: 'destructive',
+        });
+        // Try loading from cache on error
+        loadFromCache();
       }
-    } catch (error: any) {
-      toast({
-        title: 'Error loading product',
-        description: error.message,
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
+    } else {
+      // Load from cache when offline
+      loadFromCache();
     }
+    
+    setLoading(false);
+  };
+
+  const loadFromCache = async () => {
+    if (!id) return;
+    
+    // Try to get cached product detail
+    const cachedProduct = getCachedProductDetail(id);
+    
+    if (cachedProduct) {
+      setProduct(cachedProduct);
+      setIsUsingOfflineData(true);
+      setSelectedColor(cachedProduct.colors?.[0] || '');
+      setSelectedSize(cachedProduct.sizes?.[0] || '');
+      
+      // Get cached images
+      const imageUrls: Record<string, string> = {};
+      const allImages = [cachedProduct.image_url, ...(cachedProduct.images || [])].filter(Boolean);
+      for (const url of allImages) {
+        if (url) {
+          const cachedUrl = await getCachedImage(url);
+          imageUrls[url] = cachedUrl;
+        }
+      }
+      setCachedImageUrls(imageUrls);
+      
+      // Get related products from offline cache
+      const allProducts = getOfflineProducts();
+      if (allProducts) {
+        const related = allProducts
+          .filter(p => p.category === cachedProduct.category && p.id !== id)
+          .slice(0, 4);
+        setRelatedProducts(related);
+      }
+      
+      toast({
+        title: "Viewing Offline",
+        description: "This product is available from your cached data",
+      });
+    } else {
+      // Product not in cache
+      toast({
+        title: "Product Not Available Offline",
+        description: "This product hasn't been cached. Browse products to cache them.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Get the display URL for an image (cached or original)
+  const getDisplayImageUrl = (url: string) => {
+    if (!url) return '';
+    if (isOnline) return url;
+    return cachedImageUrls[url] || url;
   };
 
   if (loading) {
@@ -88,14 +169,31 @@ const ProductDetailPage = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Product Not Found</h1>
+          <WifiOff className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+          <h1 className="text-2xl font-bold mb-2">Product Not Available</h1>
+          <p className="text-muted-foreground mb-4">
+            {isOnline ? "Product not found" : "This product isn't cached for offline viewing"}
+          </p>
           <Button asChild>
-            <Link to="/">Back to Home</Link>
+            <Link to="/products">Browse Products</Link>
           </Button>
         </div>
       </div>
     );
   }
+
+  const productImages = product.images?.length > 0 ? product.images : [product.image_url];
+
+  const nextImage = () => {
+    setSelectedImage((prev) => (prev + 1) % productImages.length);
+  };
+
+  const prevImage = () => {
+    setSelectedImage((prev) => (prev - 1 + productImages.length) % productImages.length);
+  };
+
+  // Get display image URL (cached for offline)
+  const currentImageUrl = getDisplayImageUrl(productImages[selectedImage]);
 
   const handleAddToCart = () => {
     if (!selectedSize && product.sizes?.length > 0) {
@@ -138,16 +236,6 @@ const ProductDetailPage = () => {
     setIsQuickViewOpen(true);
   };
 
-  const productImages = product.images?.length > 0 ? product.images : [product.image_url];
-
-  const nextImage = () => {
-    setSelectedImage((prev) => (prev + 1) % productImages.length);
-  };
-
-  const prevImage = () => {
-    setSelectedImage((prev) => (prev - 1 + productImages.length) % productImages.length);
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
@@ -166,8 +254,14 @@ const ProductDetailPage = () => {
           {/* Product Images */}
           <div className="space-y-4">
             <div className="relative aspect-square overflow-hidden rounded-lg bg-muted group">
+              {isUsingOfflineData && (
+                <Badge variant="secondary" className="absolute top-3 left-3 z-10 flex items-center gap-1">
+                  <WifiOff className="h-3 w-3" />
+                  Offline
+                </Badge>
+              )}
               <img
-                src={productImages[selectedImage]}
+                src={currentImageUrl}
                 alt={product.name}
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               />
@@ -203,7 +297,7 @@ const ProductDetailPage = () => {
                     }`}
                   >
                     <img
-                      src={image}
+                      src={getDisplayImageUrl(image)}
                       alt={`${product.name} view ${index + 1}`}
                       className="w-full h-full object-cover"
                     />
