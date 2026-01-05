@@ -1,4 +1,4 @@
-import { WifiOff, RefreshCw, Cloud, CloudOff, Check, Download, HardDrive } from 'lucide-react';
+import { RefreshCw, Cloud, Check, Download, HardDrive } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +13,7 @@ const OfflineIndicator = () => {
     syncPendingActions, 
     lastSyncTime,
     cacheProgress,
-    cacheProductsForOffline
+    storageUsage
   } = useOfflineSync();
 
   const formatLastSync = () => {
@@ -25,6 +25,14 @@ const OfflineIndicator = () => {
     const hours = Math.floor(minutes / 60);
     if (hours < 24) return `${hours}h ago`;
     return lastSyncTime.toLocaleDateString();
+  };
+
+  const formatBytes = (bytes: number) => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
   };
 
   const isCaching = cacheProgress.total > 0;
@@ -39,7 +47,7 @@ const OfflineIndicator = () => {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -20, scale: 0.95 }}
           transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-          className="fixed top-20 left-1/2 -translate-x-1/2 z-50"
+          className="fixed top-20 left-1/2 -translate-x-1/2 z-50 safe-x"
         >
           <motion.div 
             className="flex items-center gap-3 bg-gradient-to-r from-blue-500/95 to-blue-600/85 text-white px-5 py-3 rounded-full shadow-xl backdrop-blur-md border border-blue-500/20 min-w-[280px]"
@@ -70,7 +78,7 @@ const OfflineIndicator = () => {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -20, scale: 0.95 }}
           transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-          className="fixed top-20 left-1/2 -translate-x-1/2 z-50"
+          className="fixed top-20 left-1/2 -translate-x-1/2 z-50 safe-x"
         >
           {!isOnline ? (
             <motion.div 
@@ -88,7 +96,9 @@ const OfflineIndicator = () => {
               </motion.div>
               <div className="flex flex-col">
                 <span className="text-sm font-semibold">Offline Mode</span>
-                <span className="text-xs opacity-80">Browsing cached products</span>
+                <span className="text-xs opacity-80">
+                  {storageUsage ? `${formatBytes(storageUsage.used)} cached` : 'Browsing cached products'}
+                </span>
               </div>
               {pendingCount > 0 && (
                 <Badge variant="secondary" className="ml-2 bg-white/20 text-white border-none">
@@ -107,7 +117,7 @@ const OfflineIndicator = () => {
                 size="sm"
                 onClick={syncPendingActions}
                 disabled={isSyncing}
-                className="h-auto p-0 text-primary-foreground hover:bg-transparent hover:text-primary-foreground/80 gap-2"
+                className="h-auto p-0 text-primary-foreground hover:bg-transparent hover:text-primary-foreground/80 gap-2 touch-target"
               >
                 <motion.div
                   animate={isSyncing ? { rotate: 360 } : {}}
@@ -140,7 +150,7 @@ const OfflineIndicator = () => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
           transition={{ delay: 0.5 }}
-          className="fixed bottom-24 right-4 z-40"
+          className="fixed bottom-24 right-4 z-40 safe-right safe-bottom"
         >
           <motion.div
             initial={{ scale: 0.8 }}
