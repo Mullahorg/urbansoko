@@ -1,14 +1,16 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Search, X, Sparkles, TrendingUp, Filter, SlidersHorizontal } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
+import { Search, X, Sparkles, TrendingUp, Filter, Clock, Flame, Eye, ArrowRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
 import ProductCard from '@/components/Product/ProductCard';
 import { useCart } from '@/contexts/CartContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSearchAnalytics } from '@/hooks/useSearchAnalytics';
 import {
   smartMatch,
   calculateRelevanceScore,
@@ -25,31 +27,29 @@ const SearchPage = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [recommendations, setRecommendations] = useState<any[]>([]);
   const { addToCart } = useCart();
   const { toast } = useToast();
+  
+  const {
+    recentSearches,
+    trendingSearches,
+    viewedProducts,
+    trendingProducts,
+    trackSearch,
+    trackProductView,
+    getRecommendations,
+    clearSearchHistory,
+  } = useSearchAnalytics();
 
   useEffect(() => {
     fetchProducts();
-    loadRecentSearches();
+    loadRecommendations();
   }, []);
 
-  const loadRecentSearches = () => {
-    try {
-      const saved = localStorage.getItem('recentSearches');
-      if (saved) {
-        setRecentSearches(JSON.parse(saved).slice(0, 5));
-      }
-    } catch {}
-  };
-
-  const saveSearch = (query: string) => {
-    if (!query.trim()) return;
-    try {
-      const searches = [query, ...recentSearches.filter(s => s !== query)].slice(0, 5);
-      localStorage.setItem('recentSearches', JSON.stringify(searches));
-      setRecentSearches(searches);
-    } catch {}
+  const loadRecommendations = async () => {
+    const recs = await getRecommendations();
+    setRecommendations(recs);
   };
 
   const fetchProducts = async () => {
@@ -76,7 +76,6 @@ const SearchPage = () => {
     e.preventDefault();
     if (searchQuery.trim()) {
       setSearchParams({ q: searchQuery });
-      saveSearch(searchQuery.trim());
       setShowSuggestions(false);
     }
   };
@@ -84,7 +83,6 @@ const SearchPage = () => {
   const handleSuggestionClick = (suggestion: string) => {
     setSearchQuery(suggestion);
     setSearchParams({ q: suggestion });
-    saveSearch(suggestion);
     setShowSuggestions(false);
   };
 
@@ -125,17 +123,11 @@ const SearchPage = () => {
 
     // Filter products using smart matching
     const matched = products.filter(product => {
-      // Check name
       if (smartMatch(query, product.name)) return true;
-      // Check category
       if (smartMatch(query, product.category)) return true;
-      // Check description
       if (product.description && smartMatch(query, product.description)) return true;
-      // Check colors
       if (product.colors?.some((c: string) => smartMatch(query, c))) return true;
-      // Check sizes
       if (product.sizes?.some((s: string) => smartMatch(query, s))) return true;
-      
       return false;
     });
 
@@ -154,6 +146,14 @@ const SearchPage = () => {
       .sort((a, b) => b.relevanceScore - a.relevanceScore);
   }, [products, searchParams]);
 
+  // Track search when results change
+  useEffect(() => {
+    const query = searchParams.get('q');
+    if (query && searchResults.length >= 0) {
+      trackSearch(query, searchResults.length);
+    }
+  }, [searchParams, searchResults.length, trackSearch]);
+
   // Alternative suggestions when no results
   const alternativeSuggestions = useMemo(() => {
     if (searchResults.length > 0) return [];
@@ -168,6 +168,11 @@ const SearchPage = () => {
         ? prev.filter(id => id !== productId)
         : [...prev, productId]
     );
+  };
+
+  // Track product view on card click
+  const handleProductClick = (product: any) => {
+    trackProductView(product);
   };
 
   if (loading) {
@@ -226,7 +231,7 @@ const SearchPage = () => {
 
             {/* Autocomplete Dropdown */}
             <AnimatePresence>
-              {showSuggestions && (autocompleteSuggestions.length > 0 || smartSuggestions.length > 0 || recentSearches.length > 0) && (
+              {showSuggestions && (autocompleteSuggestions.length > 0 || smartSuggestions.length > 0 || recentSearches.length > 0 || trendingSearches.length > 0) && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -255,6 +260,29 @@ const SearchPage = () => {
                     </div>
                   )}
 
+                  {/* Trending Searches */}
+                  {trendingSearches.length > 0 && searchQuery.length < 2 && (
+                    <div className="p-3 border-b border-border">
+                      <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+                        <Flame className="h-3 w-3 text-orange-500" />
+                        Trending
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {trendingSearches.map((item) => (
+                          <Badge
+                            key={item.query}
+                            variant="outline"
+                            className="cursor-pointer hover:bg-orange-500/10 hover:border-orange-500/50 transition-colors"
+                            onClick={() => handleSuggestionClick(item.query)}
+                          >
+                            <Flame className="h-3 w-3 mr-1 text-orange-500" />
+                            {item.query}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Autocomplete */}
                   {autocompleteSuggestions.length > 0 && (
                     <div className="max-h-48 overflow-y-auto">
@@ -275,19 +303,32 @@ const SearchPage = () => {
                   {/* Recent Searches */}
                   {recentSearches.length > 0 && searchQuery.length < 2 && (
                     <div className="p-3 border-t border-border">
-                      <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
-                        <TrendingUp className="h-3 w-3" />
-                        Recent searches
-                      </p>
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          Recent searches
+                        </p>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 text-xs text-muted-foreground hover:text-foreground"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            clearSearchHistory();
+                          }}
+                        >
+                          Clear
+                        </Button>
+                      </div>
                       <div className="flex flex-wrap gap-2">
-                        {recentSearches.map((search) => (
+                        {recentSearches.map((item) => (
                           <Badge
-                            key={search}
+                            key={item.query}
                             variant="outline"
                             className="cursor-pointer hover:bg-muted transition-colors"
-                            onClick={() => handleSuggestionClick(search)}
+                            onClick={() => handleSuggestionClick(item.query)}
                           >
-                            {search}
+                            {item.query}
                           </Badge>
                         ))}
                       </div>
@@ -398,6 +439,7 @@ const SearchPage = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
+                    onClick={() => handleProductClick(product)}
                   >
                     <ProductCard
                       product={{
@@ -418,33 +460,176 @@ const SearchPage = () => {
           </div>
         )}
 
-        {/* Initial State - Popular Categories */}
+        {/* Initial State - Discovery Section */}
         {!currentQuery && (
-          <div className="text-center py-8">
-            <Search className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />
-            <h2 className="text-lg font-medium mb-2">Start searching</h2>
-            <p className="text-sm text-muted-foreground mb-6">
-              Type to find products, categories, colors, and more
-            </p>
-
-            {/* Recent Searches */}
-            {recentSearches.length > 0 && (
-              <div className="max-w-md mx-auto">
-                <p className="text-sm text-muted-foreground mb-3">Recent searches</p>
-                <div className="flex flex-wrap justify-center gap-2">
-                  {recentSearches.map((search) => (
-                    <Badge
-                      key={search}
-                      variant="outline"
-                      className="cursor-pointer hover:bg-muted transition-colors py-1.5 px-3"
-                      onClick={() => handleSuggestionClick(search)}
+          <div className="space-y-8">
+            {/* Trending Products */}
+            {trendingProducts.length > 0 && (
+              <section>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg md:text-xl font-semibold flex items-center gap-2">
+                    <Flame className="h-5 w-5 text-orange-500" />
+                    Trending Now
+                  </h2>
+                  <Link to="/products" className="text-sm text-primary flex items-center gap-1 hover:underline">
+                    View all <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+                  {trendingProducts.slice(0, 4).map((product) => (
+                    <motion.div
+                      key={product.id}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      onClick={() => handleProductClick(product)}
                     >
-                      {search}
-                    </Badge>
+                      <ProductCard
+                        product={{
+                          ...product,
+                          image: product.image_url || product.images?.[0],
+                          sizes: product.sizes || [],
+                          colors: product.colors || [],
+                          inStock: product.stock > 0,
+                        }}
+                        onAddToCart={addToCart}
+                        onToggleWishlist={handleToggleWishlist}
+                        isWishlisted={wishlist.includes(product.id)}
+                      />
+                    </motion.div>
                   ))}
                 </div>
-              </div>
+              </section>
             )}
+
+            {/* Recently Viewed */}
+            {viewedProducts.length > 0 && (
+              <section>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg md:text-xl font-semibold flex items-center gap-2">
+                    <Eye className="h-5 w-5 text-muted-foreground" />
+                    Recently Viewed
+                  </h2>
+                </div>
+                <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
+                  {viewedProducts.slice(0, 8).map((product) => (
+                    <Link
+                      key={product.id}
+                      to={`/product/${product.id}`}
+                      className="flex-shrink-0 w-32 md:w-40"
+                    >
+                      <Card className="overflow-hidden hover:shadow-md transition-shadow">
+                        <div className="aspect-square bg-muted">
+                          {product.image ? (
+                            <img
+                              src={product.image}
+                              alt={product.name}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                              No image
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-2">
+                          <p className="text-xs font-medium truncate">{product.name}</p>
+                          <p className="text-xs text-muted-foreground">Ksh {product.price.toLocaleString()}</p>
+                        </div>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Personalized Recommendations */}
+            {recommendations.length > 0 && viewedProducts.length > 0 && (
+              <section>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg md:text-xl font-semibold flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                    Recommended for You
+                  </h2>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+                  {recommendations.slice(0, 4).map((product) => (
+                    <motion.div
+                      key={product.id}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      onClick={() => handleProductClick(product)}
+                    >
+                      <ProductCard
+                        product={{
+                          ...product,
+                          image: product.image_url || product.images?.[0],
+                          sizes: product.sizes || [],
+                          colors: product.colors || [],
+                          inStock: product.stock > 0,
+                        }}
+                        onAddToCart={addToCart}
+                        onToggleWishlist={handleToggleWishlist}
+                        isWishlisted={wishlist.includes(product.id)}
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Quick Search Prompts */}
+            <section className="text-center py-6">
+              <Search className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
+              <h2 className="text-lg font-medium mb-2">What are you looking for?</h2>
+              <p className="text-sm text-muted-foreground mb-4">
+                Type to search or try these popular categories
+              </p>
+
+              {/* Trending Searches */}
+              {trendingSearches.length > 0 && (
+                <div className="max-w-md mx-auto mb-4">
+                  <p className="text-xs text-muted-foreground mb-2 flex items-center justify-center gap-1">
+                    <Flame className="h-3 w-3 text-orange-500" />
+                    Trending searches
+                  </p>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {trendingSearches.map((item) => (
+                      <Badge
+                        key={item.query}
+                        variant="secondary"
+                        className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors py-1.5 px-3"
+                        onClick={() => handleSuggestionClick(item.query)}
+                      >
+                        {item.query}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Recent Searches */}
+              {recentSearches.length > 0 && (
+                <div className="max-w-md mx-auto">
+                  <p className="text-xs text-muted-foreground mb-2 flex items-center justify-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    Your recent searches
+                  </p>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {recentSearches.map((item) => (
+                      <Badge
+                        key={item.query}
+                        variant="outline"
+                        className="cursor-pointer hover:bg-muted transition-colors py-1.5 px-3"
+                        onClick={() => handleSuggestionClick(item.query)}
+                      >
+                        {item.query}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </section>
           </div>
         )}
       </div>
