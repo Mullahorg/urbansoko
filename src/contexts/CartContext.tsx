@@ -1,6 +1,32 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { Product } from '@/components/Product/ProductCard';
 import { useToast } from '@/hooks/use-toast';
+
+// Military-grade storage wrapper
+const SafeStorage = {
+  getItem: (key: string): string | null => {
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  },
+  setItem: (key: string, value: string): boolean => {
+    try {
+      localStorage.setItem(key, value);
+      return true;
+    } catch {
+      return false;
+    }
+  },
+  removeItem: (key: string): void => {
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      // Silently fail
+    }
+  },
+};
 
 interface CartItem extends Product {
   quantity: number;
@@ -34,14 +60,29 @@ interface CartProviderProps {
 
 export const CartProvider = ({ children }: CartProviderProps) => {
   const [items, setItems] = useState<CartItem[]>(() => {
-    const savedCart = localStorage.getItem('cart');
-    return savedCart ? JSON.parse(savedCart) : [];
+    try {
+      const savedCart = SafeStorage.getItem('cart');
+      if (savedCart) {
+        const parsed = JSON.parse(savedCart);
+        // Validate cart structure
+        if (Array.isArray(parsed) && parsed.every(item => item.id && typeof item.price === 'number')) {
+          return parsed;
+        }
+      }
+    } catch {
+      // Invalid cart data, start fresh
+    }
+    return [];
   });
   const { toast } = useToast();
 
-  // Persist cart to localStorage whenever it changes
+  // Persist cart to localStorage whenever it changes with validation
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(items));
+    if (items.length === 0) {
+      SafeStorage.removeItem('cart');
+    } else {
+      SafeStorage.setItem('cart', JSON.stringify(items));
+    }
   }, [items]);
 
   const addToCart = (product: Product, size?: string, color?: string) => {
@@ -101,14 +142,14 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     );
   };
 
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
     setItems([]);
-    localStorage.removeItem('cart');
+    SafeStorage.removeItem('cart');
     toast({
       title: "Cart Cleared",
       description: "All items have been removed from your cart",
     });
-  };
+  }, [toast]);
 
   const getTotalPrice = () => {
     return items.reduce((total, item) => total + (item.price * item.quantity), 0);

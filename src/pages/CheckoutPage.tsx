@@ -10,10 +10,11 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { formatKES } from '@/utils/currency';
 import { supabase } from '@/integrations/supabase/client';
-import { ShoppingBag, MapPin, Upload, FileImage } from 'lucide-react';
+import { ShoppingBag, MapPin, Upload, FileImage, Shield, Lock } from 'lucide-react';
 import { ShippingCalculator } from '@/components/Product/ShippingCalculator';
 import { Textarea } from '@/components/ui/textarea';
 import { triggerPurchaseAnimation } from '@/components/Gamification/AddToCartAnimation';
+import { useIntegratedAnalytics } from '@/hooks/useIntegratedAnalytics';
 
 const CheckoutPage = () => {
   const { user } = useAuth();
@@ -22,6 +23,7 @@ const CheckoutPage = () => {
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadingScreenshot, setUploadingScreenshot] = useState(false);
+  const { trackPurchase } = useIntegratedAnalytics();
   
   const [paymentSettings, setPaymentSettings] = useState({
     paybill: '',
@@ -184,6 +186,14 @@ const CheckoutPage = () => {
 
       // Trigger celebration animation
       triggerPurchaseAnimation();
+
+      // Track purchase for analytics
+      trackPurchase({
+        orderId: order.id,
+        totalAmount: getTotalPrice(),
+        itemCount: items.length,
+        paymentMethod: 'mpesa',
+      });
 
       toast({
         title: "Order submitted!",

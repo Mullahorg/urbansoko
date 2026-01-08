@@ -17,6 +17,7 @@ import { formatPrice } from '@/utils/currency';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
+import { useIntegratedAnalytics } from '@/hooks/useIntegratedAnalytics';
 
 const ProductDetailPage = () => {
   const { id } = useParams();
@@ -43,6 +44,7 @@ const ProductDetailPage = () => {
     getOfflineProducts,
     preloadCategoryProducts 
   } = useOfflineSync();
+  const { trackProductView, trackAddToCart, trackWishlistAction } = useIntegratedAnalytics();
 
   useEffect(() => {
     if (id) {
@@ -70,6 +72,16 @@ const ProductDetailPage = () => {
         if (productData) {
           setSelectedColor(productData.colors?.[0] || '');
           setSelectedSize(productData.sizes?.[0] || '');
+
+          // Track product view for analytics
+          trackProductView({
+            id: productData.id,
+            name: productData.name,
+            category: productData.category,
+            price: productData.price,
+            image_url: productData.image_url,
+            images: productData.images,
+          });
 
           // Cache this product for offline use
           cacheProductDetail(productData);
@@ -213,6 +225,15 @@ const ProductDetailPage = () => {
     for (let i = 0; i < quantity; i++) {
       addToCart(productForCart, selectedSize, selectedColor);
     }
+
+    // Track add to cart for analytics
+    trackAddToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      quantity,
+      category: product.category,
+    });
   };
 
   const handleBuyNow = () => {
