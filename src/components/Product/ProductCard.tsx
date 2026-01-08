@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingCart, Eye, Zap, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -58,8 +58,9 @@ const ProductCard = ({ product, onAddToCart, onToggleWishlist, onQuickView, isWi
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0;
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     setIsAdding(true);
     triggerAddToCartAnimation();
     onAddToCart(product);
@@ -70,17 +71,18 @@ const ProductCard = ({ product, onAddToCart, onToggleWishlist, onQuickView, isWi
     });
 
     setTimeout(() => setIsAdding(false), 500);
-  };
+  }, [onAddToCart, product, toast]);
 
-  const handleBuyNow = (e: React.MouseEvent) => {
+  const handleBuyNow = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     triggerAddToCartAnimation();
     onAddToCart(product);
     toast({
       title: "Proceeding to Checkout",
       description: `${product.name} - Redirecting to payment...`,
     });
-  };
+  }, [onAddToCart, product, toast]);
 
   // Determine which badge to show based on settings
   const getBadge = () => {

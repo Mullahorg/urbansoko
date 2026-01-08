@@ -1,5 +1,6 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
+import { useIntegratedAnalytics } from '@/hooks/useIntegratedAnalytics';
 import { Search, X, Sparkles, TrendingUp, Filter, Clock, Flame, Eye, ArrowRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';

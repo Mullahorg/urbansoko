@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { useOfflineSync } from '@/hooks/useOfflineSync';
 
 interface WishlistButtonProps {
   productId: string;
@@ -15,6 +16,7 @@ export const WishlistButton = ({ productId, variant = 'ghost' }: WishlistButtonP
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { isOnline, addPendingAction } = useOfflineSync();
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -34,7 +36,7 @@ export const WishlistButton = ({ productId, variant = 'ghost' }: WishlistButtonP
     setIsInWishlist(!!data);
   };
 
-  const toggleWishlist = async () => {
+  const toggleWishlist = useCallback(async () => {
     if (!user) {
       navigate('/auth');
       return;
@@ -44,23 +46,45 @@ export const WishlistButton = ({ productId, variant = 'ghost' }: WishlistButtonP
 
     try {
       if (isInWishlist) {
-        const { error } = await supabase
-          .from('wishlist')
-          .delete()
-          .eq('product_id', productId);
+        if (isOnline) {
+          const { error } = await supabase
+            .from('wishlist')
+            .delete()
+            .eq('product_id', productId);
 
-        if (!error) {
+          if (!error) {
+            setIsInWishlist(false);
+            toast({ title: 'Removed from wishlist' });
+          }
+        } else {
+          // Queue for later sync
+          addPendingAction({
+            type: 'wishlist',
+            action: 'delete',
+            data: { id: productId },
+          });
           setIsInWishlist(false);
-          toast({ title: 'Removed from wishlist' });
+          toast({ title: 'Will remove when online' });
         }
       } else {
-        const { error } = await supabase
-          .from('wishlist')
-          .insert({ product_id: productId, user_id: user.id });
+        if (isOnline) {
+          const { error } = await supabase
+            .from('wishlist')
+            .insert({ product_id: productId, user_id: user.id });
 
-        if (!error) {
+          if (!error) {
+            setIsInWishlist(true);
+            toast({ title: 'Added to wishlist!' });
+          }
+        } else {
+          // Queue for later sync
+          addPendingAction({
+            type: 'wishlist',
+            action: 'create',
+            data: { product_id: productId, user_id: user.id },
+          });
           setIsInWishlist(true);
-          toast({ title: 'Added to wishlist!' });
+          toast({ title: 'Saved - will sync when online' });
         }
       }
     } catch (error) {
@@ -72,7 +96,7 @@ export const WishlistButton = ({ productId, variant = 'ghost' }: WishlistButtonP
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, productId, isInWishlist, isOnline, addPendingAction, navigate, toast]);
 
   return (
     <Button
