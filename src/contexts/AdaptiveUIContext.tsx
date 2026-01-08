@@ -35,17 +35,20 @@ export const AdaptiveUIProvider = ({ children }: AdaptiveUIProviderProps) => {
         .from('settings')
         .select('value')
         .eq('key', 'adaptive_ui')
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error;
-      
-      if (data?.value) {
-        const enabled = data.value === 'true';
-        setAdaptiveEnabledState(enabled);
-        applyAdaptiveStyles(enabled);
+      if (error) {
+        console.warn('Could not fetch adaptive UI setting:', error.message);
       }
+      
+      // Default to enabled if no setting exists
+      const enabled = data?.value === 'true' || !data;
+      setAdaptiveEnabledState(enabled);
+      applyAdaptiveStyles(enabled);
     } catch (error) {
-      console.error('Error fetching adaptive UI setting:', error);
+      // Silently default to enabled
+      setAdaptiveEnabledState(true);
+      applyAdaptiveStyles(true);
     } finally {
       setLoading(false);
     }

@@ -18,28 +18,30 @@ export const useUserRole = () => {
       }
 
       try {
-        // Check if user is admin or moderator
-        const { data: roleData } = await supabase
+        // Check if user has a role in user_roles table
+        const { data: roleData, error: roleError } = await supabase
           .from('user_roles')
           .select('role')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
-        if (roleData) {
+        if (roleData?.role) {
           setRole(roleData.role as UserRole);
-        } else {
-          // Check if user is a vendor
-          const { data: vendorData } = await supabase
-            .from('vendors')
-            .select('status')
-            .eq('user_id', user.id)
-            .eq('status', 'approved')
-            .single();
-
-          setRole(vendorData ? 'vendor' : 'user');
+          setLoading(false);
+          return;
         }
+
+        // Check if user is a vendor
+        const { data: vendorData, error: vendorError } = await supabase
+          .from('vendors')
+          .select('status')
+          .eq('user_id', user.id)
+          .eq('status', 'approved')
+          .maybeSingle();
+
+        setRole(vendorData ? 'vendor' : 'user');
       } catch (error) {
-        console.error('Error fetching user role:', error);
+        // Silently default to user role
         setRole('user');
       } finally {
         setLoading(false);
