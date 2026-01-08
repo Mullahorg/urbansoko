@@ -23,6 +23,17 @@ export interface FlashSale {
   updated_at: string;
 }
 
+// Default settings for all gamification features
+const DEFAULT_GAMIFICATION_FEATURES: Omit<GamificationSetting, 'id' | 'created_at' | 'updated_at'>[] = [
+  { feature: 'product_badges', enabled: true, settings: {} },
+  { feature: 'floating_cart', enabled: true, settings: {} },
+  { feature: 'scroll_to_top', enabled: true, settings: {} },
+  { feature: 'confetti_animations', enabled: true, settings: {} },
+  { feature: 'welcome_popup', enabled: true, settings: { delay: 3000 } },
+  { feature: 'flash_sale_banner', enabled: true, settings: {} },
+  { feature: 'social_proof_toast', enabled: true, settings: { interval: 30000 } },
+];
+
 export const useGamificationSettings = () => {
   return useQuery({
     queryKey: ['gamification-settings'],
@@ -31,15 +42,49 @@ export const useGamificationSettings = () => {
         .from('gamification_settings')
         .select('*');
       
-      if (error) throw error;
+      if (error) {
+        console.warn('Could not fetch gamification settings:', error.message);
+        // Return defaults if fetch fails
+        return DEFAULT_GAMIFICATION_FEATURES.map((f, i) => ({
+          ...f,
+          id: `default-${i}`,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })) as GamificationSetting[];
+      }
+      
+      // If no data exists, return defaults with all features enabled
+      if (!data || data.length === 0) {
+        return DEFAULT_GAMIFICATION_FEATURES.map((f, i) => ({
+          ...f,
+          id: `default-${i}`,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })) as GamificationSetting[];
+      }
+      
       return data as GamificationSetting[];
     },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 2,
   });
 };
 
 export const useGamificationSetting = (feature: string) => {
-  const { data: settings } = useGamificationSettings();
-  return settings?.find(s => s.feature === feature);
+  const { data: settings, isLoading } = useGamificationSettings();
+  
+  // Return default enabled state while loading or if setting not found
+  if (isLoading) {
+    const defaultFeature = DEFAULT_GAMIFICATION_FEATURES.find(f => f.feature === feature);
+    return defaultFeature ? { ...defaultFeature, id: 'loading', created_at: '', updated_at: '' } as GamificationSetting : undefined;
+  }
+  
+  const found = settings?.find(s => s.feature === feature);
+  if (found) return found;
+  
+  // Return default if not found in database
+  const defaultFeature = DEFAULT_GAMIFICATION_FEATURES.find(f => f.feature === feature);
+  return defaultFeature ? { ...defaultFeature, id: 'default', created_at: '', updated_at: '' } as GamificationSetting : undefined;
 };
 
 export const useUpdateGamificationSetting = () => {
@@ -52,21 +97,46 @@ export const useUpdateGamificationSetting = () => {
       if (enabled !== undefined) updateData.enabled = enabled;
       if (settings !== undefined) updateData.settings = settings;
 
-      const { data, error } = await supabase
+      // First try to update existing
+      const { data: existingData, error: fetchError } = await supabase
         .from('gamification_settings')
-        .update(updateData)
+        .select('id')
         .eq('feature', feature)
-        .select()
-        .single();
+        .maybeSingle();
+      
+      if (existingData) {
+        // Update existing
+        const { data, error } = await supabase
+          .from('gamification_settings')
+          .update(updateData)
+          .eq('feature', feature)
+          .select()
+          .maybeSingle();
 
-      if (error) throw error;
-      return data;
+        if (error) throw error;
+        return data;
+      } else {
+        // Insert new setting
+        const { data, error } = await supabase
+          .from('gamification_settings')
+          .insert({
+            feature,
+            enabled: enabled ?? true,
+            settings: settings ?? {},
+          })
+          .select()
+          .maybeSingle();
+
+        if (error) throw error;
+        return data;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['gamification-settings'] });
       toast({ title: 'Settings updated successfully' });
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      console.error('Failed to update gamification setting:', error);
       toast({ title: 'Failed to update settings', description: error.message, variant: 'destructive' });
     },
   });

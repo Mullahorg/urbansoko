@@ -32,14 +32,14 @@ const OfflineIndicator = () => {
   const isCaching = cacheProgress.total > 0;
   const cachePercent = isCaching ? Math.round((cacheProgress.current / cacheProgress.total) * 100) : 0;
 
-  // Auto-show cache progress only when it starts, auto-hide when complete
+  // Auto-show cache progress only when there's real progress (> 5%), auto-hide when complete
   useEffect(() => {
-    if (isCaching && cacheProgress.current < cacheProgress.total) {
+    if (isCaching && cacheProgress.current > 0 && cacheProgress.current < cacheProgress.total) {
       setShowCacheProgress(true);
       setDismissed(false);
-    } else if (!isCaching) {
+    } else if (!isCaching || cacheProgress.current >= cacheProgress.total) {
       // Hide after completion with delay
-      const timer = setTimeout(() => setShowCacheProgress(false), 500);
+      const timer = setTimeout(() => setShowCacheProgress(false), 300);
       return () => clearTimeout(timer);
     }
   }, [isCaching, cacheProgress.current, cacheProgress.total]);
@@ -58,7 +58,7 @@ const OfflineIndicator = () => {
   return (
     <AnimatePresence>
       {/* Minimal caching progress - small pill at top */}
-      {showCacheProgress && isCaching && !dismissed && (
+      {showCacheProgress && isCaching && cacheProgress.current > 0 && !dismissed && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
