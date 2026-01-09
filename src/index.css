@@ -209,6 +209,63 @@
     --sidebar-primary: 142 76% 50%;
     --sidebar-ring: 142 76% 50%;
   }
+
+  /* Sunlight Mode - Ultra high contrast for outdoor use */
+  .sunlight-mode {
+    --background: 60 20% 98%;
+    --foreground: 0 0% 5%;
+    --card: 60 30% 100%;
+    --card-foreground: 0 0% 5%;
+    --popover: 60 30% 100%;
+    --popover-foreground: 0 0% 5%;
+    
+    /* High contrast primary */
+    --primary: 142 80% 25%;
+    --primary-glow: 142 80% 35%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* High contrast secondary */
+    --secondary: 200 90% 30%;
+    --secondary-foreground: 0 0% 100%;
+    
+    /* High contrast accent */
+    --accent: 30 90% 35%;
+    --accent-foreground: 0 0% 100%;
+    
+    --muted: 60 10% 90%;
+    --muted-foreground: 0 0% 25%;
+    --destructive: 0 90% 40%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 70%;
+    --input: 0 0% 85%;
+    --ring: 142 80% 25%;
+    
+    /* Sunlight-optimized shadows */
+    --shadow-elegant: 0 4px 12px hsl(0 0% 0% / 0.15);
+    --shadow-glow: none;
+    --shadow-card: 0 2px 8px hsl(0 0% 0% / 0.1);
+  }
+
+  .sunlight-mode.dark {
+    /* Override dark mode in sunlight mode - keep high contrast light */
+    --background: 60 20% 98%;
+    --foreground: 0 0% 5%;
+    --card: 60 30% 100%;
+    --card-foreground: 0 0% 5%;
+    --popover: 60 30% 100%;
+    --popover-foreground: 0 0% 5%;
+    --primary: 142 80% 25%;
+    --primary-glow: 142 80% 35%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 200 90% 30%;
+    --secondary-foreground: 0 0% 100%;
+    --accent: 30 90% 35%;
+    --accent-foreground: 0 0% 100%;
+    --muted: 60 10% 90%;
+    --muted-foreground: 0 0% 25%;
+    --border: 0 0% 70%;
+    --input: 0 0% 85%;
+  }
 }
 
 @layer base {
@@ -713,5 +770,44 @@
   /* Smooth transitions for adaptive changes */
   .adaptive-ui * {
     transition-duration: 0.3s;
+  }
+
+  /* Sunlight mode cards - extra contrast */
+  .sunlight-mode .sunlight-card {
+    @apply border-2 border-foreground/20 shadow-lg;
+    background: hsl(60 30% 100%);
+  }
+
+  .sunlight-mode .sunlight-card .text-muted-foreground {
+    color: hsl(0 0% 30%);
+  }
+
+  .sunlight-mode .sunlight-card .text-2xl {
+    @apply text-3xl font-black;
+    color: hsl(0 0% 5%);
+  }
+
+  /* Sunlight mode text enhancements */
+  .sunlight-mode h1,
+  .sunlight-mode h2,
+  .sunlight-mode h3,
+  .sunlight-mode h4 {
+    @apply font-bold;
+    text-shadow: 0 1px 0 hsl(0 0% 100%);
+  }
+
+  /* Sunlight mode buttons */
+  .sunlight-mode button {
+    @apply font-semibold border-2;
+  }
+
+  /* Sunlight mode charts */
+  .sunlight-mode .recharts-cartesian-grid line {
+    stroke: hsl(0 0% 60%);
+  }
+
+  .sunlight-mode .recharts-text {
+    fill: hsl(0 0% 20%);
+    font-weight: 600;
   }
 }
