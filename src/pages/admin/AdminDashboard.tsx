@@ -6,7 +6,7 @@ import { formatKES } from '@/utils/currency';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
-
+import RealTimeMonitor from '@/components/admin/RealTimeMonitor';
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [stats, setStats] = useState({
@@ -198,6 +198,9 @@ const AdminDashboard = () => {
           </Card>
         ))}
       </div>
+
+      {/* Real-Time Monitor */}
+      <RealTimeMonitor />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {/* Recent Orders */}
