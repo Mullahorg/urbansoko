@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Pencil, Trash2, Upload, X, Star, CheckSquare, Square, StarOff } from 'lucide-react';
+import { Plus, Pencil, Trash2, Upload, X, Star, CheckSquare, Square, StarOff, Search } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -33,7 +33,23 @@ const AdminProducts = () => {
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterFeatured, setFilterFeatured] = useState<'all' | 'featured' | 'not-featured'>('all');
   const { toast } = useToast();
+
+  // Filter products based on search and featured filter
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = searchQuery.trim() === '' || 
+      product.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.category?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesFeatured = filterFeatured === 'all' || 
+      (filterFeatured === 'featured' && product.featured) ||
+      (filterFeatured === 'not-featured' && !product.featured);
+    
+    return matchesSearch && matchesFeatured;
+  });
 
   const [formData, setFormData] = useState({
     name: '',
@@ -569,27 +585,62 @@ const AdminProducts = () => {
         </Dialog>
       </div>
 
-      {/* Select All */}
-      {products.length > 0 && (
-        <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
-          <Checkbox
-            id="select-all"
-            checked={selectedProducts.size === products.length && products.length > 0}
-            onCheckedChange={selectAllProducts}
+      {/* Search and Filter Bar */}
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search products by name, description, or category..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
           />
-          <label htmlFor="select-all" className="text-sm font-medium cursor-pointer">
-            Select all products ({products.length})
-          </label>
+        </div>
+        <select
+          value={filterFeatured}
+          onChange={(e) => setFilterFeatured(e.target.value as 'all' | 'featured' | 'not-featured')}
+          className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        >
+          <option value="all">All Products</option>
+          <option value="featured">Featured Only</option>
+          <option value="not-featured">Not Featured</option>
+        </select>
+      </div>
+
+      {/* Select All */}
+      {filteredProducts.length > 0 && (
+        <div className="flex items-center justify-between gap-2 p-3 bg-muted/50 rounded-lg">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="select-all"
+              checked={selectedProducts.size === filteredProducts.length && filteredProducts.length > 0}
+              onCheckedChange={() => {
+                if (selectedProducts.size === filteredProducts.length) {
+                  setSelectedProducts(new Set());
+                } else {
+                  setSelectedProducts(new Set(filteredProducts.map(p => p.id)));
+                }
+              }}
+            />
+            <label htmlFor="select-all" className="text-sm font-medium cursor-pointer">
+              Select all ({filteredProducts.length})
+            </label>
+          </div>
+          <span className="text-sm text-muted-foreground">
+            {filteredProducts.length} of {products.length} products
+          </span>
         </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {loading ? (
           <div className="col-span-full text-center py-8 text-muted-foreground">Loading products...</div>
-        ) : products.length === 0 ? (
-          <div className="col-span-full text-center py-8 text-muted-foreground">No products found. Add your first product!</div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="col-span-full text-center py-8 text-muted-foreground">
+            {products.length === 0 ? 'No products found. Add your first product!' : 'No products match your search criteria.'}
+          </div>
         ) : (
-          products.map((product) => (
+          filteredProducts.map((product) => (
             <Card key={product.id} className={`relative transition-all ${selectedProducts.has(product.id) ? 'ring-2 ring-primary' : ''}`}>
               <CardContent className="p-4">
                 {/* Selection Checkbox */}
