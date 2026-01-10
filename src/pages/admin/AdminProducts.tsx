@@ -6,8 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Pencil, Trash2, Upload, X, Star } from 'lucide-react';
+import { Plus, Pencil, Trash2, Upload, X, Star, CheckSquare, Square, StarOff } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { formatKES } from '@/utils/currency';
 import { z } from 'zod';
@@ -30,6 +31,8 @@ const AdminProducts = () => {
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -238,6 +241,98 @@ const AdminProducts = () => {
     }
   };
 
+  const toggleProductSelection = (productId: string) => {
+    setSelectedProducts(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(productId)) {
+        newSet.delete(productId);
+      } else {
+        newSet.add(productId);
+      }
+      return newSet;
+    });
+  };
+
+  const selectAllProducts = () => {
+    if (selectedProducts.size === products.length) {
+      setSelectedProducts(new Set());
+    } else {
+      setSelectedProducts(new Set(products.map(p => p.id)));
+    }
+  };
+
+  const handleBulkFeatured = async (featured: boolean) => {
+    if (selectedProducts.size === 0) {
+      toast({ title: 'No products selected', variant: 'destructive' });
+      return;
+    }
+
+    setBulkLoading(true);
+    try {
+      const productIds = Array.from(selectedProducts);
+      
+      const { error } = await supabase
+        .from('products')
+        .update({ featured })
+        .in('id', productIds);
+
+      if (error) throw error;
+
+      setProducts(products.map(p => 
+        selectedProducts.has(p.id) ? { ...p, featured } : p
+      ));
+
+      setSelectedProducts(new Set());
+
+      toast({ 
+        title: `${productIds.length} products ${featured ? 'featured' : 'unfeatured'}`,
+        description: featured ? 'Products will now appear on the home page' : 'Products removed from featured section'
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Error updating products',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedProducts.size === 0) {
+      toast({ title: 'No products selected', variant: 'destructive' });
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to delete ${selectedProducts.size} products?`)) return;
+
+    setBulkLoading(true);
+    try {
+      const productIds = Array.from(selectedProducts);
+      
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .in('id', productIds);
+
+      if (error) throw error;
+
+      setSelectedProducts(new Set());
+      fetchProducts();
+
+      toast({ title: `${productIds.length} products deleted` });
+    } catch (error: any) {
+      toast({
+        title: 'Error deleting products',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
   const openEditDialog = (product: any) => {
     setEditingProduct(product);
     setFormData({
@@ -271,11 +366,53 @@ const AdminProducts = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-3xl font-bold">Products</h2>
           <p className="text-muted-foreground">Manage your product inventory</p>
         </div>
+        
+        {/* Bulk Actions Bar */}
+        {selectedProducts.size > 0 && (
+          <div className="flex items-center gap-2 p-3 bg-primary/10 rounded-lg border border-primary/20">
+            <span className="text-sm font-medium">{selectedProducts.size} selected</span>
+            <div className="h-4 w-px bg-border" />
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => handleBulkFeatured(true)}
+              disabled={bulkLoading}
+            >
+              <Star className="h-4 w-4 mr-1 text-yellow-500" />
+              Feature
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => handleBulkFeatured(false)}
+              disabled={bulkLoading}
+            >
+              <StarOff className="h-4 w-4 mr-1" />
+              Unfeature
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={handleBulkDelete}
+              disabled={bulkLoading}
+            >
+              <Trash2 className="h-4 w-4 mr-1" />
+              Delete
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setSelectedProducts(new Set())}
+            >
+              Clear
+            </Button>
+          </div>
+        )}
         <Dialog open={dialogOpen} onOpenChange={(open) => {
           setDialogOpen(open);
           if (!open) resetForm();
@@ -432,6 +569,20 @@ const AdminProducts = () => {
         </Dialog>
       </div>
 
+      {/* Select All */}
+      {products.length > 0 && (
+        <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
+          <Checkbox
+            id="select-all"
+            checked={selectedProducts.size === products.length && products.length > 0}
+            onCheckedChange={selectAllProducts}
+          />
+          <label htmlFor="select-all" className="text-sm font-medium cursor-pointer">
+            Select all products ({products.length})
+          </label>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {loading ? (
           <div className="col-span-full text-center py-8 text-muted-foreground">Loading products...</div>
@@ -439,8 +590,17 @@ const AdminProducts = () => {
           <div className="col-span-full text-center py-8 text-muted-foreground">No products found. Add your first product!</div>
         ) : (
           products.map((product) => (
-            <Card key={product.id}>
+            <Card key={product.id} className={`relative transition-all ${selectedProducts.has(product.id) ? 'ring-2 ring-primary' : ''}`}>
               <CardContent className="p-4">
+                {/* Selection Checkbox */}
+                <div className="absolute top-2 left-2 z-10">
+                  <Checkbox
+                    checked={selectedProducts.has(product.id)}
+                    onCheckedChange={() => toggleProductSelection(product.id)}
+                    className="bg-background/80 backdrop-blur-sm"
+                  />
+                </div>
+                
                 {(product.image_url || product.images?.[0]) && (
                   <div className="relative mb-4">
                     <img
