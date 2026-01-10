@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Pencil, Trash2, Upload, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, Upload, X, Star } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { formatKES } from '@/utils/currency';
 import { z } from 'zod';
@@ -205,6 +206,32 @@ const AdminProducts = () => {
     } else {
       toast({
         title: 'Error deleting product',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleToggleFeatured = async (productId: string, currentFeatured: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('products')
+        .update({ featured: !currentFeatured })
+        .eq('id', productId);
+
+      if (error) throw error;
+
+      setProducts(products.map(p => 
+        p.id === productId ? { ...p, featured: !currentFeatured } : p
+      ));
+
+      toast({ 
+        title: !currentFeatured ? 'Product featured' : 'Product unfeatured',
+        description: !currentFeatured ? 'Product will now appear on the home page' : 'Product removed from featured section'
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Error updating product',
         description: error.message,
         variant: 'destructive',
       });
@@ -465,6 +492,18 @@ const AdminProducts = () => {
                   )}
                 </div>
                 
+                {/* Featured Toggle */}
+                <div className="flex items-center justify-between mb-3 p-2 rounded-lg bg-muted/50">
+                  <div className="flex items-center gap-2">
+                    <Star className={`h-4 w-4 ${product.featured ? 'text-yellow-500 fill-yellow-500' : 'text-muted-foreground'}`} />
+                    <span className="text-sm font-medium">Featured</span>
+                  </div>
+                  <Switch
+                    checked={product.featured || false}
+                    onCheckedChange={() => handleToggleFeatured(product.id, product.featured || false)}
+                  />
+                </div>
+
                 <div className="flex justify-between items-center mb-4">
                   <span className="text-lg font-bold text-primary">
                     {formatKES(product.price)}
