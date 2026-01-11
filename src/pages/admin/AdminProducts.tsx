@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -6,13 +6,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Pencil, Trash2, Upload, X, Star, CheckSquare, Square, StarOff, Search } from 'lucide-react';
+import { Plus, Pencil, Trash2, Upload, X, Star, CheckSquare, Square, StarOff, Search, ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { formatKES } from '@/utils/currency';
 import { z } from 'zod';
 import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const productSchema = z.object({
   name: z.string().min(1, 'Name is required').max(200),
@@ -22,6 +29,11 @@ const productSchema = z.object({
   stock: z.number().int().min(0, 'Stock cannot be negative'),
   image_url: z.string().url('Must be a valid URL').optional().or(z.literal('')),
 });
+
+type SortField = 'name' | 'price' | 'stock' | 'created_at' | 'category';
+type SortDirection = 'asc' | 'desc';
+
+const ITEMS_PER_PAGE_OPTIONS = [12, 24, 48, 96];
 
 const AdminProducts = () => {
   const [products, setProducts] = useState<any[]>([]);
@@ -35,21 +47,74 @@ const AdminProducts = () => {
   const [bulkLoading, setBulkLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterFeatured, setFilterFeatured] = useState<'all' | 'featured' | 'not-featured'>('all');
+  
+  // Sorting state
+  const [sortField, setSortField] = useState<SortField>('created_at');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(12);
+  
   const { toast } = useToast();
 
-  // Filter products based on search and featured filter
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = searchQuery.trim() === '' || 
-      product.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.category?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesFeatured = filterFeatured === 'all' || 
-      (filterFeatured === 'featured' && product.featured) ||
-      (filterFeatured === 'not-featured' && !product.featured);
-    
-    return matchesSearch && matchesFeatured;
-  });
+  // Filter and sort products
+  const filteredAndSortedProducts = useMemo(() => {
+    let result = products.filter(product => {
+      const matchesSearch = searchQuery.trim() === '' || 
+        product.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.category?.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesFeatured = filterFeatured === 'all' || 
+        (filterFeatured === 'featured' && product.featured) ||
+        (filterFeatured === 'not-featured' && !product.featured);
+      
+      return matchesSearch && matchesFeatured;
+    });
+
+    // Sort products
+    result.sort((a, b) => {
+      let aVal = a[sortField];
+      let bVal = b[sortField];
+
+      // Handle null/undefined values
+      if (aVal == null) aVal = sortField === 'price' || sortField === 'stock' ? 0 : '';
+      if (bVal == null) bVal = sortField === 'price' || sortField === 'stock' ? 0 : '';
+
+      // Compare based on type
+      if (typeof aVal === 'string') {
+        aVal = aVal.toLowerCase();
+        bVal = (bVal as string).toLowerCase();
+      }
+
+      if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return result;
+  }, [products, searchQuery, filterFeatured, sortField, sortDirection]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredAndSortedProducts.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedProducts = filteredAndSortedProducts.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filterFeatured, sortField, sortDirection, itemsPerPage]);
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
 
   const [formData, setFormData] = useState({
     name: '',
@@ -270,10 +335,10 @@ const AdminProducts = () => {
   };
 
   const selectAllProducts = () => {
-    if (selectedProducts.size === products.length) {
+    if (selectedProducts.size === paginatedProducts.length) {
       setSelectedProducts(new Set());
     } else {
-      setSelectedProducts(new Set(products.map(p => p.id)));
+      setSelectedProducts(new Set(paginatedProducts.map(p => p.id)));
     }
   };
 
@@ -585,49 +650,94 @@ const AdminProducts = () => {
         </Dialog>
       </div>
 
-      {/* Search and Filter Bar */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search products by name, description, or category..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
+      {/* Search, Filter, and Sort Bar */}
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search products by name, description, or category..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Select value={filterFeatured} onValueChange={(value: 'all' | 'featured' | 'not-featured') => setFilterFeatured(value)}>
+            <SelectTrigger className="w-full md:w-[180px]">
+              <SelectValue placeholder="Filter" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Products</SelectItem>
+              <SelectItem value="featured">Featured Only</SelectItem>
+              <SelectItem value="not-featured">Not Featured</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        <select
-          value={filterFeatured}
-          onChange={(e) => setFilterFeatured(e.target.value as 'all' | 'featured' | 'not-featured')}
-          className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        >
-          <option value="all">All Products</option>
-          <option value="featured">Featured Only</option>
-          <option value="not-featured">Not Featured</option>
-        </select>
+
+        {/* Sorting and Pagination Controls */}
+        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+          <div className="flex flex-wrap gap-2">
+            <span className="text-sm text-muted-foreground self-center mr-2">Sort by:</span>
+            {[
+              { field: 'name' as SortField, label: 'Name' },
+              { field: 'price' as SortField, label: 'Price' },
+              { field: 'stock' as SortField, label: 'Stock' },
+              { field: 'category' as SortField, label: 'Category' },
+              { field: 'created_at' as SortField, label: 'Date Added' },
+            ].map(({ field, label }) => (
+              <Button
+                key={field}
+                variant={sortField === field ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => handleSort(field)}
+                className="gap-1"
+              >
+                {label}
+                {sortField === field && (
+                  <ArrowUpDown className={`h-3 w-3 ${sortDirection === 'desc' ? 'rotate-180' : ''}`} />
+                )}
+              </Button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Show:</span>
+            <Select value={itemsPerPage.toString()} onValueChange={(value) => setItemsPerPage(parseInt(value))}>
+              <SelectTrigger className="w-[80px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {ITEMS_PER_PAGE_OPTIONS.map((option) => (
+                  <SelectItem key={option} value={option.toString()}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </div>
 
       {/* Select All */}
-      {filteredProducts.length > 0 && (
+      {paginatedProducts.length > 0 && (
         <div className="flex items-center justify-between gap-2 p-3 bg-muted/50 rounded-lg">
           <div className="flex items-center gap-2">
             <Checkbox
               id="select-all"
-              checked={selectedProducts.size === filteredProducts.length && filteredProducts.length > 0}
+              checked={selectedProducts.size === paginatedProducts.length && paginatedProducts.length > 0}
               onCheckedChange={() => {
-                if (selectedProducts.size === filteredProducts.length) {
+                if (selectedProducts.size === paginatedProducts.length) {
                   setSelectedProducts(new Set());
                 } else {
-                  setSelectedProducts(new Set(filteredProducts.map(p => p.id)));
+                  setSelectedProducts(new Set(paginatedProducts.map(p => p.id)));
                 }
               }}
             />
             <label htmlFor="select-all" className="text-sm font-medium cursor-pointer">
-              Select all ({filteredProducts.length})
+              Select all on page ({paginatedProducts.length})
             </label>
           </div>
           <span className="text-sm text-muted-foreground">
-            {filteredProducts.length} of {products.length} products
+            Showing {startIndex + 1}-{Math.min(endIndex, filteredAndSortedProducts.length)} of {filteredAndSortedProducts.length} products
           </span>
         </div>
       )}
@@ -635,12 +745,12 @@ const AdminProducts = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {loading ? (
           <div className="col-span-full text-center py-8 text-muted-foreground">Loading products...</div>
-        ) : filteredProducts.length === 0 ? (
+        ) : paginatedProducts.length === 0 ? (
           <div className="col-span-full text-center py-8 text-muted-foreground">
             {products.length === 0 ? 'No products found. Add your first product!' : 'No products match your search criteria.'}
           </div>
         ) : (
-          filteredProducts.map((product) => (
+          paginatedProducts.map((product) => (
             <Card key={product.id} className={`relative transition-all ${selectedProducts.has(product.id) ? 'ring-2 ring-primary' : ''}`}>
               <CardContent className="p-4">
                 {/* Selection Checkbox */}
@@ -746,6 +856,76 @@ const AdminProducts = () => {
           ))
         )}
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t">
+          <div className="text-sm text-muted-foreground">
+            Page {currentPage} of {totalPages}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(1)}
+              disabled={currentPage === 1}
+            >
+              First
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Previous
+            </Button>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum: number;
+                if (totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1;
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={currentPage === pageNum ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setCurrentPage(pageNum)}
+                    className="w-8 h-8 p-0"
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              })}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={currentPage === totalPages}
+            >
+              Last
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
