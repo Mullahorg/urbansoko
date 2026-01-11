@@ -39,6 +39,7 @@ const AdminProducts = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
@@ -47,6 +48,9 @@ const AdminProducts = () => {
   const [bulkLoading, setBulkLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterFeatured, setFilterFeatured] = useState<'all' | 'featured' | 'not-featured'>('all');
+  const [submitting, setSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [togglingFeaturedId, setTogglingFeaturedId] = useState<string | null>(null);
   
   // Sorting state
   const [sortField, setSortField] = useState<SortField>('created_at');
@@ -144,10 +148,17 @@ const AdminProducts = () => {
       setCategories(data || []);
     } catch (error: any) {
       console.error('Error fetching categories:', error);
+      toast({
+        title: 'Warning',
+        description: 'Could not load categories. You can still add products.',
+        variant: 'destructive',
+      });
     }
   };
 
   const fetchProducts = async () => {
+    setLoading(true);
+    setError(null);
     try {
       const { data, error } = await supabase
         .from('products')
@@ -157,9 +168,11 @@ const AdminProducts = () => {
       if (error) throw error;
       setProducts(data || []);
     } catch (error: any) {
+      const errorMessage = error.message || 'An unexpected error occurred';
+      setError(errorMessage);
       toast({
         title: 'Error fetching products',
-        description: error.message,
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -222,12 +235,24 @@ const AdminProducts = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
 
     try {
+      // Validate price and stock are valid numbers
+      const priceNum = parseFloat(formData.price);
+      const stockNum = parseInt(formData.stock);
+
+      if (isNaN(priceNum)) {
+        throw new Error('Please enter a valid price');
+      }
+      if (isNaN(stockNum)) {
+        throw new Error('Please enter a valid stock quantity');
+      }
+
       const validated = productSchema.parse({
         ...formData,
-        price: parseFloat(formData.price),
-        stock: parseInt(formData.stock),
+        price: priceNum,
+        stock: stockNum,
       });
 
       const sizesArray = formData.sizes ? formData.sizes.split(',').map(s => s.trim()).filter(Boolean) : [];
@@ -268,35 +293,53 @@ const AdminProducts = () => {
       resetForm();
       fetchProducts();
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
+      // Handle Zod validation errors
+      if (error.errors && Array.isArray(error.errors)) {
+        const messages = error.errors.map((e: any) => e.message).join(', ');
+        toast({
+          title: 'Validation Error',
+          description: messages,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Error',
+          description: error.message || 'Failed to save product',
+          variant: 'destructive',
+        });
+      }
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this product?')) return;
 
-    const { error } = await supabase
-      .from('products')
-      .delete()
-      .eq('id', id);
+    setDeletingId(id);
+    try {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', id);
 
-    if (!error) {
+      if (error) throw error;
+
       toast({ title: 'Product deleted successfully' });
       fetchProducts();
-    } else {
+    } catch (error: any) {
       toast({
         title: 'Error deleting product',
-        description: error.message,
+        description: error.message || 'Failed to delete product',
         variant: 'destructive',
       });
+    } finally {
+      setDeletingId(null);
     }
   };
 
   const handleToggleFeatured = async (productId: string, currentFeatured: boolean) => {
+    setTogglingFeaturedId(productId);
     try {
       const { error } = await supabase
         .from('products')
@@ -316,9 +359,11 @@ const AdminProducts = () => {
     } catch (error: any) {
       toast({
         title: 'Error updating product',
-        description: error.message,
+        description: error.message || 'Failed to update featured status',
         variant: 'destructive',
       });
+    } finally {
+      setTogglingFeaturedId(null);
     }
   };
 
@@ -638,11 +683,11 @@ const AdminProducts = () => {
                 )}
               </div>
               <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} disabled={submitting}>
                   Cancel
                 </Button>
-                <Button type="submit">
-                  {editingProduct ? 'Update' : 'Create'}
+                <Button type="submit" disabled={submitting}>
+                  {submitting ? 'Saving...' : (editingProduct ? 'Update' : 'Create')}
                 </Button>
               </div>
             </form>
@@ -745,6 +790,13 @@ const AdminProducts = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {loading ? (
           <div className="col-span-full text-center py-8 text-muted-foreground">Loading products...</div>
+        ) : error ? (
+          <div className="col-span-full text-center py-8">
+            <p className="text-destructive mb-4">{error}</p>
+            <Button onClick={fetchProducts} variant="outline">
+              Try Again
+            </Button>
+          </div>
         ) : paginatedProducts.length === 0 ? (
           <div className="col-span-full text-center py-8 text-muted-foreground">
             {products.length === 0 ? 'No products found. Add your first product!' : 'No products match your search criteria.'}
@@ -822,6 +874,7 @@ const AdminProducts = () => {
                   <Switch
                     checked={product.featured || false}
                     onCheckedChange={() => handleToggleFeatured(product.id, product.featured || false)}
+                    disabled={togglingFeaturedId === product.id}
                   />
                 </div>
 
@@ -839,6 +892,7 @@ const AdminProducts = () => {
                     size="sm"
                     className="flex-1"
                     onClick={() => openEditDialog(product)}
+                    disabled={deletingId === product.id}
                   >
                     <Pencil className="h-4 w-4 mr-1" />
                     Edit
@@ -847,8 +901,13 @@ const AdminProducts = () => {
                     variant="destructive"
                     size="sm"
                     onClick={() => handleDelete(product.id)}
+                    disabled={deletingId === product.id}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    {deletingId === product.id ? (
+                      <span className="animate-spin">⏳</span>
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
                   </Button>
                 </div>
               </CardContent>
