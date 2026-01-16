@@ -10,6 +10,16 @@ import { Plus, Pencil, Trash2, Upload, X, Star, CheckSquare, Square, StarOff, Se
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { formatKES } from '@/utils/currency';
 import { z } from 'zod';
 import { Badge } from '@/components/ui/badge';
@@ -51,6 +61,11 @@ const AdminProducts = () => {
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [togglingFeaturedId, setTogglingFeaturedId] = useState<string | null>(null);
+  
+  // Delete confirmation state
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false);
   
   // Sorting state
   const [sortField, setSortField] = useState<SortField>('created_at');
@@ -313,15 +328,22 @@ const AdminProducts = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
+  const openDeleteConfirm = (product: { id: string; name: string }) => {
+    setProductToDelete(product);
+    setDeleteConfirmOpen(true);
+  };
 
-    setDeletingId(id);
+  const handleDelete = async () => {
+    if (!productToDelete) return;
+
+    setDeleteConfirmOpen(false);
+    setDeletingId(productToDelete.id);
+    
     try {
       const { error } = await supabase
         .from('products')
         .delete()
-        .eq('id', id);
+        .eq('id', productToDelete.id);
 
       if (error) throw error;
 
@@ -335,6 +357,7 @@ const AdminProducts = () => {
       });
     } finally {
       setDeletingId(null);
+      setProductToDelete(null);
     }
   };
 
@@ -425,15 +448,18 @@ const AdminProducts = () => {
     }
   };
 
-  const handleBulkDelete = async () => {
+  const openBulkDeleteConfirm = () => {
     if (selectedProducts.size === 0) {
       toast({ title: 'No products selected', variant: 'destructive' });
       return;
     }
+    setBulkDeleteConfirmOpen(true);
+  };
 
-    if (!confirm(`Are you sure you want to delete ${selectedProducts.size} products?`)) return;
-
+  const handleBulkDelete = async () => {
+    setBulkDeleteConfirmOpen(false);
     setBulkLoading(true);
+    
     try {
       const productIds = Array.from(selectedProducts);
       
@@ -524,7 +550,7 @@ const AdminProducts = () => {
             <Button
               size="sm"
               variant="destructive"
-              onClick={handleBulkDelete}
+              onClick={openBulkDeleteConfirm}
               disabled={bulkLoading}
             >
               <Trash2 className="h-4 w-4 mr-1" />
@@ -900,7 +926,7 @@ const AdminProducts = () => {
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={() => handleDelete(product.id)}
+                    onClick={() => openDeleteConfirm({ id: product.id, name: product.name })}
                     disabled={deletingId === product.id}
                   >
                     {deletingId === product.id ? (
@@ -985,6 +1011,42 @@ const AdminProducts = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Product</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{productToDelete?.name}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setProductToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <AlertDialog open={bulkDeleteConfirmOpen} onOpenChange={setBulkDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {selectedProducts.size} Products</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {selectedProducts.size} selected product{selectedProducts.size > 1 ? 's' : ''}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleBulkDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete {selectedProducts.size} Product{selectedProducts.size > 1 ? 's' : ''}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
