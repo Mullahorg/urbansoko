@@ -76,6 +76,8 @@ import TermsPage from "./pages/TermsPage";
 import OrderTrackingPage from "./pages/OrderTrackingPage";
 import RewardsPage from "./pages/RewardsPage";
 import VendorRegistrationPage from "./pages/VendorRegistrationPage";
+import StoresPage from "./pages/StoresPage";
+import StoreDetailPage from "./pages/StoreDetailPage";
 
 const queryClient = new QueryClient();
 
@@ -92,6 +94,10 @@ const AppContent = () => {
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<AuthPage />} />
           
+          {/* Store Routes */}
+          <Route path="/stores" element={<StoresPage />} />
+          <Route path="/store/:storeSlug" element={<StoreDetailPage />} />
+          
           {/* Public Pages */}
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/product/:id" element={<ProductDetailPage />} />
@@ -107,6 +113,8 @@ const AppContent = () => {
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/track-order" element={<OrderTrackingPage />} />
           <Route path="/rewards" element={<RewardsPage />} />
+          <Route path="/vendor/register" element={<VendorRegistrationPage />} />
+          <Route path="/vendor-registration" element={<VendorRegistrationPage />} />
           <Route path="/vendor-registration" element={<VendorRegistrationPage />} />
 
           {/* Admin Routes */}
