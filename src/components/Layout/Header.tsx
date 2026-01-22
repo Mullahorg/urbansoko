@@ -103,8 +103,15 @@ const Header = ({ cartCount }: HeaderProps) => {
 
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2">
-              <img src={logo} alt={content.header.siteName} className="h-8 w-8 object-contain" />
-              <span className="text-lg md:text-xl font-bold text-primary">{content.header.siteName}</span>
+              <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-secondary to-secondary/80 flex items-center justify-center">
+                <span className="text-secondary-foreground font-bold text-lg">S</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-lg md:text-xl font-bold bg-gradient-to-r from-secondary to-accent bg-clip-text text-transparent">
+                  Soko Fresh
+                </span>
+                <span className="text-[10px] text-muted-foreground -mt-1 hidden sm:block">Fresh Food & More</span>
+              </div>
             </Link>
 
           {/* Search bar - hidden on mobile */}

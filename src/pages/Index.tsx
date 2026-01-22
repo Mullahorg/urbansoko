@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, Star, Truck, Shield, Headphones, Package, Award, Clock, Sparkles, Gift, Zap } from 'lucide-react';
+import { ArrowRight, Star, Truck, Shield, Headphones, Package, Award, Clock, Sparkles, Gift, Zap, Store, UtensilsCrossed, Coffee, ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,7 +20,11 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   Package,
   Award,
   Clock,
-  Star
+  Star,
+  Store,
+  UtensilsCrossed,
+  Coffee,
+  ShoppingBag,
 };
 
 const containerVariants = {
@@ -41,27 +45,31 @@ const Index = () => {
   const [quickViewProduct, setQuickViewProduct] = useState<any>(null);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
+  const [stores, setStores] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
   const { toast } = useToast();
   const { content, loading: contentLoading } = useSiteContent();
 
   useEffect(() => {
-    fetchProducts();
+    fetchData();
   }, []);
 
-  const fetchProducts = async () => {
+  const fetchData = async () => {
     try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const [productsResult, storesResult] = await Promise.all([
+        supabase.from('products').select('*').order('created_at', { ascending: false }),
+        supabase.from('stores').select('*').eq('status', 'active').order('rating', { ascending: false }).limit(6)
+      ]);
 
-      if (error) throw error;
-      setProducts(data || []);
+      if (productsResult.error) throw productsResult.error;
+      if (storesResult.error) throw storesResult.error;
+      
+      setProducts(productsResult.data || []);
+      setStores(storesResult.data || []);
     } catch (error: any) {
       toast({
-        title: 'Error loading products',
+        title: 'Error loading data',
         description: error.message,
         variant: 'destructive',
       });
@@ -94,16 +102,16 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-primary/5 via-accent/5 to-primary/10 py-16 md:py-24 lg:py-32 overflow-hidden">
+      <section className="relative bg-gradient-to-br from-primary/5 via-secondary/10 to-accent/5 py-16 md:py-24 lg:py-32 overflow-hidden">
         {/* Animated background elements */}
         <div className="absolute inset-0 overflow-hidden">
           <motion.div
-            className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl"
+            className="absolute top-20 left-10 w-72 h-72 bg-secondary/20 rounded-full blur-3xl"
             animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
             transition={{ duration: 8, repeat: Infinity }}
           />
           <motion.div
-            className="absolute bottom-20 right-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl"
+            className="absolute bottom-20 right-10 w-96 h-96 bg-accent/20 rounded-full blur-3xl"
             animate={{ scale: [1.2, 1, 1.2], opacity: [0.5, 0.3, 0.5] }}
             transition={{ duration: 10, repeat: Infinity }}
           />
@@ -118,26 +126,24 @@ const Index = () => {
             animate="visible"
             variants={containerVariants}
           >
-            {content.hero.badge && (
-              <motion.div variants={itemVariants}>
-                <Badge className="mb-6 bg-gradient-to-r from-accent to-primary text-white animate-pulse-glow shadow-lg px-4 py-1.5">
-                  <Sparkles className="h-3 w-3 mr-1" />
-                  {content.hero.badge}
-                </Badge>
-              </motion.div>
-            )}
+            <motion.div variants={itemVariants}>
+              <Badge className="mb-6 bg-gradient-to-r from-secondary to-accent text-white animate-pulse-glow shadow-lg px-4 py-1.5">
+                <Sparkles className="h-3 w-3 mr-1" />
+                🇰🇪 Kenya's Fresh Marketplace
+              </Badge>
+            </motion.div>
             
             <motion.h1 
               variants={itemVariants}
               className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 md:mb-8 text-foreground leading-tight"
             >
-              {content.hero.title?.split(' ').slice(0, 2).join(' ')}
+              Fresh Food &
               <motion.span 
-                className="block mt-2 gradient-text"
+                className="block mt-2 bg-gradient-to-r from-secondary via-accent to-secondary bg-clip-text text-transparent"
                 animate={{ backgroundPosition: ['0%', '100%', '0%'] }}
                 transition={{ duration: 5, repeat: Infinity }}
               >
-                {content.hero.title?.split(' ').slice(2).join(' ')}
+                Local Delights
               </motion.span>
             </motion.h1>
             
@@ -145,7 +151,7 @@ const Index = () => {
               variants={itemVariants}
               className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground mb-8 md:mb-12 max-w-3xl mx-auto leading-relaxed"
             >
-              {content.hero.subtitle}
+              Discover amazing stores for food, drinks, groceries and more. Order from your favorite local vendors with M-Pesa.
             </motion.p>
             
             <motion.div 
@@ -154,23 +160,21 @@ const Index = () => {
             >
               <Button 
                 size="lg" 
-                className="w-full sm:w-auto text-base md:text-lg px-8 py-6 shadow-lg hover:shadow-xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 group" 
+                className="w-full sm:w-auto text-base md:text-lg px-8 py-6 shadow-lg hover:shadow-xl bg-gradient-to-r from-secondary to-secondary/80 hover:from-secondary/90 hover:to-secondary/70 text-secondary-foreground group" 
                 asChild
               >
-                <Link to={content.hero.ctaLink || '/products'}>
-                  <Zap className="mr-2 h-5 w-5 group-hover:animate-bounce-gentle" />
-                  {content.hero.ctaText || 'Shop Now'} 
+                <Link to="/stores">
+                  <Store className="mr-2 h-5 w-5 group-hover:animate-bounce-gentle" />
+                  Browse Stores
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </Button>
-              {content.hero.secondaryCtaText && (
-                <Button size="lg" variant="outline" className="w-full sm:w-auto text-base md:text-lg px-8 py-6 group" asChild>
-                  <Link to={content.hero.secondaryCtaLink || '/products'}>
-                    {content.hero.secondaryCtaText}
-                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                  </Link>
-                </Button>
-              )}
+              <Button size="lg" variant="outline" className="w-full sm:w-auto text-base md:text-lg px-8 py-6 group" asChild>
+                <Link to="/products">
+                  View Products
+                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </Button>
             </motion.div>
 
             {/* Trust badges */}
@@ -179,16 +183,16 @@ const Index = () => {
               className="mt-12 flex flex-wrap justify-center gap-6 text-sm text-muted-foreground"
             >
               <div className="flex items-center gap-2">
-                <Truck className="h-4 w-4 text-primary" />
-                <span>Free Shipping</span>
+                <Truck className="h-4 w-4 text-secondary" />
+                <span>Fast Delivery</span>
               </div>
               <div className="flex items-center gap-2">
-                <Shield className="h-4 w-4 text-primary" />
-                <span>Secure Payment</span>
+                <Shield className="h-4 w-4 text-secondary" />
+                <span>M-Pesa Secure</span>
               </div>
               <div className="flex items-center gap-2">
-                <Gift className="h-4 w-4 text-primary" />
-                <span>Easy Returns</span>
+                <Store className="h-4 w-4 text-secondary" />
+                <span>Local Vendors</span>
               </div>
             </motion.div>
           </motion.div>
