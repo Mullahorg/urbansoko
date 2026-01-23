@@ -1,92 +1,50 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { useVendorStore } from '@/hooks/useVendorStore';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Store, Package, TrendingUp, DollarSign, Plus } from 'lucide-react';
-import { formatKES } from '@/utils/currency';
-import { useToast } from '@/hooks/use-toast';
+import { Store, LayoutDashboard, Layers, Package, ShoppingCart } from 'lucide-react';
 
-interface VendorData {
-  id: string;
-  business_name: string;
-  status: string;
-  commission_rate: number;
-}
+import VendorOverview from '@/components/vendor/VendorOverview';
+import VendorStoreForm from '@/components/vendor/VendorStoreForm';
+import VendorSectionsManager from '@/components/vendor/VendorSectionsManager';
+import VendorProductsManager from '@/components/vendor/VendorProductsManager';
 
 const VendorDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [vendor, setVendor] = useState<VendorData | null>(null);
-  const [stats, setStats] = useState({
-    totalProducts: 0,
-    totalSales: 0,
-    revenue: 0,
-  });
-  const [loading, setLoading] = useState(true);
+  const { 
+    vendor, 
+    store, 
+    sections, 
+    products, 
+    stats, 
+    loading,
+    refreshData 
+  } = useVendorStore();
 
   useEffect(() => {
     if (!user) {
       navigate('/auth');
       return;
     }
-    fetchVendorData();
-  }, [user]);
+  }, [user, navigate]);
 
-  const fetchVendorData = async () => {
-    const { data: vendorData, error } = await supabase
-      .from('vendors')
-      .select('*')
-      .eq('user_id', user!.id)
-      .single();
-
-    if (error || !vendorData) {
-      // No vendor profile found
+  useEffect(() => {
+    if (!loading && !vendor) {
       navigate('/vendor/register');
-      return;
     }
-
-    setVendor(vendorData);
-
-    if (vendorData.status !== 'approved') {
-      setLoading(false);
-      return;
-    }
-
-    // Fetch vendor stats
-    const { data: products } = await supabase
-      .from('products')
-      .select('id')
-      .eq('vendor_id', vendorData.id);
-
-    const { data: orderItems } = await supabase
-      .from('order_items')
-      .select('quantity, price, product:products!inner(vendor_id)')
-      .eq('product.vendor_id', vendorData.id);
-
-    const totalRevenue = orderItems?.reduce((sum, item) => 
-      sum + (item.quantity * Number(item.price)), 0
-    ) || 0;
-
-    setStats({
-      totalProducts: products?.length || 0,
-      totalSales: orderItems?.length || 0,
-      revenue: totalRevenue,
-    });
-
-    setLoading(false);
-  };
+  }, [loading, vendor, navigate]);
 
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <Skeleton className="h-12 w-64 mb-8" />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[1, 2, 3].map(i => (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          {[1, 2, 3, 4].map(i => (
             <Card key={i}>
               <CardContent className="p-6">
                 <Skeleton className="h-20 w-full" />
@@ -138,69 +96,87 @@ const VendorDashboard = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">{vendor.business_name}</h1>
-          <p className="text-muted-foreground">Vendor Dashboard</p>
-        </div>
-        <Button onClick={() => navigate('/vendor/products')}>
-          <Plus className="mr-2 h-4 w-4" />
-          Manage Products
-        </Button>
-      </div>
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="grid w-full md:w-auto md:inline-grid grid-cols-4 md:grid-cols-4 gap-2 h-auto p-1">
+          <TabsTrigger value="overview" className="flex items-center gap-2 py-2">
+            <LayoutDashboard className="h-4 w-4" />
+            <span className="hidden md:inline">Overview</span>
+          </TabsTrigger>
+          <TabsTrigger value="store" className="flex items-center gap-2 py-2">
+            <Store className="h-4 w-4" />
+            <span className="hidden md:inline">Store</span>
+          </TabsTrigger>
+          <TabsTrigger value="sections" className="flex items-center gap-2 py-2">
+            <Layers className="h-4 w-4" />
+            <span className="hidden md:inline">Sections</span>
+          </TabsTrigger>
+          <TabsTrigger value="products" className="flex items-center gap-2 py-2">
+            <Package className="h-4 w-4" />
+            <span className="hidden md:inline">Products</span>
+          </TabsTrigger>
+        </TabsList>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-muted-foreground">Total Products</p>
-              <Package className="w-5 h-5 text-primary" />
+        <TabsContent value="overview">
+          <VendorOverview 
+            vendor={vendor}
+            store={store}
+            stats={stats}
+            onCreateStore={() => {
+              const tabsList = document.querySelector('[role="tablist"]');
+              const storeTab = tabsList?.querySelector('[value="store"]') as HTMLButtonElement;
+              storeTab?.click();
+            }}
+          />
+        </TabsContent>
+
+        <TabsContent value="store">
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold flex items-center gap-2">
+                <Store className="h-6 w-6" />
+                {store ? 'Store Settings' : 'Create Your Store'}
+              </h2>
+              <p className="text-muted-foreground">
+                {store 
+                  ? 'Update your store information and settings'
+                  : 'Set up your store to start selling'
+                }
+              </p>
             </div>
-            <p className="text-3xl font-bold">{stats.totalProducts}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-muted-foreground">Total Sales</p>
-              <TrendingUp className="w-5 h-5 text-success" />
-            </div>
-            <p className="text-3xl font-bold">{stats.totalSales}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-muted-foreground">Revenue</p>
-              <DollarSign className="w-5 h-5 text-warning" />
-            </div>
-            <p className="text-3xl font-bold">{formatKES(stats.revenue)}</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Your share: {formatKES(stats.revenue * (100 - vendor.commission_rate) / 100)}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Button variant="outline" onClick={() => navigate('/vendor/products')}>
-              <Package className="mr-2 h-4 w-4" />
-              Manage Products
-            </Button>
-            <Button variant="outline" onClick={() => navigate('/vendor/orders')}>
-              <TrendingUp className="mr-2 h-4 w-4" />
-              View Orders
-            </Button>
+            <VendorStoreForm 
+              store={store} 
+              onSuccess={refreshData}
+            />
           </div>
-        </CardContent>
-      </Card>
+        </TabsContent>
+
+        <TabsContent value="sections">
+          {store ? (
+            <VendorSectionsManager 
+              sections={sections}
+              onRefresh={refreshData}
+            />
+          ) : (
+            <Card>
+              <CardContent className="py-16 text-center">
+                <Store className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-xl font-semibold mb-2">Create your store first</h3>
+                <p className="text-muted-foreground">
+                  You need to set up your store before adding sections
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="products">
+          <VendorProductsManager 
+            products={products}
+            sections={sections}
+            onRefresh={refreshData}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
