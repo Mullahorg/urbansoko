@@ -1,10 +1,9 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, ShoppingCart, User, Menu, LogOut, Package, Heart, Trophy, Store, Shield, Sparkles } from 'lucide-react';
+import { Search, ShoppingCart, User, Menu, LogOut, Package, Heart, Trophy, Store, Shield, Sparkles, Hexagon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import logo from '@/assets/logo.jpeg';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,7 +40,6 @@ const Header = ({ cartCount }: HeaderProps) => {
   const { t } = useLanguage();
   const { content } = useSiteContent();
 
-  // Fetch products for autocomplete
   useEffect(() => {
     const fetchProducts = async () => {
       const { data } = await supabase
@@ -53,7 +51,6 @@ const Header = ({ cartCount }: HeaderProps) => {
     fetchProducts();
   }, []);
 
-  // Handle click outside to close suggestions
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
@@ -87,11 +84,9 @@ const Header = ({ cartCount }: HeaderProps) => {
 
   return (
     <>
-      <header className="bg-card border-b border-border sticky top-0 z-50 backdrop-blur-md bg-card/95">
+      <header className="bg-card/95 border-b border-border/50 sticky top-0 z-50 backdrop-blur-xl">
         <div className="container mx-auto px-4">
-          {/* Top bar */}
           <div className="flex items-center justify-between py-3 md:py-4">
-            {/* Mobile menu button */}
             <Button
               variant="ghost"
               size="icon"
@@ -102,59 +97,65 @@ const Header = ({ cartCount }: HeaderProps) => {
             </Button>
 
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2">
-              <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-secondary to-secondary/80 flex items-center justify-center">
-                <span className="text-secondary-foreground font-bold text-lg">S</span>
-              </div>
+            <Link to="/" className="flex items-center gap-2 group">
+              <motion.div 
+                className="relative h-10 w-10 rounded-xl bg-gradient-to-br from-primary via-secondary to-accent flex items-center justify-center neon-glow"
+                whileHover={{ scale: 1.05, rotate: 5 }}
+                transition={{ type: "spring", stiffness: 400 }}
+              >
+                <Hexagon className="h-5 w-5 text-primary-foreground" />
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              </motion.div>
               <div className="flex flex-col">
-                <span className="text-lg md:text-xl font-bold bg-gradient-to-r from-secondary to-accent bg-clip-text text-transparent">
-                  Soko Fresh
+                <span className="text-lg md:text-xl font-bold text-gradient-cyber tracking-tight">
+                  UrbanSoko
                 </span>
-                <span className="text-[10px] text-muted-foreground -mt-1 hidden sm:block">Fresh Food & More</span>
+                <span className="text-[10px] text-muted-foreground -mt-1 hidden sm:block tracking-wider uppercase">
+                  Future Commerce
+                </span>
               </div>
             </Link>
 
-          {/* Search bar - hidden on mobile */}
-          <div className="hidden lg:flex items-center flex-1 max-w-md mx-8" ref={searchRef}>
-            <form onSubmit={handleSearch} className="relative w-full">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                type="text"
-                placeholder="Search products... (smart search)"
-                className="pl-10"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setShowSuggestions(true);
-                }}
-                onFocus={() => setShowSuggestions(true)}
-              />
-              
-              {/* Autocomplete Dropdown */}
-              <AnimatePresence>
-                {showSuggestions && suggestions.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -5 }}
-                    className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-50 overflow-hidden"
-                  >
-                    {suggestions.map((suggestion, index) => (
-                      <button
-                        key={`${suggestion}-${index}`}
-                        type="button"
-                        className="w-full px-4 py-2.5 text-left hover:bg-muted transition-colors flex items-center gap-2 text-sm"
-                        onClick={() => handleSuggestionClick(suggestion)}
-                      >
-                        <Sparkles className="h-3 w-3 text-primary" />
-                        <span>{suggestion}</span>
-                      </button>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </form>
-          </div>
+            {/* Search bar */}
+            <div className="hidden lg:flex items-center flex-1 max-w-md mx-8" ref={searchRef}>
+              <form onSubmit={handleSearch} className="relative w-full">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  type="text"
+                  placeholder="AI-powered search..."
+                  className="pl-10 bg-muted/50 border-border/50 focus:border-primary/50 focus:ring-primary/20"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setShowSuggestions(true);
+                  }}
+                  onFocus={() => setShowSuggestions(true)}
+                />
+                
+                <AnimatePresence>
+                  {showSuggestions && suggestions.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -5 }}
+                      className="absolute top-full left-0 right-0 mt-1 bg-card border border-border/50 rounded-lg shadow-lg z-50 overflow-hidden backdrop-blur-xl"
+                    >
+                      {suggestions.map((suggestion, index) => (
+                        <button
+                          key={`${suggestion}-${index}`}
+                          type="button"
+                          className="w-full px-4 py-2.5 text-left hover:bg-primary/10 transition-colors flex items-center gap-2 text-sm"
+                          onClick={() => handleSuggestionClick(suggestion)}
+                        >
+                          <Sparkles className="h-3 w-3 text-primary" />
+                          <span>{suggestion}</span>
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </form>
+            </div>
 
             {/* Actions */}
             <div className="flex items-center space-x-2 md:space-x-3">
@@ -164,11 +165,11 @@ const Header = ({ cartCount }: HeaderProps) => {
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" className="hover:bg-primary/10">
                       <User className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuContent align="end" className="w-48 glass-premium">
                     <DropdownMenuItem onClick={() => navigate('/profile')}>
                       <User className="mr-2 h-4 w-4" />
                       {t('nav.profile')}
@@ -220,7 +221,7 @@ const Header = ({ cartCount }: HeaderProps) => {
                   <Button variant="ghost" size="sm" onClick={() => navigate('/track-order')} className="hidden sm:flex">
                     {t('nav.trackOrder')}
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => navigate('/auth')} className="hidden sm:flex">
+                  <Button variant="ghost" size="sm" onClick={() => navigate('/auth')} className="hidden sm:flex hover:text-primary">
                     {t('nav.signIn')}
                   </Button>
                 </>
@@ -228,10 +229,10 @@ const Header = ({ cartCount }: HeaderProps) => {
               
               <CartSheet 
                 trigger={
-                  <Button variant="ghost" size="icon" className="relative">
+                  <Button variant="ghost" size="icon" className="relative hover:bg-primary/10">
                     <ShoppingCart className="h-4 w-4" />
                     {cartCount > 0 && (
-                      <Badge className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-xs bg-accent text-accent-foreground min-w-[16px]">
+                      <Badge className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-xs bg-gradient-to-r from-primary to-secondary text-primary-foreground min-w-[16px] neon-glow">
                         {cartCount > 9 ? '9+' : cartCount}
                       </Badge>
                     )}
@@ -241,19 +242,17 @@ const Header = ({ cartCount }: HeaderProps) => {
             </div>
           </div>
 
-          {/* Desktop Navigation - Enhanced Mega Menu */}
           <div className="hidden md:flex pb-4">
             <MainNav />
           </div>
 
-          {/* Mobile search */}
           <div className="lg:hidden pb-4">
             <form onSubmit={handleSearch} className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
                 type="text"
-                placeholder="Smart search..."
-                className="pl-10"
+                placeholder="Search products..."
+                className="pl-10 bg-muted/50"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
