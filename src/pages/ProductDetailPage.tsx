@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Heart, ShoppingCart, Star, Truck, Shield, RotateCcw, Share, Zap, Ruler, ChevronLeft, ChevronRight, WifiOff, Cpu, Leaf, Sparkles, Package, Clock } from 'lucide-react';
+import { Heart, ShoppingCart, Star, Truck, Shield, RotateCcw, Share, Zap, Ruler, ChevronLeft, ChevronRight, WifiOff, Cpu, Leaf, Sparkles, Package, Clock, Gift, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +13,8 @@ import QuickView from '@/components/Product/QuickView';
 import ReviewSection from '@/components/Product/ReviewSection';
 import { SizeGuideModal } from '@/components/Product/SizeGuideModal';
 import { ShippingCalculator } from '@/components/Product/ShippingCalculator';
+import VariantSelector from '@/components/Product/VariantSelector';
+import CustomOptionsSelector from '@/components/Product/CustomOptionsSelector';
 import { useCart } from '@/contexts/CartContext';
 import { formatPrice } from '@/utils/currency';
 import { useToast } from '@/hooks/use-toast';
@@ -20,6 +22,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { useIntegratedAnalytics } from '@/hooks/useIntegratedAnalytics';
 import { useIntelligentProductUI, ProductUIConfig } from '@/hooks/useIntelligentProductUI';
+import { useProductVariants } from '@/hooks/useProductVariants';
 
 // Intelligent badge component based on category
 const IntelligentBadge = ({ config, product }: { config: ProductUIConfig; product: any }) => {
@@ -122,8 +125,6 @@ const ProductDetailPage = () => {
   const [product, setProduct] = useState<any>(null);
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedSize, setSelectedSize] = useState('');
-  const [selectedColor, setSelectedColor] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -142,10 +143,21 @@ const ProductDetailPage = () => {
     getOfflineProducts,
     preloadCategoryProducts 
   } = useOfflineSync();
-  const { trackProductView, trackAddToCart, trackWishlistAction } = useIntegratedAnalytics();
+  const { trackProductView, trackAddToCart } = useIntegratedAnalytics();
   
   // Intelligent UI configuration
   const uiConfig = useIntelligentProductUI(product);
+  
+  // Product variants hook
+  const {
+    variantGroups,
+    customOptions,
+    selectedAttributes,
+    selectedCustomOptions,
+    handleAttributeChange,
+    handleCustomOptionChange,
+    calculateTotalPrice,
+  } = useProductVariants({ productId: id || '', product });
 
   useEffect(() => {
     if (id) {
@@ -170,9 +182,6 @@ const ProductDetailPage = () => {
         setIsUsingOfflineData(false);
         
         if (productData) {
-          setSelectedColor(productData.colors?.[0] || '');
-          setSelectedSize(productData.sizes?.[0] || '');
-
           trackProductView({
             id: productData.id,
             name: productData.name,
@@ -217,8 +226,6 @@ const ProductDetailPage = () => {
     if (cachedProduct) {
       setProduct(cachedProduct);
       setIsUsingOfflineData(true);
-      setSelectedColor(cachedProduct.colors?.[0] || '');
-      setSelectedSize(cachedProduct.sizes?.[0] || '');
       
       const imageUrls: Record<string, string> = {};
       const allImages = [cachedProduct.image_url, ...(cachedProduct.images || [])].filter(Boolean);
@@ -256,6 +263,16 @@ const ProductDetailPage = () => {
     if (isOnline) return url;
     return cachedImageUrls[url] || url;
   };
+
+  // Calculate total price with variant modifiers
+  const totalPrice = useMemo(() => {
+    if (!product) return 0;
+    return calculateTotalPrice(product.price) * quantity;
+  }, [product, calculateTotalPrice, quantity]);
+
+  const hasCustomizations = useMemo(() => {
+    return Object.values(selectedCustomOptions).some(v => v && v !== '' && v !== false);
+  }, [selectedCustomOptions]);
 
   if (loading) {
     return (
@@ -321,9 +338,13 @@ const ProductDetailPage = () => {
   };
 
   const handleAddToCart = () => {
-    if (!selectedSize && product.sizes?.length > 0 && config.showSizeGuide) {
+    // Validate required selections
+    const requiredGroups = variantGroups.filter(g => g.required);
+    const missingSelection = requiredGroups.find(g => !selectedAttributes[g.name]);
+    
+    if (missingSelection) {
       toast({
-        title: "Please select a size",
+        title: `Please select a ${missingSelection.name}`,
         variant: "destructive"
       });
       return;
@@ -333,7 +354,11 @@ const ProductDetailPage = () => {
       ...product,
       image: product.image_url || product.images?.[0],
       inStock: product.stock > 0,
+      customOptions: hasCustomizations ? selectedCustomOptions : undefined,
     };
+
+    const selectedSize = selectedAttributes['Size'] || '';
+    const selectedColor = selectedAttributes['Color'] || '';
 
     for (let i = 0; i < quantity; i++) {
       addToCart(productForCart, selectedSize, selectedColor);
@@ -342,21 +367,13 @@ const ProductDetailPage = () => {
     trackAddToCart({
       id: product.id,
       name: product.name,
-      price: product.price,
+      price: calculateTotalPrice(product.price),
       quantity,
       category: product.category,
     });
   };
 
   const handleBuyNow = () => {
-    if (!selectedSize && product.sizes?.length > 0 && config.showSizeGuide) {
-      toast({
-        title: "Please select a size",
-        variant: "destructive"
-      });
-      return;
-    }
-
     handleAddToCart();
     toast({
       title: "Proceeding to Checkout",
@@ -452,7 +469,7 @@ const ProductDetailPage = () => {
             )}
           </motion.div>
 
-          {/* Product Info - Intelligent UI */}
+          {/* Product Info - Intelligent UI with Variants */}
           <motion.div 
             className="space-y-6"
             initial={{ opacity: 0, x: 20 }}
@@ -471,7 +488,7 @@ const ProductDetailPage = () => {
               </div>
             </div>
 
-            {/* Intelligent Price Display */}
+            {/* Dynamic Price Display */}
             <motion.div 
               className="space-y-2"
               initial={{ opacity: 0 }}
@@ -479,8 +496,15 @@ const ProductDetailPage = () => {
               transition={{ delay: 0.1 }}
             >
               <div className="flex items-center gap-3 flex-wrap">
-                <span className="text-3xl font-bold text-gradient-primary">{formatPrice(product.price)}</span>
-                {product.originalPrice && (
+                <motion.span 
+                  className="text-3xl font-bold text-gradient-primary"
+                  key={totalPrice}
+                  initial={{ scale: 1.1 }}
+                  animate={{ scale: 1 }}
+                >
+                  {formatPrice(totalPrice)}
+                </motion.span>
+                {product.originalPrice && quantity === 1 && !hasCustomizations && (
                   <>
                     <span className="text-lg text-muted-foreground line-through">{formatPrice(product.originalPrice)}</span>
                     <Badge className="bg-accent/10 text-accent border-accent/20">
@@ -489,6 +513,24 @@ const ProductDetailPage = () => {
                   </>
                 )}
               </div>
+              
+              {/* Price breakdown for customizations */}
+              {(hasCustomizations || quantity > 1) && (
+                <motion.div 
+                  className="text-sm text-muted-foreground space-y-1"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                >
+                  <p>Base price: {formatPrice(product.price)} × {quantity}</p>
+                  {hasCustomizations && (
+                    <p className="text-primary flex items-center gap-1">
+                      <Gift className="h-3 w-3" />
+                      + Customizations: {formatPrice(calculateTotalPrice(product.price) - product.price)}
+                    </p>
+                  )}
+                </motion.div>
+              )}
+              
               {config.priceDisplay === 'per-unit' && (
                 <p className="text-sm text-muted-foreground">Price per unit</p>
               )}
@@ -500,74 +542,74 @@ const ProductDetailPage = () => {
 
             <Separator className="bg-border/50" />
 
-            {/* Options - Conditionally rendered based on category */}
-            <div className="space-y-4">
-              {config.showColorPicker && product.colors?.length > 0 && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                  <label className="text-sm font-medium mb-2 block">Color</label>
-                  <div className="flex gap-2 flex-wrap">
-                    {product.colors.map((color: string) => (
-                      <button
-                        key={color}
-                        onClick={() => setSelectedColor(color)}
-                        className={`px-4 py-2 text-sm border rounded-lg transition-all ${
-                          selectedColor === color 
-                            ? 'border-primary bg-primary/10 text-primary' 
-                            : 'border-border/50 hover:border-primary/50'
-                        }`}
-                      >
-                        {color}
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-
-              {config.showSizeGuide && product.sizes?.length > 0 && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-sm font-medium">Size</label>
-                    <Button
-                      variant="link"
-                      size="sm"
-                      className="h-auto p-0 text-primary"
-                      onClick={() => setIsSizeGuideOpen(true)}
-                    >
-                      <Ruler className="h-3 w-3 mr-1" />
-                      Size Guide
-                    </Button>
-                  </div>
-                  <Select value={selectedSize} onValueChange={setSelectedSize}>
-                    <SelectTrigger className="w-32 bg-muted/50">
-                      <SelectValue placeholder="Select size" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {product.sizes.map((size: string) => (
-                        <SelectItem key={size} value={size}>{size}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </motion.div>
-              )}
-
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-                <label className="text-sm font-medium mb-2 block">Quantity</label>
-                <Select value={quantity.toString()} onValueChange={(value) => setQuantity(parseInt(value))}>
-                  <SelectTrigger className="w-20 bg-muted/50">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[1, 2, 3, 4, 5, 10].map(num => (
-                      <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            {/* Variant Selector - Enhanced with swatches */}
+            {variantGroups.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+              >
+                <VariantSelector
+                  groups={variantGroups}
+                  selectedAttributes={selectedAttributes}
+                  onAttributeChange={handleAttributeChange}
+                  showStock={false}
+                />
+                
+                {/* Size guide button for fashion */}
+                {config.showSizeGuide && selectedAttributes['Size'] !== undefined && (
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="h-auto p-0 mt-2 text-primary"
+                    onClick={() => setIsSizeGuideOpen(true)}
+                  >
+                    <Ruler className="h-3 w-3 mr-1" />
+                    View Size Guide
+                  </Button>
+                )}
               </motion.div>
-            </div>
+            )}
+
+            {/* Quantity Selector */}
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              transition={{ delay: 0.2 }}
+            >
+              <label className="text-sm font-medium mb-2 block">Quantity</label>
+              <Select value={quantity.toString()} onValueChange={(value) => setQuantity(parseInt(value))}>
+                <SelectTrigger className="w-24 bg-muted/50">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[1, 2, 3, 4, 5, 10].map(num => (
+                    <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </motion.div>
 
             <Separator className="bg-border/50" />
 
-            {/* Intelligent CTA Buttons */}
+            {/* Custom Options Selector */}
+            {customOptions.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25 }}
+              >
+                <CustomOptionsSelector
+                  options={customOptions}
+                  selectedOptions={selectedCustomOptions}
+                  onOptionChange={handleCustomOptionChange}
+                />
+              </motion.div>
+            )}
+
+            {customOptions.length > 0 && <Separator className="bg-border/50" />}
+
+            {/* CTA Buttons */}
             <motion.div 
               className="space-y-3"
               initial={{ opacity: 0, y: 10 }}
@@ -580,7 +622,7 @@ const ProductDetailPage = () => {
                 disabled={product.stock <= 0}
               >
                 <Zap className="mr-2 h-5 w-5" />
-                {config.primaryCTA} - {formatPrice(product.price * quantity)}
+                {config.primaryCTA} - {formatPrice(totalPrice)}
               </Button>
 
               <div className="flex gap-3">
@@ -607,10 +649,15 @@ const ProductDetailPage = () => {
                 </Button>
               </div>
 
-              {product.stock > 0 && (
+              {product.stock > 0 ? (
                 <p className="text-sm text-green-500 flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
                   In stock ({product.stock} available)
+                </p>
+              ) : (
+                <p className="text-sm text-destructive flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4" />
+                  Out of stock
                 </p>
               )}
             </motion.div>
@@ -712,7 +759,7 @@ const ProductDetailPage = () => {
           </motion.div>
         )}
 
-        <ShippingCalculator subtotal={product.price * quantity} />
+        <ShippingCalculator subtotal={totalPrice} />
         <SizeGuideModal isOpen={isSizeGuideOpen} onClose={() => setIsSizeGuideOpen(false)} />
         
         <QuickView
