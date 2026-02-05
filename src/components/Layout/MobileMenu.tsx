@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronDown, ChevronRight, User, Package, Heart, Trophy, Store, Shield, LogOut } from 'lucide-react';
+ import { ChevronDown, ChevronRight, User, Package, Heart, Trophy, Store, Shield, LogOut, Hexagon, Smartphone, Shirt, UtensilsCrossed, Home, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -51,7 +51,12 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent side="left" className="w-80 p-0 flex flex-col">
         <SheetHeader className="p-6 border-b flex-shrink-0">
-          <SheetTitle className="text-left">Menu</SheetTitle>
+           <SheetTitle className="text-left flex items-center gap-2">
+             <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+               <Hexagon className="h-4 w-4 text-primary-foreground" />
+             </div>
+             <span className="text-gradient-cyber">UrbanSoko</span>
+           </SheetTitle>
         </SheetHeader>
         
         <ScrollArea className="flex-1">
@@ -158,11 +163,14 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
                   <div key={category.id} className="mb-2">
                     <Link
                       to={`/category/${category.slug}`}
-                      className="flex items-center justify-between w-full py-3 text-left hover:text-primary transition-colors"
+                       className="flex items-center justify-between w-full py-3 text-left hover:text-primary transition-colors group"
                       onClick={onClose}
                     >
-                      <span className="font-medium">{category.name}</span>
-                      <ChevronRight className="h-4 w-4" />
+                       <span className="flex items-center gap-3">
+                         <span className="text-lg">{category.icon}</span>
+                         <span className="font-medium">{category.name}</span>
+                       </span>
+                       <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                     </Link>
                   </div>
                 ))}
@@ -186,7 +194,7 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
               <Button asChild className="w-full" variant="outline">
                 <Link to="/track-order" onClick={onClose}>Track Order</Link>
               </Button>
-              <Button asChild className="w-full">
+               <Button asChild className="w-full btn-cyber">
                 <Link to="/auth" onClick={onClose}>Sign In</Link>
               </Button>
             </div>

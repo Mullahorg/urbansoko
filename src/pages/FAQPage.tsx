@@ -1,5 +1,7 @@
 import Header from '@/components/Layout/Header';
 import { Footer } from '@/components/Layout/Footer';
+ import { HelpCircle, Hexagon } from 'lucide-react';
+ import { motion } from 'framer-motion';
 import {
   Accordion,
   AccordionContent,
@@ -22,7 +24,7 @@ const FAQPage = () => {
         },
         {
           q: "Can I cancel my order?",
-          a: "Yes, you can cancel your order within 1 hour of placement. Contact us immediately at info@maleafrique.com with your order number."
+           a: "Yes, you can cancel your order within 1 hour of placement. Contact us immediately at support@urbansoko.co.ke with your order number."
         },
         {
           q: "How do I track my order?",
@@ -56,7 +58,7 @@ const FAQPage = () => {
         },
         {
           q: "How do I return an item?",
-          a: "Contact us at info@maleafrique.com with your order number. We'll provide return instructions and authorization."
+           a: "Contact us at support@urbansoko.co.ke with your order number. We'll provide return instructions and authorization."
         },
         {
           q: "When will I receive my refund?",
@@ -72,8 +74,8 @@ const FAQPage = () => {
           a: "Each product page includes a size guide. If you're unsure, contact us for personalized sizing advice."
         },
         {
-          q: "Are your products authentic African designs?",
-          a: "Yes! We work directly with African designers and artisans to ensure authenticity and quality."
+           q: "Are your products from verified vendors?",
+           a: "Yes! All vendors on UrbanSoko are verified and vetted to ensure quality and authenticity."
         },
         {
           q: "Do you offer custom or bespoke items?",
@@ -105,14 +107,23 @@ const FAQPage = () => {
       <Header cartCount={0} />
       
       <main className="flex-1">
-        <section className="bg-gradient-to-br from-primary/10 to-primary/5 py-20">
+         <section className="relative bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 py-20 overflow-hidden">
+           <div className="absolute inset-0 hex-pattern opacity-20" />
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
+             <motion.div 
+               className="max-w-3xl mx-auto text-center relative z-10"
+               initial={{ opacity: 0, y: 20 }}
+               animate={{ opacity: 1, y: 0 }}
+             >
+               <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+                 <HelpCircle className="h-4 w-4" />
+                 Help Center
+               </div>
               <h1 className="text-4xl md:text-5xl font-bold mb-6">Frequently Asked Questions</h1>
               <p className="text-lg text-muted-foreground">
-                Find answers to common questions about shopping with Male Afrique Wear
+                 Find answers to common questions about shopping with UrbanSoko
               </p>
-            </div>
+             </motion.div>
           </div>
         </section>
 
@@ -141,7 +152,7 @@ const FAQPage = () => {
               <p className="text-muted-foreground mb-4">
                 Can't find the answer you're looking for? Our customer support team is here to help.
               </p>
-              <a href="/contact" className="text-primary hover:underline font-medium">
+               <a href="/contact" className="inline-flex items-center gap-2 text-primary hover:underline font-medium">
                 Contact Support →
               </a>
             </div>

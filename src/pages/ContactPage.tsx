@@ -4,9 +4,10 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Mail, Phone, MapPin, Clock } from 'lucide-react';
+ import { Mail, Phone, MapPin, Clock, Send, Hexagon, MessageSquare } from 'lucide-react';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+ import { motion } from 'framer-motion';
 
 const ContactPage = () => {
   const { toast } = useToast();
@@ -32,14 +33,23 @@ const ContactPage = () => {
       
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="bg-gradient-to-br from-primary/10 to-primary/5 py-20">
+         <section className="relative bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 py-20 overflow-hidden">
+           <div className="absolute inset-0 hex-pattern opacity-20" />
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
+             <motion.div 
+               className="max-w-3xl mx-auto text-center relative z-10"
+               initial={{ opacity: 0, y: 20 }}
+               animate={{ opacity: 1, y: 0 }}
+             >
+               <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+                 <MessageSquare className="h-4 w-4" />
+                 Get in Touch
+               </div>
               <h1 className="text-4xl md:text-5xl font-bold mb-6">Contact Us</h1>
               <p className="text-lg text-muted-foreground">
                 We'd love to hear from you. Reach out with any questions or concerns.
               </p>
-            </div>
+             </motion.div>
           </div>
         </section>
 
@@ -47,7 +57,7 @@ const ContactPage = () => {
           <div className="container mx-auto px-4">
             <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
               {/* Contact Form */}
-              <Card className="p-6">
+               <Card className="p-6 card-cyber">
                 <h2 className="text-2xl font-bold mb-6">Send us a Message</h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
@@ -56,6 +66,7 @@ const ContactPage = () => {
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       required
+                       className="bg-muted/50"
                     />
                   </div>
                   <div>
@@ -65,6 +76,7 @@ const ContactPage = () => {
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       required
+                       className="bg-muted/50"
                     />
                   </div>
                   <div>
@@ -73,6 +85,7 @@ const ContactPage = () => {
                       value={formData.subject}
                       onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                       required
+                       className="bg-muted/50"
                     />
                   </div>
                   <div>
@@ -82,17 +95,21 @@ const ContactPage = () => {
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                       required
+                       className="bg-muted/50"
                     />
                   </div>
-                  <Button type="submit" className="w-full">Send Message</Button>
+                   <Button type="submit" className="w-full btn-cyber">
+                     <Send className="mr-2 h-4 w-4" />
+                     Send Message
+                   </Button>
                 </form>
               </Card>
 
               {/* Contact Information */}
               <div className="space-y-6">
-                <Card className="p-6">
+                 <Card className="p-6 card-cyber">
                   <div className="flex items-start gap-4">
-                    <div className="text-primary mt-1">
+                     <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                       <MapPin className="h-6 w-6" />
                     </div>
                     <div>
@@ -105,9 +122,9 @@ const ContactPage = () => {
                   </div>
                 </Card>
 
-                <Card className="p-6">
+                 <Card className="p-6 card-cyber">
                   <div className="flex items-start gap-4">
-                    <div className="text-primary mt-1">
+                     <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                       <Phone className="h-6 w-6" />
                     </div>
                     <div>
@@ -120,24 +137,24 @@ const ContactPage = () => {
                   </div>
                 </Card>
 
-                <Card className="p-6">
+                 <Card className="p-6 card-cyber">
                   <div className="flex items-start gap-4">
-                    <div className="text-primary mt-1">
+                     <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                       <Mail className="h-6 w-6" />
                     </div>
                     <div>
                       <h3 className="font-semibold mb-1">Email Us</h3>
                       <p className="text-muted-foreground">
-                        info@maleafrique.com<br />
-                        support@maleafrique.com
+                         hello@urbansoko.co.ke<br />
+                         support@urbansoko.co.ke
                       </p>
                     </div>
                   </div>
                 </Card>
 
-                <Card className="p-6">
+                 <Card className="p-6 card-cyber">
                   <div className="flex items-start gap-4">
-                    <div className="text-primary mt-1">
+                     <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                       <Clock className="h-6 w-6" />
                     </div>
                     <div>
