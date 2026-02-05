@@ -1,5 +1,7 @@
 import Header from '@/components/Layout/Header';
 import { Footer } from '@/components/Layout/Footer';
+ import { Shield, Hexagon } from 'lucide-react';
+ import { motion } from 'framer-motion';
 
 const PrivacyPage = () => {
   return (
@@ -7,9 +9,20 @@ const PrivacyPage = () => {
       <Header cartCount={0} />
       
       <main className="flex-1">
-        <section className="bg-gradient-to-br from-primary/10 to-primary/5 py-20">
+         <section className="relative bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 py-20 overflow-hidden">
+           <div className="absolute inset-0 hex-pattern opacity-20" />
           <div className="container mx-auto px-4">
-            <h1 className="text-4xl md:text-5xl font-bold text-center">Privacy Policy</h1>
+             <motion.div 
+               className="max-w-3xl mx-auto text-center relative z-10"
+               initial={{ opacity: 0, y: 20 }}
+               animate={{ opacity: 1, y: 0 }}
+             >
+               <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+                 <Shield className="h-4 w-4" />
+                 Legal
+               </div>
+               <h1 className="text-4xl md:text-5xl font-bold">Privacy Policy</h1>
+             </motion.div>
           </div>
         </section>
 
@@ -92,7 +105,7 @@ const PrivacyPage = () => {
 
               <h2 className="text-2xl font-semibold mt-8 mb-4">9. Contact Us</h2>
               <p className="text-muted-foreground">
-                If you have questions about this Privacy Policy, please contact us at info@maleafrique.com
+                 If you have questions about this Privacy Policy, please contact us at privacy@urbansoko.co.ke
               </p>
             </div>
           </div>

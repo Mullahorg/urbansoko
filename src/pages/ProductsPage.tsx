@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Filter, Grid, List, SlidersHorizontal, WifiOff } from 'lucide-react';
+ import { Filter, Grid, List, SlidersHorizontal, WifiOff, Hexagon, Sparkles } from 'lucide-react';
+ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -312,9 +313,17 @@ const ProductsPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-6 md:py-8">
-        <div className="mb-6 md:mb-8">
+         <motion.div 
+           className="mb-6 md:mb-8"
+           initial={{ opacity: 0, y: 20 }}
+           animate={{ opacity: 1, y: 0 }}
+         >
+           <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-4">
+             <Sparkles className="h-4 w-4" />
+             UrbanSoko Collection
+           </div>
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-2xl md:text-3xl font-bold">All Products</h1>
+             <h1 className="text-2xl md:text-3xl font-bold text-gradient-cyber">All Products</h1>
             {isUsingOfflineData && (
               <Badge variant="secondary" className="flex items-center gap-1">
                 <WifiOff className="h-3 w-3" />
@@ -326,11 +335,11 @@ const ProductsPage = () => {
             Browse our complete collection of {filteredProducts.length} premium items
             {isUsingOfflineData && " (cached for offline)"}
           </p>
-        </div>
+         </motion.div>
 
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-          <aside className="hidden lg:block w-64 flex-shrink-0">
-            <Card>
+           <aside className="hidden lg:block w-64 flex-shrink-0 sticky top-24 self-start">
+             <Card className="card-cyber">
               <CardContent className="p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <SlidersHorizontal className="h-4 w-4" />
@@ -400,7 +409,8 @@ const ProductsPage = () => {
 
             {filteredProducts.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-muted-foreground mb-4">No products found matching your criteria</p>
+                 <Hexagon className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+                 <p className="text-muted-foreground mb-4">No products found matching your filters</p>
                 <Button onClick={clearFilters}>Clear Filters</Button>
               </div>
             ) : (
