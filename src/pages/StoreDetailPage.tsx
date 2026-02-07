@@ -144,7 +144,7 @@ const StoreDetailPage = () => {
       try {
         await navigator.share({
           title: store?.name,
-          text: store?.description || 'Check out this store on Soko Fresh',
+          text: store?.description || 'Check out this store on UrbanSoko',
           url: window.location.href,
         });
       } catch (err) {
