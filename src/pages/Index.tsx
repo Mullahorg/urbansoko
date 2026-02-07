@@ -149,7 +149,7 @@ const Index = () => {
               variants={itemVariants}
               className="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed"
             >
-              Experience Africa's most advanced marketplace. AI recommendations, instant M-Pesa checkout, and premium products from verified vendors.
+              Shoes, clothing, kitchen &amp; home appliances — discover premium products from verified vendors with instant M-Pesa checkout.
             </motion.p>
             
             <motion.div 

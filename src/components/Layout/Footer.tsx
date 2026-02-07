@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Facebook, Twitter, Instagram, Mail, Phone, MapPin, Send, Hexagon } from 'lucide-react';
+import { Facebook, Twitter, Instagram, Mail, Phone, MapPin, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
@@ -77,15 +77,13 @@ export const Footer = () => {
             {/* Brand */}
             <div>
               <Link to="/" className="inline-flex items-center gap-3 mb-5 group">
-                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary via-secondary to-accent flex items-center justify-center neon-glow">
-                  <Hexagon className="h-6 w-6 text-primary-foreground" />
-                </div>
+                <img src="/logo.png" alt="UrbanSoko" className="h-12 w-12 rounded-xl object-cover" />
                 <span className="text-2xl font-bold text-gradient-cyber">
                   UrbanSoko
                 </span>
               </Link>
               <p className="text-sm text-muted-foreground mb-6 leading-relaxed max-w-sm">
-                Africa's next-generation marketplace. AI-powered shopping, instant M-Pesa payments, and premium products from verified vendors.
+                Kenya's premier marketplace for shoes, clothing, kitchen appliances, and home essentials. AI-powered shopping with instant M-Pesa payments.
               </p>
               <div className="flex gap-3">
                 {footer.social?.facebook && (

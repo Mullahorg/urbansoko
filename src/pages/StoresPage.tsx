@@ -126,7 +126,7 @@ const StoresPage = () => {
               <span className="text-secondary">Stores</span>
             </h1>
             <p className="text-muted-foreground text-lg mb-8">
-              Food, drinks, groceries and more — all from your favorite local vendors
+              Shoes, clothing, kitchen &amp; home appliances — from verified vendors on UrbanSoko
             </p>
 
             {/* Search Bar */}
@@ -315,10 +315,10 @@ const StoresPage = () => {
             viewport={{ once: true }}
           >
             <h2 className="text-2xl md:text-3xl font-bold text-primary-foreground mb-4">
-              Want to sell on Soko Fresh?
+              Want to sell on UrbanSoko?
             </h2>
             <p className="text-primary-foreground/80 mb-6 max-w-xl mx-auto">
-              Join our marketplace and reach thousands of customers. Start selling your food, beverages, and products today.
+              Join our marketplace and reach thousands of customers. Start selling your shoes, clothing, appliances and more today.
             </p>
             <Button size="lg" variant="secondary" asChild>
               <Link to="/vendor/register">

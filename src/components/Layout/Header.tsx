@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, ShoppingCart, User, Menu, LogOut, Package, Heart, Trophy, Store, Shield, Sparkles, Hexagon } from 'lucide-react';
+import { Search, ShoppingCart, User, Menu, LogOut, Package, Heart, Trophy, Store, Shield, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -98,20 +98,19 @@ const Header = ({ cartCount }: HeaderProps) => {
 
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 group">
-              <motion.div 
-                className="relative h-10 w-10 rounded-xl bg-gradient-to-br from-primary via-secondary to-accent flex items-center justify-center neon-glow"
+              <motion.img
+                src="/logo.png"
+                alt="UrbanSoko"
+                className="h-10 w-10 rounded-xl object-cover"
                 whileHover={{ scale: 1.05, rotate: 5 }}
                 transition={{ type: "spring", stiffness: 400 }}
-              >
-                <Hexagon className="h-5 w-5 text-primary-foreground" />
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              </motion.div>
+              />
               <div className="flex flex-col">
                 <span className="text-lg md:text-xl font-bold text-gradient-cyber tracking-tight">
                   UrbanSoko
                 </span>
                 <span className="text-[10px] text-muted-foreground -mt-1 hidden sm:block tracking-wider uppercase">
-                  Future Commerce
+                  Shop Everything
                 </span>
               </div>
             </Link>
