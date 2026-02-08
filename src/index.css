@@ -263,10 +263,10 @@
     outline-offset: 2px;
   }
   
-  button, a, [role="button"] {
+  button:not([class*="absolute"]):not([class*="ghost"]):not([class*="icon"]), 
+  a:not([class*="text-"]):not([class*="inline"]), 
+  [role="button"]:not([class*="absolute"]) {
     touch-action: manipulation;
-    min-height: 44px;
-    min-width: 44px;
   }
   
   @media (prefers-reduced-motion: reduce) {
