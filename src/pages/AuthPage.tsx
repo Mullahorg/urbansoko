@@ -79,14 +79,14 @@ const AuthPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-primary/5 to-secondary/10 relative overflow-hidden">
       {/* Background pattern */}
-      <div className="absolute inset-0 hex-pattern opacity-20" />
+      <div className="absolute inset-0 hex-pattern opacity-20 pointer-events-none" />
       <motion.div
-        className="absolute top-20 left-10 w-96 h-96 bg-primary/10 rounded-full blur-3xl"
+        className="absolute top-20 left-10 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none"
         animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.3, 0.2] }}
         transition={{ duration: 8, repeat: Infinity }}
       />
       <motion.div
-        className="absolute bottom-20 right-10 w-[400px] h-[400px] bg-secondary/10 rounded-full blur-3xl"
+        className="absolute bottom-20 right-10 w-[400px] h-[400px] bg-secondary/10 rounded-full blur-3xl pointer-events-none"
         animate={{ scale: [1.2, 1, 1.2], opacity: [0.3, 0.2, 0.3] }}
         transition={{ duration: 10, repeat: Infinity }}
       />
