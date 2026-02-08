@@ -81,7 +81,7 @@ import StoreDetailPage from "./pages/StoreDetailPage";
 
 const queryClient = new QueryClient();
 
-const AppContent = () => {
+const MainLayout = () => {
   const { getTotalItems } = useCart();
 
   return (
@@ -92,7 +92,6 @@ const AppContent = () => {
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<AuthPage />} />
           
           {/* Store Routes */}
           <Route path="/stores" element={<StoresPage />} />
@@ -114,7 +113,6 @@ const AppContent = () => {
           <Route path="/track-order" element={<OrderTrackingPage />} />
           <Route path="/rewards" element={<RewardsPage />} />
           <Route path="/vendor/register" element={<VendorRegistrationPage />} />
-          <Route path="/vendor-registration" element={<VendorRegistrationPage />} />
           <Route path="/vendor-registration" element={<VendorRegistrationPage />} />
 
           {/* Admin Routes */}
@@ -160,6 +158,15 @@ const AppContent = () => {
       <FloatingCartButton />
       <ScrollToTop />
     </div>
+  );
+};
+
+const AppContent = () => {
+  return (
+    <Routes>
+      <Route path="/auth" element={<AuthPage />} />
+      <Route path="/*" element={<MainLayout />} />
+    </Routes>
   );
 };
 
