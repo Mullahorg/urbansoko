@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Eye, EyeOff, Moon, Sun, Hexagon } from 'lucide-react';
+import { Eye, EyeOff, Moon, Sun } from 'lucide-react';
 import { z } from 'zod';
 import { motion } from 'framer-motion';
 import logo from '@/assets/logo.png';
@@ -95,9 +95,9 @@ const AuthPage = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="relative z-10"
+        className="relative z-10 w-full max-w-md"
       >
-        <Card className="w-full max-w-md card-cyber backdrop-blur-xl border-primary/20">
+        <Card className="w-full bg-card border-border shadow-xl">
           <CardHeader className="text-center flex flex-col items-center gap-4">
             <Link to="/" className="flex flex-col items-center gap-3">
               <motion.img 
@@ -113,7 +113,12 @@ const AuthPage = () => {
               <CardDescription className="text-muted-foreground">
                 Africa's Next-Gen Marketplace
               </CardDescription>
-              <Button size="icon" variant="ghost" onClick={toggleTheme} className="h-8 w-8">
+              <Button 
+                size="icon" 
+                variant="ghost" 
+                onClick={toggleTheme} 
+                className="h-8 w-8"
+              >
                 {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </Button>
             </div>
@@ -128,25 +133,31 @@ const AuthPage = () => {
               <TabsContent value="signin">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label>Email</Label>
+                    <Label htmlFor="signin-email" className="text-foreground">Email</Label>
                     <Input 
+                      id="signin-email"
                       type="email" 
                       value={signInData.email} 
                       onChange={e => setSignInData({...signInData, email: e.target.value})} 
-                      className="bg-muted/50"
+                      className="bg-background border-input text-foreground"
                       placeholder="you@example.com"
+                      autoComplete="email"
+                      disabled={isLoading}
                     />
                     {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
                   </div>
                   <div className="space-y-2">
-                    <Label>Password</Label>
+                    <Label htmlFor="signin-password" className="text-foreground">Password</Label>
                     <div className="relative">
                       <Input 
+                        id="signin-password"
                         type={showSignInPassword ? "text" : "password"} 
                         value={signInData.password} 
                         onChange={e => setSignInData({...signInData, password: e.target.value})} 
-                        className="pr-10 bg-muted/50"
+                        className="pr-10 bg-background border-input text-foreground"
                         placeholder="••••••••"
+                        autoComplete="current-password"
+                        disabled={isLoading}
                       />
                       <Button 
                         type="button" 
@@ -154,13 +165,22 @@ const AuthPage = () => {
                         size="sm" 
                         className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent" 
                         onClick={() => setShowSignInPassword(!showSignInPassword)}
+                        disabled={isLoading}
                       >
-                        {showSignInPassword ? <EyeOff className="h-4 w-4 text-muted-foreground"/> : <Eye className="h-4 w-4 text-muted-foreground"/>}
+                        {showSignInPassword ? (
+                          <EyeOff className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-muted-foreground" />
+                        )}
                       </Button>
                     </div>
                     {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
                   </div>
-                  <Button type="submit" className="w-full btn-cyber" disabled={isLoading}>
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-11"
+                    disabled={isLoading}
+                  >
                     {isLoading ? 'Signing in...' : 'Sign In'}
                   </Button>
                 </form>
@@ -169,36 +189,45 @@ const AuthPage = () => {
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
-                    <Label>Full Name</Label>
+                    <Label htmlFor="signup-fullname" className="text-foreground">Full Name</Label>
                     <Input 
+                      id="signup-fullname"
                       type="text" 
                       value={signUpData.fullName} 
                       onChange={e => setSignUpData({...signUpData, fullName: e.target.value})} 
-                      className="bg-muted/50"
+                      className="bg-background border-input text-foreground"
                       placeholder="John Doe"
+                      autoComplete="name"
+                      disabled={isLoading}
                     />
                     {errors.fullName && <p className="text-sm text-destructive">{errors.fullName}</p>}
                   </div>
                   <div className="space-y-2">
-                    <Label>Email</Label>
+                    <Label htmlFor="signup-email" className="text-foreground">Email</Label>
                     <Input 
+                      id="signup-email"
                       type="email" 
                       value={signUpData.email} 
                       onChange={e => setSignUpData({...signUpData, email: e.target.value})} 
-                      className="bg-muted/50"
+                      className="bg-background border-input text-foreground"
                       placeholder="you@example.com"
+                      autoComplete="email"
+                      disabled={isLoading}
                     />
                     {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
                   </div>
                   <div className="space-y-2">
-                    <Label>Password</Label>
+                    <Label htmlFor="signup-password" className="text-foreground">Password</Label>
                     <div className="relative">
                       <Input 
+                        id="signup-password"
                         type={showSignUpPassword ? "text" : "password"} 
                         value={signUpData.password} 
                         onChange={e => setSignUpData({...signUpData, password: e.target.value})} 
-                        className="pr-10 bg-muted/50"
+                        className="pr-10 bg-background border-input text-foreground"
                         placeholder="••••••••"
+                        autoComplete="new-password"
+                        disabled={isLoading}
                       />
                       <Button 
                         type="button" 
@@ -206,21 +235,29 @@ const AuthPage = () => {
                         size="sm" 
                         className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent" 
                         onClick={() => setShowSignUpPassword(!showSignUpPassword)}
+                        disabled={isLoading}
                       >
-                        {showSignUpPassword ? <EyeOff className="h-4 w-4 text-muted-foreground"/> : <Eye className="h-4 w-4 text-muted-foreground"/>}
+                        {showSignUpPassword ? (
+                          <EyeOff className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-muted-foreground" />
+                        )}
                       </Button>
                     </div>
                     {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
                   </div>
                   <div className="space-y-2">
-                    <Label>Confirm Password</Label>
+                    <Label htmlFor="signup-confirm-password" className="text-foreground">Confirm Password</Label>
                     <div className="relative">
                       <Input 
+                        id="signup-confirm-password"
                         type={showConfirmPassword ? "text" : "password"} 
                         value={signUpData.confirmPassword} 
                         onChange={e => setSignUpData({...signUpData, confirmPassword: e.target.value})} 
-                        className="pr-10 bg-muted/50"
+                        className="pr-10 bg-background border-input text-foreground"
                         placeholder="••••••••"
+                        autoComplete="new-password"
+                        disabled={isLoading}
                       />
                       <Button 
                         type="button" 
@@ -228,13 +265,22 @@ const AuthPage = () => {
                         size="sm" 
                         className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent" 
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        disabled={isLoading}
                       >
-                        {showConfirmPassword ? <EyeOff className="h-4 w-4 text-muted-foreground"/> : <Eye className="h-4 w-4 text-muted-foreground"/>}
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-muted-foreground" />
+                        )}
                       </Button>
                     </div>
                     {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
                   </div>
-                  <Button type="submit" className="w-full btn-cyber" disabled={isLoading}>
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-11"
+                    disabled={isLoading}
+                  >
                     {isLoading ? 'Creating account...' : 'Create Account'}
                   </Button>
                 </form>
