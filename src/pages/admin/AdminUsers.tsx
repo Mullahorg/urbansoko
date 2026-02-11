@@ -71,20 +71,16 @@ import {
   User,
   Loader2,
   ChevronDown,
-  ArrowUpDown,
   Eye,
   EyeOff,
-  Lock,
-  Unlock,
-  Settings
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
+import { motion } from 'framer-motion';
 
 interface User {
   id: string;
@@ -160,7 +156,7 @@ const AdminUsers = () => {
           created_at: profile.created_at,
           last_sign_in: authUser?.last_sign_in_at,
           is_super_admin: authUser?.is_super_admin || false,
-          status: 'active' as const, // You can implement a status field if needed
+          status: 'active' as const,
           roles: userRoles
         };
       }) || [];
@@ -274,7 +270,7 @@ const AdminUsers = () => {
         description: userId === currentAdminUser?.id 
           ? 'Your role has been updated. You may lose access to certain features.'
           : `User role changed to ${newRole}`,
-        variant: userId === currentAdminUser?.id && newRole !== 'admin' ? 'warning' : 'default',
+        variant: userId === currentAdminUser?.id && newRole !== 'admin' ? 'destructive' : 'default',
       });
 
       fetchUsers();
@@ -630,7 +626,11 @@ const AdminUsers = () => {
                   <Crown className="h-6 w-6 text-red-600 dark:text-red-400" />
                 </div>
               </div>
-              <Progress value={(stats.admins / stats.total) * 100} className="mt-4 h-1 bg-red-100 dark:bg-red-900/30" indicatorClassName="bg-red-600 dark:bg-red-400" />
+              <Progress 
+                value={stats.total > 0 ? (stats.admins / stats.total) * 100 : 0} 
+                className="mt-4 h-1 bg-red-100 dark:bg-red-900/30" 
+                indicatorClassName="bg-red-600 dark:bg-red-400" 
+              />
             </CardContent>
           </Card>
           
@@ -645,7 +645,11 @@ const AdminUsers = () => {
                   <Store className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                 </div>
               </div>
-              <Progress value={(stats.vendors / stats.total) * 100} className="mt-4 h-1 bg-blue-100 dark:bg-blue-900/30" indicatorClassName="bg-blue-600 dark:bg-blue-400" />
+              <Progress 
+                value={stats.total > 0 ? (stats.vendors / stats.total) * 100 : 0} 
+                className="mt-4 h-1 bg-blue-100 dark:bg-blue-900/30" 
+                indicatorClassName="bg-blue-600 dark:bg-blue-400" 
+              />
             </CardContent>
           </Card>
           
@@ -660,7 +664,10 @@ const AdminUsers = () => {
                   <User className="h-6 w-6 text-gray-600 dark:text-gray-400" />
                 </div>
               </div>
-              <Progress value={(stats.users / stats.total) * 100} className="mt-4 h-1 bg-gray-100 dark:bg-gray-700" />
+              <Progress 
+                value={stats.total > 0 ? (stats.users / stats.total) * 100 : 0} 
+                className="mt-4 h-1 bg-gray-100 dark:bg-gray-700" 
+              />
             </CardContent>
           </Card>
         </div>
@@ -966,7 +973,7 @@ const AdminUsers = () => {
                               <Select
                                 value={primaryRole}
                                 onValueChange={(value) => handleRoleChange(user.id, value)}
-                                disabled={isUpdating || (isCurrentUser && primaryRole === 'admin' && value => value !== 'admin')}
+                                disabled={isUpdating || (isCurrentUser && primaryRole === 'admin')}
                               >
                                 <SelectTrigger className="w-32 h-8">
                                   <SelectValue>
