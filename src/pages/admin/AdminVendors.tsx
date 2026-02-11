@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
@@ -13,12 +13,12 @@ import {
   Filter,
   RefreshCw,
   Download,
-  Upload,
   MoreVertical,
   Edit,
   Trash2,
-  DollarSign,
+  Percent,
   TrendingUp,
+  BarChart3,
   Users,
   Eye,
   EyeOff,
@@ -29,19 +29,13 @@ import {
   Phone,
   Calendar,
   FileText,
-  Settings,
   ChevronDown,
-  UserCheck,
-  UserX,
   Clock,
-  Percent,
-  CreditCard,
-  BarChart3,
   Star,
   StarOff,
   Ban,
   Unlock,
-  Lock
+  CreditCard
 } from 'lucide-react';
 import {
   Table,
@@ -92,12 +86,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
-import {
   Checkbox,
 } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -136,6 +124,10 @@ interface Vendor {
   created_at: string;
   updated_at: string;
   last_active?: string;
+  // Profile fields from separate fetch
+  profile_email?: string;
+  profile_full_name?: string;
+  profile_avatar_url?: string;
 }
 
 interface VendorStats {
@@ -150,7 +142,7 @@ interface VendorStats {
   average_commission: number;
 }
 
-type SortField = 'business_name' | 'status' | 'commission_rate' | 'created_at' | 'total_sales' | 'average_rating';
+type SortField = 'business_name' | 'status' | 'commission_rate' | 'created_at' | 'total_sales';
 type SortOrder = 'asc' | 'desc';
 
 const AdminVendors = () => {
@@ -171,7 +163,6 @@ const AdminVendors = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [bulkActionDialogOpen, setBulkActionDialogOpen] = useState(false);
   const [commissionDialogOpen, setCommissionDialogOpen] = useState(false);
-  const [verifyDialogOpen, setVerifyDialogOpen] = useState(false);
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   
@@ -185,30 +176,41 @@ const AdminVendors = () => {
   
   const { toast } = useToast();
 
-  // Fetch vendors with enhanced data
+  // Fetch vendors with enhanced data - FIXED: No relationship join
   const fetchVendors = useCallback(async (showRefreshing = false) => {
     if (showRefreshing) setRefreshing(true);
     else setLoading(true);
     
     try {
-      // Fetch vendors
+      // 1. Fetch vendors first - NO JOIN ATTEMPT
       const { data: vendorsData, error: vendorsError } = await supabase
         .from('vendors')
-        .select(`
-          *,
-          profiles!vendors_user_id_fkey (
-            email,
-            full_name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (vendorsError) throw vendorsError;
 
-      // Fetch additional stats for each vendor
+      // 2. Get all unique user_ids from vendors
+      const userIds = vendorsData?.map(v => v.user_id).filter(Boolean) || [];
+
+      // 3. Fetch profiles separately
+      let profilesData = [];
+      if (userIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, email, full_name, avatar_url')
+          .in('id', userIds);
+
+        if (profilesError) throw profilesError;
+        profilesData = profiles || [];
+      }
+
+      // 4. Fetch additional stats for each vendor
       const vendorsWithStats = await Promise.all(
         (vendorsData || []).map(async (vendor) => {
+          // Find matching profile
+          const profile = profilesData.find(p => p.id === vendor.user_id);
+          
           // Get product count
           const { count: productsCount } = await supabase
             .from('products')
@@ -227,10 +229,13 @@ const AdminVendors = () => {
 
           return {
             ...vendor,
+            profile_email: profile?.email,
+            profile_full_name: profile?.full_name,
+            profile_avatar_url: profile?.avatar_url,
             products_count: productsCount || 0,
             total_sales,
             total_orders,
-            average_rating: 4.5, // Placeholder - implement actual rating system
+            average_rating: 4.5,
             last_active: vendor.updated_at
           };
         })
@@ -238,6 +243,7 @@ const AdminVendors = () => {
 
       setVendors(vendorsWithStats);
     } catch (error: any) {
+      console.error('Error loading vendors:', error);
       toast({
         title: 'Error loading vendors',
         description: error.message,
@@ -274,17 +280,13 @@ const AdminVendors = () => {
   const filteredVendors = useMemo(() => {
     return vendors
       .filter(vendor => {
-        // Search filter
         const matchesSearch = searchQuery === '' ||
           vendor.business_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           vendor.contact_email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           vendor.contact_phone?.includes(searchQuery) ||
-          vendor.business_description?.toLowerCase().includes(searchQuery.toLowerCase());
+          vendor.profile_email?.toLowerCase().includes(searchQuery.toLowerCase());
 
-        // Status filter
         const matchesStatus = statusFilter === 'all' || vendor.status === statusFilter;
-
-        // Verification filter
         const matchesVerification = verificationFilter === 'all' || 
           vendor.verification_status === verificationFilter;
 
@@ -305,7 +307,7 @@ const AdminVendors = () => {
       });
   }, [vendors, searchQuery, statusFilter, verificationFilter, sortField, sortOrder]);
 
-  // Update vendor status with enhanced logic
+  // Update vendor status
   const updateVendorStatus = async (vendorId: string, status: Vendor['status'], reason?: string) => {
     try {
       const vendor = vendors.find(v => v.id === vendorId);
@@ -329,20 +331,25 @@ const AdminVendors = () => {
 
       // Update user role based on status
       if (status === 'approved' || status === 'verified') {
-        // Add or update vendor role
-        const { error: roleError } = await supabase
+        // Check if role already exists
+        const { data: existingRole } = await supabase
           .from('user_roles')
-          .upsert(
-            { 
+          .select('*')
+          .eq('user_id', vendor.user_id)
+          .eq('role', 'vendor')
+          .maybeSingle();
+
+        if (!existingRole) {
+          const { error: roleError } = await supabase
+            .from('user_roles')
+            .insert([{ 
               user_id: vendor.user_id, 
               role: 'vendor' 
-            },
-            { onConflict: 'user_id' }
-          );
+            }]);
 
-        if (roleError) throw roleError;
+          if (roleError) throw roleError;
+        }
       } else if (status === 'rejected' || status === 'suspended') {
-        // Remove vendor role
         const { error: roleError } = await supabase
           .from('user_roles')
           .delete()
@@ -359,6 +366,7 @@ const AdminVendors = () => {
 
       fetchVendors();
     } catch (error: any) {
+      console.error('Error updating status:', error);
       toast({
         title: 'Error updating status',
         description: error.message,
@@ -384,7 +392,6 @@ const AdminVendors = () => {
 
       if (error) throw error;
 
-      // Auto-approve if verified
       if (status === 'verified' && vendor.status === 'pending') {
         await updateVendorStatus(vendorId, 'approved');
       }
@@ -396,6 +403,7 @@ const AdminVendors = () => {
 
       fetchVendors();
     } catch (error: any) {
+      console.error('Error updating verification:', error);
       toast({
         title: 'Error updating verification',
         description: error.message,
@@ -428,6 +436,7 @@ const AdminVendors = () => {
       fetchVendors();
       setCommissionDialogOpen(false);
     } catch (error: any) {
+      console.error('Error updating commission:', error);
       toast({
         title: 'Error updating commission',
         description: error.message,
@@ -459,6 +468,7 @@ const AdminVendors = () => {
 
       fetchVendors();
     } catch (error: any) {
+      console.error('Error updating featured status:', error);
       toast({
         title: 'Error updating featured status',
         description: error.message,
@@ -491,6 +501,7 @@ const AdminVendors = () => {
       fetchVendors();
       setNotesDialogOpen(false);
     } catch (error: any) {
+      console.error('Error updating notes:', error);
       toast({
         title: 'Error updating notes',
         description: error.message,
@@ -505,7 +516,7 @@ const AdminVendors = () => {
       const vendor = vendors.find(v => v.id === vendorId);
       if (!vendor) return;
 
-      // Delete vendor role first
+      // Delete vendor role
       await supabase
         .from('user_roles')
         .delete()
@@ -529,6 +540,7 @@ const AdminVendors = () => {
       setSelectedVendor(null);
       fetchVendors();
     } catch (error: any) {
+      console.error('Error deleting vendor:', error);
       toast({
         title: 'Error deleting vendor',
         description: error.message,
@@ -584,6 +596,7 @@ const AdminVendors = () => {
       setBulkActionDialogOpen(false);
       setSelectedVendors([]);
     } catch (error: any) {
+      console.error('Error performing bulk action:', error);
       toast({
         title: 'Error performing bulk action',
         description: error.message,
@@ -594,31 +607,40 @@ const AdminVendors = () => {
 
   // Export vendors
   const exportVendors = () => {
-    const data = filteredVendors.map(v => ({
-      'Business Name': v.business_name,
-      'Contact Email': v.contact_email,
-      'Contact Phone': v.contact_phone,
-      'Status': v.status,
-      'Verification': v.verification_status,
-      'Commission Rate': `${v.commission_rate}%`,
-      'Total Sales': `KES ${(v.total_sales || 0).toLocaleString()}`,
-      'Total Orders': v.total_orders || 0,
-      'Products': v.products_count || 0,
-      'Featured': v.featured ? 'Yes' : 'No',
-      'Verified Badge': v.verified_badge ? 'Yes' : 'No',
-      'Joined': new Date(v.created_at).toLocaleDateString(),
-      'Last Active': v.last_active ? new Date(v.last_active).toLocaleDateString() : 'Never',
-    }));
+    try {
+      const data = filteredVendors.map(v => ({
+        'Business Name': v.business_name,
+        'Contact Email': v.contact_email || v.profile_email,
+        'Contact Phone': v.contact_phone,
+        'Status': v.status,
+        'Verification': v.verification_status,
+        'Commission Rate': `${v.commission_rate}%`,
+        'Total Sales': `KES ${(v.total_sales || 0).toLocaleString()}`,
+        'Total Orders': v.total_orders || 0,
+        'Products': v.products_count || 0,
+        'Featured': v.featured ? 'Yes' : 'No',
+        'Verified Badge': v.verified_badge ? 'Yes' : 'No',
+        'Joined': new Date(v.created_at).toLocaleDateString(),
+        'Last Active': v.last_active ? new Date(v.last_active).toLocaleDateString() : 'Never',
+      }));
 
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Vendors');
-    XLSX.writeFile(wb, `vendors-export-${new Date().toISOString().split('T')[0]}.xlsx`);
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Vendors');
+      XLSX.writeFile(wb, `vendors-export-${new Date().toISOString().split('T')[0]}.xlsx`);
 
-    toast({
-      title: '✅ Export complete',
-      description: `Exported ${data.length} vendors`,
-    });
+      toast({
+        title: '✅ Export complete',
+        description: `Exported ${data.length} vendors`,
+      });
+    } catch (error: any) {
+      console.error('Error exporting vendors:', error);
+      toast({
+        title: 'Error exporting vendors',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
   };
 
   // Toggle select all
@@ -1152,9 +1174,11 @@ const AdminVendors = () => {
                           <TableCell>
                             <div className="flex items-center gap-3">
                               <Avatar className="h-10 w-10 border-2 border-background">
-                                <AvatarImage src={vendor.logo_url || undefined} />
+                                <AvatarImage src={vendor.logo_url || vendor.profile_avatar_url || undefined} />
                                 <AvatarFallback className="bg-primary/10">
-                                  {vendor.business_name?.charAt(0).toUpperCase()}
+                                  {vendor.business_name?.charAt(0).toUpperCase() || 
+                                   vendor.profile_full_name?.charAt(0).toUpperCase() || 
+                                   'V'}
                                 </AvatarFallback>
                               </Avatar>
                               <div className="flex flex-col">
@@ -1194,7 +1218,7 @@ const AdminVendors = () => {
                             <div className="space-y-1">
                               <div className="flex items-center gap-1 text-sm">
                                 <Mail className="h-3 w-3 text-muted-foreground" />
-                                <span className="text-xs">{vendor.contact_email}</span>
+                                <span className="text-xs">{vendor.contact_email || vendor.profile_email}</span>
                               </div>
                               <div className="flex items-center gap-1 text-sm">
                                 <Phone className="h-3 w-3 text-muted-foreground" />
@@ -1513,6 +1537,9 @@ const AdminVendors = () => {
                   <Label>Commission Rate (%)</Label>
                   <Input 
                     type="number"
+                    min="0"
+                    max="100"
+                    step="0.5"
                     value={editForm.commission_rate || 0}
                     onChange={(e) => setEditForm({ ...editForm, commission_rate: parseFloat(e.target.value) })}
                   />
