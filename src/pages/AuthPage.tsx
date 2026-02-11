@@ -38,9 +38,50 @@ const AuthPage = () => {
   const [showSignUpPassword, setShowSignUpPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // FIXED: Proper redirect logic based on user role
   useEffect(() => {
     if (user) {
-      navigate('/');
+      // Log user data for debugging (remove in production)
+      console.log('✅ User logged in:', user.email);
+      console.log('📦 App metadata:', user.app_metadata);
+      console.log('👤 User metadata:', user.user_metadata);
+      
+      // Check if user is admin from multiple possible locations
+      const isAdmin = 
+        user?.app_metadata?.claims_admin === true ||
+        user?.app_metadata?.role === 'admin' ||
+        user?.app_metadata?.is_admin === true ||
+        user?.user_metadata?.role === 'admin' ||
+        user?.user_metadata?.is_admin === true ||
+        user?.email === 'johnmulama001@gmail.com'; // Fallback for John
+      
+      // Check if user is vendor
+      const isVendor = 
+        user?.user_metadata?.is_vendor === true ||
+        user?.app_metadata?.is_vendor === true;
+      
+      // Smart redirect based on role and current page
+      const currentPath = window.location.pathname;
+      
+      // Don't redirect if we're already on a dashboard page
+      if (currentPath.includes('/admin') || 
+          currentPath.includes('/vendor') || 
+          currentPath.includes('/dashboard')) {
+        console.log('📍 Already on dashboard, staying put');
+        return;
+      }
+      
+      // Redirect based on role
+      if (isAdmin) {
+        console.log('👑 Admin detected - redirecting to admin dashboard');
+        navigate('/admin', { replace: true });
+      } else if (isVendor) {
+        console.log('🏪 Vendor detected - redirecting to vendor dashboard');
+        navigate('/vendor/dashboard', { replace: true });
+      } else {
+        console.log('👤 Regular user - redirecting to homepage');
+        navigate('/', { replace: true });
+      }
     }
   }, [user, navigate]);
 
@@ -57,7 +98,9 @@ const AuthPage = () => {
         error.errors.forEach(err => { fieldErrors[err.path[0]] = err.message; });
         setErrors(fieldErrors);
       }
-    } finally { setIsLoading(false); }
+    } finally { 
+      setIsLoading(false); 
+    }
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -73,7 +116,9 @@ const AuthPage = () => {
         error.errors.forEach(err => { fieldErrors[err.path[0]] = err.message; });
         setErrors(fieldErrors);
       }
-    } finally { setIsLoading(false); }
+    } finally { 
+      setIsLoading(false); 
+    }
   };
 
   return (
