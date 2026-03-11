@@ -103,7 +103,7 @@ const ResetPasswordPage = () => {
           <CardContent>
             {success ? (
               <div className="text-center space-y-4">
-                <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
+                <CheckCircle className="h-16 w-16 text-primary mx-auto" />
                 <p className="text-sm text-muted-foreground">
                   Your password has been updated. Redirecting to sign in...
                 </p>
