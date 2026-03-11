@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserRole } from '@/hooks/useUserRole';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,6 +29,7 @@ const signUpSchema = signInSchema.extend({
 const AuthPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { signIn, signUp, user } = useAuth();
+  const { role, isAdmin, isVendor, loading: roleLoading } = useUserRole();
   const { toggleTheme, isDark } = useTheme();
   const navigate = useNavigate();
 
@@ -38,52 +40,18 @@ const AuthPage = () => {
   const [showSignUpPassword, setShowSignUpPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // FIXED: Proper redirect logic based on user role
+  // Role-based redirect using useUserRole hook (no hardcoded emails)
   useEffect(() => {
-    if (user) {
-      // Log user data for debugging (remove in production)
-      console.log('✅ User logged in:', user.email);
-      console.log('📦 App metadata:', user.app_metadata);
-      console.log('👤 User metadata:', user.user_metadata);
-      
-      // Check if user is admin from multiple possible locations
-      const isAdmin = 
-        user?.app_metadata?.claims_admin === true ||
-        user?.app_metadata?.role === 'admin' ||
-        user?.app_metadata?.is_admin === true ||
-        user?.user_metadata?.role === 'admin' ||
-        user?.user_metadata?.is_admin === true ||
-        user?.email === 'johnmulama001@gmail.com'; // Fallback for John
-      
-      // Check if user is vendor
-      const isVendor = 
-        user?.user_metadata?.is_vendor === true ||
-        user?.app_metadata?.is_vendor === true;
-      
-      // Smart redirect based on role and current page
-      const currentPath = window.location.pathname;
-      
-      // Don't redirect if we're already on a dashboard page
-      if (currentPath.includes('/admin') || 
-          currentPath.includes('/vendor') || 
-          currentPath.includes('/dashboard')) {
-        console.log('📍 Already on dashboard, staying put');
-        return;
-      }
-      
-      // Redirect based on role
-      if (isAdmin) {
-        console.log('👑 Admin detected - redirecting to admin dashboard');
-        navigate('/admin', { replace: true });
-      } else if (isVendor) {
-        console.log('🏪 Vendor detected - redirecting to vendor dashboard');
-        navigate('/vendor/dashboard', { replace: true });
-      } else {
-        console.log('👤 Regular user - redirecting to homepage');
-        navigate('/', { replace: true });
-      }
+    if (!user || roleLoading) return;
+
+    if (isAdmin) {
+      navigate('/admin', { replace: true });
+    } else if (isVendor) {
+      navigate('/vendor/dashboard', { replace: true });
+    } else {
+      navigate('/', { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, role, roleLoading, isAdmin, isVendor, navigate]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,7 +91,6 @@ const AuthPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-primary/5 to-secondary/10 relative overflow-hidden">
-      {/* Background pattern */}
       <div className="absolute inset-0 hex-pattern opacity-20 pointer-events-none" />
       <motion.div
         className="absolute top-20 left-10 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none"
@@ -192,7 +159,12 @@ const AuthPage = () => {
                     {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password" className="text-foreground">Password</Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="signin-password" className="text-foreground">Password</Label>
+                      <Link to="/forgot-password" className="text-xs text-primary hover:underline">
+                        Forgot password?
+                      </Link>
+                    </div>
                     <div className="relative">
                       <Input 
                         id="signin-password"
