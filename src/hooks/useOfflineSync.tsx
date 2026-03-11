@@ -240,7 +240,7 @@ export const useOfflineSync = () => {
 
   // Listen for online/offline events with debounce
   useEffect(() => {
-    let onlineTimeout: NodeJS.Timeout;
+    let onlineTimeout: ReturnType<typeof setTimeout>;
     
     const handleOnline = () => {
       clearTimeout(onlineTimeout);
