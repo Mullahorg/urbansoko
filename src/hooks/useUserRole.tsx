@@ -61,7 +61,7 @@ export const useUserRole = () => {
         }
 
         // Check for moderator role
-        const hasModeratorRole = roleData?.some(r => r.role === 'moderator');
+        const hasModeratorRole = roleData?.some(r => (r.role as string) === 'moderator');
         if (hasModeratorRole) {
           console.log('🛡️ Moderator detected from user_roles table!');
           setRole('moderator');
