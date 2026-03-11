@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import { AuthProvider } from "./contexts/AuthContext";
 import { CartProvider, useCart } from "./contexts/CartContext";
@@ -12,6 +12,7 @@ import { AdaptiveUIProvider } from "./contexts/AdaptiveUIContext";
 
 import Header from "./components/Layout/Header";
 import { Footer } from "./components/Layout/Footer";
+import MobileBottomNav from "./components/Layout/MobileBottomNav";
 import InstallPrompt from "./components/PWA/InstallPrompt";
 import OfflineIndicator from "./components/PWA/OfflineIndicator";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -26,6 +27,8 @@ import ScrollToTop from "./components/Gamification/ScrollToTop";
 
 import Index from "./pages/Index";
 import AuthPage from "./pages/AuthPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import NotFound from "./pages/NotFound";
 
 import RoleRoute from "./components/RoleRoute";
@@ -85,7 +88,7 @@ const MainLayout = () => {
   const { getTotalItems } = useCart();
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen pb-16 md:pb-0">
       <FlashSaleBanner />
       <Header cartCount={getTotalItems()} />
       <CustomStylesLoader />
@@ -151,6 +154,7 @@ const MainLayout = () => {
         </Routes>
       </main>
       <Footer />
+      <MobileBottomNav />
       <InstallPrompt />
       <OfflineIndicator />
       <WelcomePopup />
@@ -165,6 +169,8 @@ const AppContent = () => {
   return (
     <Routes>
       <Route path="/auth" element={<AuthPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/*" element={<MainLayout />} />
     </Routes>
   );

@@ -151,7 +151,7 @@ const CheckoutPage = () => {
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert({
-          user_id: user?.id || null,
+          user_id: user?.id || undefined,
           guest_name: !user ? checkoutData.guestName : null,
           guest_email: !user ? checkoutData.guestEmail : null,
           total_amount: getTotalPrice(),
