@@ -143,7 +143,7 @@ const AdminProductImport = () => {
       if (!vendorsError && vendors) {
         const sellersWithStore = profiles?.map(profile => ({
           ...profile,
-          store_name: vendors.find(v => v.user_id === profile.id)?.store_name || null
+          store_name: vendors.find(v => v.user_id === profile.id)?.business_name || null
         }));
         setSellers(sellersWithStore || []);
       } else {
