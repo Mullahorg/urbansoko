@@ -105,11 +105,11 @@ export const useUserRole = () => {
         // ============ CHECK 4: profiles table (backup) ============
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('role, is_admin')
+          .select('is_admin')
           .eq('id', user.id)
           .maybeSingle();
 
-        if (profileData?.is_admin === true || profileData?.role === 'admin') {
+        if (profileData?.is_admin === true) {
           console.log('👑 Admin detected from profiles table!');
           setRole('admin');
           setIsAdmin(true);

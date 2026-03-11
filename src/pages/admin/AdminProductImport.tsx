@@ -594,43 +594,36 @@ const AdminProductImport = () => {
     try {
       const { data: products, error } = await supabase
         .from('products')
-        .select('*, sellers:profiles!seller_id(email, full_name)')
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
       // Create CSV with all fields
       const headers = [
-        'ID', 'Title', 'Slug', 'Description', 'Price Min', 'Price Max', 'Price',
-        'Inventory', 'Published', 'Verified', 'Category', 'Seller ID', 'Seller Email',
-        'Image URL', 'Images', 'Videos', 'Sizes', 'Colors', 'Tags', 'SKU',
+        'ID', 'Title', 'Description', 'Price',
+        'Stock', 'Featured', 'Category', 'Vendor ID',
+        'Image URL', 'Images', 'Sizes', 'Colors', 'Tags',
         'Created At', 'Updated At'
       ];
       
       const csvRows = [headers.join(',')];
 
-      products?.forEach(product => {
+      products?.forEach((product: any) => {
         const row = [
           `"${product.id}"`,
           `"${product.name}"`,
-          `"${product.slug}"`,
           `"${(product.description || '').replace(/"/g, '""')}"`,
-          product.price_min || '',
-          product.price_max || '',
           product.price,
-          product.inventory || 0,
-          product.published,
-          product.verified || false,
+          product.stock || 0,
+          product.featured || false,
           `"${product.category}"`,
-          `"${product.seller_id}"`,
-          `"${product.sellers?.email || ''}"`,
+          `"${product.vendor_id || ''}"`,
           `"${product.image_url || ''}"`,
           `"${product.images?.join('|') || ''}"`,
-          `"${product.videos?.join('|') || ''}"`,
           `"${product.sizes?.join('|') || ''}"`,
           `"${product.colors?.join('|') || ''}"`,
           `"${product.tags?.join('|') || ''}"`,
-          `"${product.sku || ''}"`,
           product.created_at,
           product.updated_at
         ];
