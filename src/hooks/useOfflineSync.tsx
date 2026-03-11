@@ -181,7 +181,7 @@ export const useOfflineSync = () => {
   const [cacheProgress, setCacheProgress] = useState({ current: 0, total: 0 });
   const [storageUsage, setStorageUsage] = useState<{ used: number; quota: number } | null>(null);
   const { toast } = useToast();
-  const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isInitializedRef = useRef(false);
 
   // Get storage usage estimate
@@ -240,7 +240,7 @@ export const useOfflineSync = () => {
 
   // Listen for online/offline events with debounce
   useEffect(() => {
-    let onlineTimeout: NodeJS.Timeout;
+    let onlineTimeout: ReturnType<typeof setTimeout>;
     
     const handleOnline = () => {
       clearTimeout(onlineTimeout);

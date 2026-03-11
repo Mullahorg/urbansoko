@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_settings: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: number
+          key: string
+          updated_at: string | null
+          updated_by: string | null
+          value: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          key: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          key?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value?: Json | null
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string | null
@@ -47,6 +77,36 @@ export type Database = {
           name?: string
           slug?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      dashboards: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: number
+          is_active: boolean | null
+          name: string
+          required_role: string | null
+          slug: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          is_active?: boolean | null
+          name: string
+          required_role?: string | null
+          slug: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          is_active?: boolean | null
+          name?: string
+          required_role?: string | null
+          slug?: string
         }
         Relationships: []
       }
@@ -438,7 +498,9 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          is_admin: boolean | null
           phone: string | null
+          role: string | null
           updated_at: string | null
         }
         Insert: {
@@ -447,7 +509,9 @@ export type Database = {
           email: string
           full_name?: string | null
           id: string
+          is_admin?: boolean | null
           phone?: string | null
+          role?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -456,7 +520,9 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          is_admin?: boolean | null
           phone?: string | null
+          role?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -721,6 +787,38 @@ export type Database = {
           },
         ]
       }
+      user_dashboard_access: {
+        Row: {
+          dashboard_id: number
+          granted_at: string | null
+          granted_by: string | null
+          id: number
+          user_id: string
+        }
+        Insert: {
+          dashboard_id: number
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: number
+          user_id: string
+        }
+        Update: {
+          dashboard_id?: number
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_dashboard_access_dashboard_id_fkey"
+            columns: ["dashboard_id"]
+            isOneToOne: false
+            referencedRelation: "dashboards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_rewards: {
         Row: {
           created_at: string | null
@@ -873,6 +971,19 @@ export type Database = {
       }
     }
     Functions: {
+      can_access_dashboard: {
+        Args: { dashboard_slug: string }
+        Returns: boolean
+      }
+      check_admin_by_email: {
+        Args: { user_email: string }
+        Returns: {
+          claims_admin: boolean
+          is_admin: boolean
+          is_super_admin: boolean
+          role: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -880,6 +991,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin: { Args: never; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "user" | "vendor"
