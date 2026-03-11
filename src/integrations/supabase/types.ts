@@ -335,7 +335,7 @@ export type Database = {
           tracking_code: string | null
           transaction_screenshot_url: string | null
           updated_at: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string | null
@@ -358,7 +358,7 @@ export type Database = {
           tracking_code?: string | null
           transaction_screenshot_url?: string | null
           updated_at?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string | null
@@ -381,7 +381,7 @@ export type Database = {
           tracking_code?: string | null
           transaction_screenshot_url?: string | null
           updated_at?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
