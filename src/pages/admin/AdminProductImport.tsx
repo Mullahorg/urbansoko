@@ -138,7 +138,7 @@ const AdminProductImport = () => {
       // Get vendor/store names if available
       const { data: vendors, error: vendorsError } = await supabase
         .from('vendors')
-        .select('user_id, store_name');
+        .select('user_id, business_name');
 
       if (!vendorsError && vendors) {
         const sellersWithStore = profiles?.map(profile => ({
