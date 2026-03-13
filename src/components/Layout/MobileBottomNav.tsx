@@ -2,8 +2,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { Home, Search, Heart, ShoppingCart, User } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { Badge } from '@/components/ui/badge';
-import { motion } from 'framer-motion';
 
 const MobileBottomNav = () => {
   const location = useLocation();
@@ -16,53 +14,37 @@ const MobileBottomNav = () => {
     { path: '/search', icon: Search, label: 'Search' },
     { path: '/wishlist', icon: Heart, label: 'Wishlist' },
     { path: '/checkout', icon: ShoppingCart, label: 'Cart', badge: cartCount },
-    { path: user ? '/profile' : '/auth', icon: User, label: user ? 'Profile' : 'Sign In' },
+    { path: user ? '/profile' : '/auth', icon: User, label: user ? 'Account' : 'Sign In' },
   ];
 
-  // Hide on admin/vendor dashboards
   if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/vendor')) {
     return null;
   }
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-xl border-t border-border/50 safe-bottom">
-      <div className="flex items-center justify-around py-2 px-1">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border safe-bottom">
+      <div className="flex items-center justify-around py-1.5">
         {navItems.map((item) => {
-          const isActive = location.pathname === item.path || 
+          const isActive = location.pathname === item.path ||
             (item.path !== '/' && location.pathname.startsWith(item.path));
-          
+
           return (
             <Link
               key={item.path}
               to={item.path}
-              className="relative flex flex-col items-center justify-center gap-0.5 py-1 px-3 min-w-[56px]"
+              className="relative flex flex-col items-center gap-0.5 py-1 px-3 min-w-[48px]"
             >
               <div className="relative">
-                <item.icon
-                  className={`h-5 w-5 transition-colors ${
-                    isActive ? 'text-primary' : 'text-muted-foreground'
-                  }`}
-                />
+                <item.icon className={`h-5 w-5 ${isActive ? 'text-foreground' : 'text-muted-foreground'}`} />
                 {item.badge && item.badge > 0 && (
-                  <Badge className="absolute -top-2 -right-3 h-4 min-w-[16px] flex items-center justify-center p-0 text-[10px] bg-primary text-primary-foreground">
+                  <span className="absolute -top-1.5 -right-2 h-3.5 min-w-[14px] flex items-center justify-center p-0 text-[9px] bg-foreground text-background rounded-full">
                     {item.badge > 9 ? '9+' : item.badge}
-                  </Badge>
+                  </span>
                 )}
               </div>
-              <span
-                className={`text-[10px] font-medium transition-colors ${
-                  isActive ? 'text-primary' : 'text-muted-foreground'
-                }`}
-              >
+              <span className={`text-[10px] ${isActive ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
                 {item.label}
               </span>
-              {isActive && (
-                <motion.div
-                  layoutId="bottomNav"
-                  className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full"
-                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                />
-              )}
             </Link>
           );
         })}

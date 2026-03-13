@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, ShoppingCart, User, Menu, LogOut, Package, Heart, Trophy, Store, Shield, Sparkles } from 'lucide-react';
+import { Search, ShoppingCart, User, Menu, LogOut, Package, Heart, Trophy, Store, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -14,15 +14,10 @@ import {
 import MobileMenu from './MobileMenu';
 import CartSheet from '../Cart/CartSheet';
 import ThemeSelector from '../UI/ThemeSelector';
-import LanguageSelector from '../UI/LanguageSelector';
-import { MainNav } from './MainNav';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { useSiteContent } from '@/hooks/useSiteContent';
 import { getAutocompleteSuggestions, getSuggestedTerms } from '@/utils/smartSearch';
 import { supabase } from '@/integrations/supabase/client';
-import { motion, AnimatePresence } from 'framer-motion';
 
 interface HeaderProps {
   cartCount: number;
@@ -36,16 +31,11 @@ const Header = ({ cartCount }: HeaderProps) => {
   const searchRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { role, isAdmin, isVendor } = useUserRole();
-  const { t } = useLanguage();
-  const { content } = useSiteContent();
+  const { isAdmin, isVendor } = useUserRole();
 
   useEffect(() => {
     const fetchProducts = async () => {
-      const { data } = await supabase
-        .from('products')
-        .select('name, category')
-        .limit(100);
+      const { data } = await supabase.from('products').select('name, category').limit(100);
       if (data) setProducts(data);
     };
     fetchProducts();
@@ -65,7 +55,7 @@ const Header = ({ cartCount }: HeaderProps) => {
     if (searchQuery.length < 2) return [];
     const auto = getAutocompleteSuggestions(searchQuery, products);
     const smart = getSuggestedTerms(searchQuery);
-    return [...new Set([...smart, ...auto])].slice(0, 6);
+    return [...new Set([...smart, ...auto])].slice(0, 5);
   }, [searchQuery, products]);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -84,9 +74,9 @@ const Header = ({ cartCount }: HeaderProps) => {
 
   return (
     <>
-      <header className="bg-card/95 border-b border-border/50 sticky top-0 z-50 backdrop-blur-xl">
+      <header className="bg-background border-b border-border sticky top-0 z-50">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between py-3 md:py-4">
+          <div className="flex items-center justify-between h-14 md:h-16">
             <Button
               variant="ghost"
               size="icon"
@@ -96,144 +86,106 @@ const Header = ({ cartCount }: HeaderProps) => {
               <Menu className="h-5 w-5" />
             </Button>
 
-            {/* Logo */}
-            <Link to="/" className="flex items-center gap-2 group">
-              <motion.img
-                src="/logo.png"
-                alt="UrbanSoko"
-                className="h-10 w-10 rounded-xl object-cover"
-                whileHover={{ scale: 1.05, rotate: 5 }}
-                transition={{ type: "spring", stiffness: 400 }}
-              />
-              <div className="flex flex-col">
-                <span className="text-lg md:text-xl font-bold text-gradient-cyber tracking-tight">
-                  UrbanSoko
-                </span>
-                <span className="text-[10px] text-muted-foreground -mt-1 hidden sm:block tracking-wider uppercase">
-                  Shop Everything
-                </span>
-              </div>
+            <Link to="/" className="flex items-center gap-2">
+              <img src="/logo.png" alt="UrbanSoko" className="h-8 w-8 rounded-lg object-cover" />
+              <span className="text-lg font-semibold tracking-tight">UrbanSoko</span>
             </Link>
 
-            {/* Search bar */}
-            <div className="hidden lg:flex items-center flex-1 max-w-md mx-8" ref={searchRef}>
+            {/* Desktop Nav Links */}
+            <nav className="hidden md:flex items-center gap-6 text-sm">
+              <Link to="/products" className="text-muted-foreground hover:text-foreground transition-colors">Products</Link>
+              <Link to="/stores" className="text-muted-foreground hover:text-foreground transition-colors">Stores</Link>
+              <Link to="/about" className="text-muted-foreground hover:text-foreground transition-colors">About</Link>
+            </nav>
+
+            {/* Search */}
+            <div className="hidden lg:flex items-center flex-1 max-w-sm mx-6" ref={searchRef}>
               <form onSubmit={handleSearch} className="relative w-full">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
                   type="text"
-                  placeholder="AI-powered search..."
-                  className="pl-10 bg-muted/50 border-border/50 focus:border-primary/50 focus:ring-primary/20"
+                  placeholder="Search products..."
+                  className="pl-9 h-9 text-sm bg-muted/50 border-transparent focus:border-border"
                   value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setShowSuggestions(true);
-                  }}
+                  onChange={(e) => { setSearchQuery(e.target.value); setShowSuggestions(true); }}
                   onFocus={() => setShowSuggestions(true)}
                 />
-                
-                <AnimatePresence>
-                  {showSuggestions && suggestions.length > 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -5 }}
-                      className="absolute top-full left-0 right-0 mt-1 bg-card border border-border/50 rounded-lg shadow-lg z-50 overflow-hidden backdrop-blur-xl"
-                    >
-                      {suggestions.map((suggestion, index) => (
-                        <button
-                          key={`${suggestion}-${index}`}
-                          type="button"
-                          className="w-full px-4 py-2.5 text-left hover:bg-primary/10 transition-colors flex items-center gap-2 text-sm"
-                          onClick={() => handleSuggestionClick(suggestion)}
-                        >
-                          <Sparkles className="h-3 w-3 text-primary" />
-                          <span>{suggestion}</span>
-                        </button>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                {showSuggestions && suggestions.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-md shadow-lg z-50 overflow-hidden">
+                    {suggestions.map((s, i) => (
+                      <button
+                        key={`${s}-${i}`}
+                        type="button"
+                        className="w-full px-3 py-2 text-left hover:bg-muted transition-colors text-sm"
+                        onClick={() => handleSuggestionClick(s)}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </form>
             </div>
 
             {/* Actions */}
-            <div className="flex items-center space-x-2 md:space-x-3">
-              <LanguageSelector />
+            <div className="flex items-center gap-1">
               <ThemeSelector />
-              
+
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="hover:bg-primary/10">
+                    <Button variant="ghost" size="icon" className="h-9 w-9">
                       <User className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48 glass-premium">
+                  <DropdownMenuContent align="end" className="w-48">
                     <DropdownMenuItem onClick={() => navigate('/profile')}>
-                      <User className="mr-2 h-4 w-4" />
-                      {t('nav.profile')}
+                      <User className="mr-2 h-4 w-4" /> Profile
                     </DropdownMenuItem>
-                    
                     {isAdmin && (
                       <DropdownMenuItem onClick={() => navigate('/admin')}>
-                        <Shield className="mr-2 h-4 w-4" />
-                        {t('nav.admin')}
+                        <Shield className="mr-2 h-4 w-4" /> Admin
                       </DropdownMenuItem>
                     )}
-                    
                     {isVendor && (
                       <DropdownMenuItem onClick={() => navigate('/vendor/dashboard')}>
-                        <Store className="mr-2 h-4 w-4" />
-                        {t('nav.vendor')}
+                        <Store className="mr-2 h-4 w-4" /> Vendor Dashboard
                       </DropdownMenuItem>
                     )}
-                    
                     <DropdownMenuItem onClick={() => navigate('/orders')}>
-                      <Package className="mr-2 h-4 w-4" />
-                      {t('nav.orders')}
+                      <Package className="mr-2 h-4 w-4" /> Orders
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate('/wishlist')}>
-                      <Heart className="mr-2 h-4 w-4" />
-                      {t('nav.wishlist')}
+                      <Heart className="mr-2 h-4 w-4" /> Wishlist
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate('/rewards')}>
-                      <Trophy className="mr-2 h-4 w-4" />
-                      {t('nav.rewards')}
+                      <Trophy className="mr-2 h-4 w-4" /> Rewards
                     </DropdownMenuItem>
-                    
                     {!isVendor && !isAdmin && (
                       <DropdownMenuItem onClick={() => navigate('/vendor/register')}>
-                        <Store className="mr-2 h-4 w-4" />
-                        {t('nav.becomeVendor')}
+                        <Store className="mr-2 h-4 w-4" /> Become a Vendor
                       </DropdownMenuItem>
                     )}
-                    
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={signOut}>
-                      <LogOut className="mr-2 h-4 w-4" />
-                      {t('nav.signOut')}
+                      <LogOut className="mr-2 h-4 w-4" /> Sign Out
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <>
-                  <Button variant="ghost" size="sm" onClick={() => navigate('/track-order')} className="hidden sm:flex">
-                    {t('nav.trackOrder')}
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => navigate('/auth')} className="hidden sm:flex hover:text-primary">
-                    {t('nav.signIn')}
-                  </Button>
-                </>
+                <Button variant="ghost" size="sm" onClick={() => navigate('/auth')} className="hidden sm:flex text-sm">
+                  Sign In
+                </Button>
               )}
-              
-              <CartSheet 
+
+              <CartSheet
                 trigger={
-                  <Button variant="ghost" size="icon" className="relative hover:bg-primary/10">
+                  <Button variant="ghost" size="icon" className="relative h-9 w-9">
                     <ShoppingCart className="h-4 w-4" />
                     {cartCount > 0 && (
-                      <Badge className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-xs bg-gradient-to-r from-primary to-secondary text-primary-foreground min-w-[16px] neon-glow">
+                      <span className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] flex items-center justify-center p-0 text-[10px] bg-foreground text-background rounded-full">
                         {cartCount > 9 ? '9+' : cartCount}
-                      </Badge>
+                      </span>
                     )}
                   </Button>
                 }
@@ -241,17 +193,14 @@ const Header = ({ cartCount }: HeaderProps) => {
             </div>
           </div>
 
-          <div className="hidden md:flex pb-4">
-            <MainNav />
-          </div>
-
-          <div className="lg:hidden pb-4">
+          {/* Mobile search */}
+          <div className="lg:hidden pb-3">
             <form onSubmit={handleSearch} className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
                 type="text"
                 placeholder="Search products..."
-                className="pl-10 bg-muted/50"
+                className="pl-9 h-9 text-sm bg-muted/50 border-transparent"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />

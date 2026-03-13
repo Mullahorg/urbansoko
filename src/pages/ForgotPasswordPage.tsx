@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Mail, CheckCircle } from 'lucide-react';
-import { motion } from 'framer-motion';
 import logo from '@/assets/logo.png';
 import { z } from 'zod';
 
@@ -23,13 +22,7 @@ const ForgotPasswordPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
-    try {
-      emailSchema.parse(email);
-    } catch {
-      setError('Please enter a valid email address');
-      return;
-    }
+    try { emailSchema.parse(email); } catch { setError('Please enter a valid email address'); return; }
 
     setLoading(true);
     try {
@@ -47,68 +40,49 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-primary/5 to-secondary/10 relative overflow-hidden">
-      <div className="absolute inset-0 hex-pattern opacity-20 pointer-events-none" />
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative z-10 w-full max-w-md"
-      >
-        <Card className="w-full bg-card border-border shadow-xl">
-          <CardHeader className="text-center flex flex-col items-center gap-3">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+      <div className="w-full max-w-sm">
+        <Card className="border-border">
+          <CardHeader className="text-center space-y-2">
             <Link to="/" className="flex flex-col items-center gap-2">
-              <img src={logo} alt="UrbanSoko" className="h-16 w-16 object-contain" />
-              <CardTitle className="text-2xl font-bold text-gradient-cyber">UrbanSoko</CardTitle>
+              <img src={logo} alt="UrbanSoko" className="h-10 w-10 object-contain rounded-lg" />
+              <CardTitle className="text-lg font-semibold">Reset Password</CardTitle>
             </Link>
-            <CardDescription>
-              {sent ? 'Check your email' : 'Reset your password'}
+            <CardDescription className="text-sm">
+              {sent ? 'Check your email' : 'Enter your email to receive a reset link'}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {sent ? (
               <div className="text-center space-y-4">
-                <CheckCircle className="h-16 w-16 text-primary mx-auto" />
+                <CheckCircle className="h-12 w-12 text-foreground mx-auto" />
                 <p className="text-sm text-muted-foreground">
-                  We've sent a password reset link to <strong>{email}</strong>. 
-                  Check your inbox and click the link to set a new password.
+                  We've sent a reset link to <strong>{email}</strong>.
                 </p>
-                <Button variant="outline" className="w-full" onClick={() => setSent(false)}>
-                  <Mail className="mr-2 h-4 w-4" />
-                  Try a different email
+                <Button variant="outline" className="w-full" size="sm" onClick={() => setSent(false)}>
+                  <Mail className="mr-2 h-4 w-4" /> Try a different email
                 </Button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email address</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    className="bg-background border-input"
-                    required
-                    disabled={loading}
-                  />
-                  {error && <p className="text-sm text-destructive">{error}</p>}
+              <form onSubmit={handleSubmit} className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="email" className="text-sm">Email</Label>
+                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" required disabled={loading} />
+                  {error && <p className="text-xs text-destructive">{error}</p>}
                 </div>
-                <Button type="submit" className="w-full h-11" disabled={loading}>
+                <Button type="submit" className="w-full h-10" disabled={loading}>
                   {loading ? 'Sending...' : 'Send Reset Link'}
                 </Button>
               </form>
             )}
-
-            <div className="mt-6 text-center">
-              <Link to="/auth" className="text-sm text-primary hover:underline inline-flex items-center gap-1">
-                <ArrowLeft className="h-3 w-3" />
-                Back to Sign In
+            <div className="mt-4 text-center">
+              <Link to="/auth" className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
+                <ArrowLeft className="h-3 w-3" /> Back to Sign In
               </Link>
             </div>
           </CardContent>
         </Card>
-      </motion.div>
+      </div>
     </div>
   );
 };

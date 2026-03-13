@@ -16,13 +16,6 @@ import MobileBottomNav from "./components/Layout/MobileBottomNav";
 import InstallPrompt from "./components/PWA/InstallPrompt";
 import OfflineIndicator from "./components/PWA/OfflineIndicator";
 import ErrorBoundary from "./components/ErrorBoundary";
-import CustomStylesLoader from "./components/CustomStylesLoader";
-
-// Gamification Components
-import WelcomePopup from "./components/Gamification/WelcomePopup";
-import FlashSaleBanner from "./components/Gamification/FlashSaleBanner";
-import SocialProofToast from "./components/Gamification/SocialProofToast";
-import FloatingCartButton from "./components/Gamification/FloatingCartButton";
 import ScrollToTop from "./components/Gamification/ScrollToTop";
 
 import Index from "./pages/Index";
@@ -30,7 +23,6 @@ import AuthPage from "./pages/AuthPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import NotFound from "./pages/NotFound";
-
 import RoleRoute from "./components/RoleRoute";
 
 // Admin Pages
@@ -88,19 +80,13 @@ const MainLayout = () => {
   const { getTotalItems } = useCart();
 
   return (
-    <div className="flex flex-col min-h-screen pb-16 md:pb-0">
-      <FlashSaleBanner />
+    <div className="flex flex-col min-h-screen pb-14 md:pb-0">
       <Header cartCount={getTotalItems()} />
-      <CustomStylesLoader />
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<Index />} />
-          
-          {/* Store Routes */}
           <Route path="/stores" element={<StoresPage />} />
           <Route path="/store/:storeSlug" element={<StoreDetailPage />} />
-          
-          {/* Public Pages */}
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/product/:id" element={<ProductDetailPage />} />
           <Route path="/category/:category" element={<CategoryPage />} />
@@ -118,7 +104,6 @@ const MainLayout = () => {
           <Route path="/vendor/register" element={<VendorRegistrationPage />} />
           <Route path="/vendor-registration" element={<VendorRegistrationPage />} />
 
-          {/* Admin Routes */}
           <Route path="/admin" element={<RoleRoute requiredRole="admin"><AdminLayout /></RoleRoute>}>
             <Route index element={<AdminDashboard />} />
             <Route path="products" element={<AdminProducts />} />
@@ -140,16 +125,13 @@ const MainLayout = () => {
             <Route path="migrate" element={<AdminDataMigration />} />
           </Route>
 
-          {/* Vendor Routes */}
           <Route path="/vendor/dashboard" element={<RoleRoute requiredRole="vendor"><VendorDashboard /></RoleRoute>} />
           <Route path="/vendor/products" element={<RoleRoute requiredRole="vendor"><VendorProducts /></RoleRoute>} />
 
-          {/* User Routes */}
           <Route path="/profile" element={<RoleRoute requiredRole="user"><ProfilePage /></RoleRoute>} />
           <Route path="/orders" element={<RoleRoute requiredRole="user"><OrdersPage /></RoleRoute>} />
           <Route path="/wishlist" element={<RoleRoute requiredRole="user"><WishlistPage /></RoleRoute>} />
 
-          {/* Catch-all */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
@@ -157,24 +139,19 @@ const MainLayout = () => {
       <MobileBottomNav />
       <InstallPrompt />
       <OfflineIndicator />
-      <WelcomePopup />
-      <SocialProofToast />
-      <FloatingCartButton />
       <ScrollToTop />
     </div>
   );
 };
 
-const AppContent = () => {
-  return (
-    <Routes>
-      <Route path="/auth" element={<AuthPage />} />
-      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-      <Route path="/reset-password" element={<ResetPasswordPage />} />
-      <Route path="/*" element={<MainLayout />} />
-    </Routes>
-  );
-};
+const AppContent = () => (
+  <Routes>
+    <Route path="/auth" element={<AuthPage />} />
+    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+    <Route path="/reset-password" element={<ResetPasswordPage />} />
+    <Route path="/*" element={<MainLayout />} />
+  </Routes>
+);
 
 const App = () => (
   <ErrorBoundary>
