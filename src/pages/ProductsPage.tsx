@@ -1,20 +1,18 @@
 import { useState, useMemo, useEffect } from 'react';
- import { Filter, Grid, List, SlidersHorizontal, WifiOff, Hexagon, Sparkles } from 'lucide-react';
- import { motion } from 'framer-motion';
+import { Filter, Grid, List, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import ProductCard from '@/components/Product/ProductCard';
 import QuickView from '@/components/Product/QuickView';
 import { useCart } from '@/contexts/CartContext';
 import { formatPrice } from '@/utils/currency';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useOfflineSync } from '@/hooks/useOfflineSync';
 
 const ProductsPage = () => {
   const [wishlist, setWishlist] = useState<string[]>([]);
@@ -24,401 +22,146 @@ const ProductsPage = () => {
   const [sortBy, setSortBy] = useState('featured');
   const [priceRange, setPriceRange] = useState([0, 50000]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
-  const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isUsingOfflineData, setIsUsingOfflineData] = useState(false);
   const { addToCart } = useCart();
   const { toast } = useToast();
-  const { 
-    isOnline, 
-    getOfflineProducts, 
-    getOfflineCategories, 
-    cacheProductsForOffline,
-    cacheProductDetail 
-  } = useOfflineSync();
 
-  useEffect(() => {
-    fetchData();
-  }, [isOnline]);
+  useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
     setLoading(true);
-    
-    // Try to fetch from network first
-    if (isOnline) {
-      try {
-        const { data: productsData, error: productsError } = await supabase
-          .from('products')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (productsError) throw productsError;
-        setProducts(productsData || []);
-        setIsUsingOfflineData(false);
-
-        const { data: categoriesData, error: categoriesError } = await supabase
-          .from('categories')
-          .select('*')
-          .eq('is_active', true)
-          .order('name', { ascending: true });
-
-        if (categoriesError) throw categoriesError;
-        setCategories(categoriesData || []);
-
-        // Cache data for offline use
-        cacheProductsForOffline(true);
-      } catch (error: any) {
-        toast({
-          title: 'Error loading data',
-          description: error.message,
-          variant: 'destructive',
-        });
-        // Fall back to cached data on network error
-        loadFromCache();
-      }
-    } else {
-      // Load from cache when offline
-      loadFromCache();
+    try {
+      const [productsResult, categoriesResult] = await Promise.all([
+        supabase.from('products').select('*').order('created_at', { ascending: false }),
+        supabase.from('categories').select('*').eq('is_active', true).order('name', { ascending: true }),
+      ]);
+      if (productsResult.error) throw productsResult.error;
+      if (categoriesResult.error) throw categoriesResult.error;
+      setProducts(productsResult.data || []);
+      setCategories(categoriesResult.data || []);
+    } catch (error: any) {
+      toast({ title: 'Error loading data', description: error.message, variant: 'destructive' });
     }
-    
     setLoading(false);
   };
 
-  const loadFromCache = () => {
-    const cachedProducts = getOfflineProducts();
-    const cachedCategories = getOfflineCategories();
-    
-    if (cachedProducts) {
-      setProducts(cachedProducts);
-      setIsUsingOfflineData(true);
-      toast({
-        title: "Browsing Offline",
-        description: `Showing ${cachedProducts.length} cached products`,
-      });
-    }
-    
-    if (cachedCategories) {
-      setCategories(cachedCategories);
-    }
-  };
-
-  // Cache product details when viewing them
-  const handleProductView = (product: any) => {
-    if (isOnline) {
-      cacheProductDetail(product);
-    }
-  };
-
-  // Filter and sort products
   const filteredProducts = useMemo(() => {
     let filtered = [...products];
-
-    // Apply price filter
-    filtered = filtered.filter(product => 
-      product.price >= priceRange[0] && product.price <= priceRange[1]
-    );
-
-    // Apply category filter
+    filtered = filtered.filter(p => p.price >= priceRange[0] && p.price <= priceRange[1]);
     if (selectedCategories.length > 0) {
-      filtered = filtered.filter(product =>
-        selectedCategories.includes(product.category)
-      );
+      filtered = filtered.filter(p => selectedCategories.includes(p.category));
     }
-
-    // Apply size filter
-    if (selectedSizes.length > 0) {
-      filtered = filtered.filter(product =>
-        product.sizes?.some((size: string) => selectedSizes.includes(size))
-      );
-    }
-
-    // Apply color filter
-    if (selectedColors.length > 0) {
-      filtered = filtered.filter(product =>
-        product.colors?.some((color: string) => selectedColors.includes(color))
-      );
-    }
-
-    // Apply sorting
     switch (sortBy) {
-      case 'price-low':
-        filtered.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-high':
-        filtered.sort((a, b) => b.price - a.price);
-        break;
-      case 'name':
-        filtered.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case 'newest':
-        filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-        break;
-      default:
-        filtered.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+      case 'price-low': filtered.sort((a, b) => a.price - b.price); break;
+      case 'price-high': filtered.sort((a, b) => b.price - a.price); break;
+      case 'name': filtered.sort((a, b) => a.name.localeCompare(b.name)); break;
+      case 'newest': filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()); break;
+      default: filtered.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
     }
-
     return filtered;
-  }, [products, priceRange, selectedCategories, selectedSizes, selectedColors, sortBy]);
+  }, [products, priceRange, selectedCategories, sortBy]);
 
   const handleToggleWishlist = (productId: string) => {
-    setWishlist(prev => 
-      prev.includes(productId) 
-        ? prev.filter(id => id !== productId)
-        : [...prev, productId]
-    );
-  };
-
-  const handleQuickView = (product: any) => {
-    setQuickViewProduct(product);
-    setIsQuickViewOpen(true);
-    handleProductView(product);
+    setWishlist(prev => prev.includes(productId) ? prev.filter(id => id !== productId) : [...prev, productId]);
   };
 
   const handleCategoryToggle = (category: string) => {
-    setSelectedCategories(prev =>
-      prev.includes(category)
-        ? prev.filter(c => c !== category)
-        : [...prev, category]
-    );
+    setSelectedCategories(prev => prev.includes(category) ? prev.filter(c => c !== category) : [...prev, category]);
   };
 
-  const handleSizeToggle = (size: string) => {
-    setSelectedSizes(prev =>
-      prev.includes(size)
-        ? prev.filter(s => s !== size)
-        : [...prev, size]
-    );
-  };
-
-  const handleColorToggle = (color: string) => {
-    setSelectedColors(prev =>
-      prev.includes(color)
-        ? prev.filter(c => c !== color)
-        : [...prev, color]
-    );
-  };
-
-  const clearFilters = () => {
-    setPriceRange([0, 50000]);
-    setSelectedCategories([]);
-    setSelectedSizes([]);
-    setSelectedColors([]);
-  };
-
-  // Get unique values
-  const availableSizes = [...new Set(products.flatMap(p => p.sizes || []))];
-  const availableColors = [...new Set(products.flatMap(p => p.colors || []))];
+  const clearFilters = () => { setPriceRange([0, 50000]); setSelectedCategories([]); };
 
   const FilterContent = () => (
     <div className="space-y-6">
       <div>
-        <h3 className="font-semibold mb-3">Price Range</h3>
-        <div className="px-2">
-          <Slider
-            value={priceRange}
-            onValueChange={setPriceRange}
-            max={50000}
-            min={0}
-            step={500}
-            className="mb-2"
-          />
-          <div className="flex justify-between text-sm text-muted-foreground">
-            <span>{formatPrice(priceRange[0])}</span>
-            <span>{formatPrice(priceRange[1])}</span>
-          </div>
+        <h3 className="font-medium text-sm mb-3">Price Range</h3>
+        <Slider value={priceRange} onValueChange={setPriceRange} max={50000} min={0} step={500} className="mb-2" />
+        <div className="flex justify-between text-xs text-muted-foreground">
+          <span>{formatPrice(priceRange[0])}</span>
+          <span>{formatPrice(priceRange[1])}</span>
         </div>
       </div>
-
       <div>
-        <h3 className="font-semibold mb-3">Categories</h3>
+        <h3 className="font-medium text-sm mb-3">Categories</h3>
         <div className="space-y-2">
-          {categories.map((category: any) => (
-            <div key={category.id} className="flex items-center space-x-2">
-              <Checkbox
-                id={`cat-${category.id}`}
-                checked={selectedCategories.includes(category.name)}
-                onCheckedChange={() => handleCategoryToggle(category.name)}
-              />
-              <label
-                htmlFor={`cat-${category.id}`}
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-              >
-                {category.name}
-              </label>
+          {categories.map((cat: any) => (
+            <div key={cat.id} className="flex items-center space-x-2">
+              <Checkbox id={`cat-${cat.id}`} checked={selectedCategories.includes(cat.name)} onCheckedChange={() => handleCategoryToggle(cat.name)} />
+              <label htmlFor={`cat-${cat.id}`} className="text-sm cursor-pointer">{cat.name}</label>
             </div>
           ))}
         </div>
       </div>
-
-      <div>
-        <h3 className="font-semibold mb-3">Sizes</h3>
-        <div className="grid grid-cols-3 gap-2">
-          {availableSizes.map((size: any) => (
-            <div key={size} className="flex items-center space-x-2">
-              <Checkbox
-                id={`size-${size}`}
-                checked={selectedSizes.includes(size)}
-                onCheckedChange={() => handleSizeToggle(size)}
-              />
-              <label
-                htmlFor={`size-${size}`}
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                {size}
-              </label>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <h3 className="font-semibold mb-3">Colors</h3>
-        <div className="grid grid-cols-2 gap-2">
-          {availableColors.map((color: any) => (
-            <div key={color} className="flex items-center space-x-2">
-              <Checkbox
-                id={`color-${color}`}
-                checked={selectedColors.includes(color)}
-                onCheckedChange={() => handleColorToggle(color)}
-              />
-              <label
-                htmlFor={`color-${color}`}
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                {color}
-              </label>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <Button variant="outline" onClick={clearFilters} className="w-full">
-        Clear Filters
-      </Button>
+      <Button variant="outline" onClick={clearFilters} className="w-full" size="sm">Clear Filters</Button>
     </div>
   );
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">Loading products...</p>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-6 md:py-8">
-         <motion.div 
-           className="mb-6 md:mb-8"
-           initial={{ opacity: 0, y: 20 }}
-           animate={{ opacity: 1, y: 0 }}
-         >
-           <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-4">
-             <Sparkles className="h-4 w-4" />
-             UrbanSoko Collection
-           </div>
-          <div className="flex items-center gap-3 mb-2">
-             <h1 className="text-2xl md:text-3xl font-bold text-gradient-cyber">All Products</h1>
-            {isUsingOfflineData && (
-              <Badge variant="secondary" className="flex items-center gap-1">
-                <WifiOff className="h-3 w-3" />
-                Offline Mode
-              </Badge>
-            )}
-          </div>
-          <p className="text-sm md:text-base text-muted-foreground">
-            Browse our complete collection of {filteredProducts.length} premium items
-            {isUsingOfflineData && " (cached for offline)"}
-          </p>
-         </motion.div>
+      <div className="container mx-auto px-4 py-6">
+        <div className="mb-6">
+          <h1 className="text-2xl font-semibold mb-1">All Products</h1>
+          <p className="text-sm text-muted-foreground">{filteredProducts.length} products</p>
+        </div>
 
-        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-           <aside className="hidden lg:block w-64 flex-shrink-0 sticky top-24 self-start">
-             <Card className="card-cyber">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <SlidersHorizontal className="h-4 w-4" />
-                  <h2 className="font-semibold">Filters</h2>
-                </div>
-                <FilterContent />
-              </CardContent>
-            </Card>
+        <div className="flex flex-col lg:flex-row gap-6">
+          <aside className="hidden lg:block w-56 shrink-0">
+            <div className="sticky top-20">
+              <div className="flex items-center gap-2 mb-4">
+                <SlidersHorizontal className="h-4 w-4" />
+                <h2 className="font-medium text-sm">Filters</h2>
+              </div>
+              <FilterContent />
+            </div>
           </aside>
 
           <div className="flex-1 min-w-0">
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-6 p-3 md:p-4 bg-muted/30 rounded-lg">
-              <div className="flex items-center gap-2 md:gap-4">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <div className="flex items-center gap-2">
                 <Sheet open={showFilters} onOpenChange={setShowFilters}>
                   <SheetTrigger asChild>
-                    <Button variant="outline" size="sm" className="lg:hidden flex-1 sm:flex-none">
-                      <Filter className="h-4 w-4 mr-2" />
-                      Filters
+                    <Button variant="outline" size="sm" className="lg:hidden">
+                      <Filter className="h-4 w-4 mr-1" /> Filters
                     </Button>
                   </SheetTrigger>
-                  <SheetContent side="left" className="w-full sm:w-80">
-                    <SheetHeader>
-                      <SheetTitle>Filters</SheetTitle>
-                    </SheetHeader>
-                    <div className="mt-6">
-                      <FilterContent />
-                    </div>
+                  <SheetContent side="left" className="w-72">
+                    <SheetHeader><SheetTitle>Filters</SheetTitle></SheetHeader>
+                    <div className="mt-6"><FilterContent /></div>
                   </SheetContent>
                 </Sheet>
-
-                <div className="hidden sm:flex items-center gap-2">
-                  <Button
-                    variant={viewMode === 'grid' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setViewMode('grid')}
-                  >
-                    <Grid className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={viewMode === 'list' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setViewMode('list')}
-                  >
-                    <List className="h-4 w-4" />
-                  </Button>
+                <div className="hidden sm:flex items-center gap-1">
+                  <Button variant={viewMode === 'grid' ? 'secondary' : 'ghost'} size="icon" className="h-8 w-8" onClick={() => setViewMode('grid')}><Grid className="h-3.5 w-3.5" /></Button>
+                  <Button variant={viewMode === 'list' ? 'secondary' : 'ghost'} size="icon" className="h-8 w-8" onClick={() => setViewMode('list')}><List className="h-3.5 w-3.5" /></Button>
                 </div>
               </div>
-
-              <div className="flex items-center justify-between sm:justify-end gap-3 md:gap-4">
-                <span className="text-xs md:text-sm text-muted-foreground whitespace-nowrap">
-                  {filteredProducts.length} products
-                </span>
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-36 md:w-40">
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="featured">Featured</SelectItem>
-                    <SelectItem value="newest">Newest</SelectItem>
-                    <SelectItem value="price-low">Price: Low to High</SelectItem>
-                    <SelectItem value="price-high">Price: High to Low</SelectItem>
-                    <SelectItem value="name">Name A-Z</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-36 h-8 text-sm"><SelectValue placeholder="Sort by" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="featured">Featured</SelectItem>
+                  <SelectItem value="newest">Newest</SelectItem>
+                  <SelectItem value="price-low">Price: Low to High</SelectItem>
+                  <SelectItem value="price-high">Price: High to Low</SelectItem>
+                  <SelectItem value="name">Name A-Z</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            {filteredProducts.length === 0 ? (
-              <div className="text-center py-12">
-                 <Hexagon className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-                 <p className="text-muted-foreground mb-4">No products found matching your filters</p>
-                <Button onClick={clearFilters}>Clear Filters</Button>
+            {loading ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {[1,2,3,4,5,6,7,8].map(i => (
+                  <Card key={i}><CardContent className="p-3"><Skeleton className="aspect-[3/4] w-full mb-3" /><Skeleton className="h-4 w-3/4 mb-2" /><Skeleton className="h-4 w-1/2" /></CardContent></Card>
+                ))}
+              </div>
+            ) : filteredProducts.length === 0 ? (
+              <div className="text-center py-16">
+                <p className="text-muted-foreground mb-4">No products found</p>
+                <Button onClick={clearFilters} variant="outline" size="sm">Clear Filters</Button>
               </div>
             ) : (
-              <div className={`grid gap-4 md:gap-6 ${
-                viewMode === 'grid' 
-                  ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-                  : 'grid-cols-1'
-              }`}>
+              <div className={`grid gap-4 ${viewMode === 'grid' ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4' : 'grid-cols-1'}`}>
                 {filteredProducts.map((product) => (
                   <ProductCard
                     key={product.id}
@@ -428,10 +171,11 @@ const ProductsPage = () => {
                       sizes: product.sizes || [],
                       colors: product.colors || [],
                       inStock: product.stock > 0,
+                      stock: product.stock,
                     }}
                     onAddToCart={addToCart}
                     onToggleWishlist={handleToggleWishlist}
-                    onQuickView={handleQuickView}
+                    onQuickView={(p) => { setQuickViewProduct(p); setIsQuickViewOpen(true); }}
                     isWishlisted={wishlist.includes(product.id)}
                   />
                 ))}
@@ -440,13 +184,7 @@ const ProductsPage = () => {
           </div>
         </div>
 
-        <QuickView
-          product={quickViewProduct}
-          isOpen={isQuickViewOpen}
-          onClose={() => setIsQuickViewOpen(false)}
-          onToggleWishlist={handleToggleWishlist}
-          isWishlisted={quickViewProduct ? wishlist.includes(quickViewProduct.id) : false}
-        />
+        <QuickView product={quickViewProduct} isOpen={isQuickViewOpen} onClose={() => setIsQuickViewOpen(false)} onToggleWishlist={handleToggleWishlist} isWishlisted={quickViewProduct ? wishlist.includes(quickViewProduct.id) : false} />
       </div>
     </div>
   );
