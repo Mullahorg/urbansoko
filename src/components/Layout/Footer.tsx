@@ -35,23 +35,25 @@ export const Footer = () => {
   };
 
   return (
-    <footer className="border-t border-border mt-auto bg-background">
+    <footer className="border-t border-border/50 mt-auto bg-muted/20">
       {/* Newsletter */}
-      <div className="border-b border-border">
-        <div className="container mx-auto px-4 py-10">
+      <div className="border-b border-border/50">
+        <div className="container mx-auto px-4 py-12">
           <div className="max-w-md mx-auto text-center">
-            <h3 className="text-lg font-semibold mb-2">Stay in the loop</h3>
-            <p className="text-sm text-muted-foreground mb-4">Get notified about new products and exclusive deals.</p>
+            <h3 className="text-xl font-bold mb-2">Stay in the loop</h3>
+            <p className="text-sm text-muted-foreground mb-5" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+              Get notified about new products and exclusive deals.
+            </p>
             <form onSubmit={handleNewsletterSubmit} className="flex gap-2">
               <Input
                 type="email"
                 placeholder="your@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 h-9 text-sm"
+                className="flex-1 h-10 text-sm rounded-xl"
                 required
               />
-              <Button type="submit" size="sm" disabled={subscribing}>
+              <Button type="submit" size="sm" disabled={subscribing} className="rounded-xl h-10 px-5">
                 <Send className="w-4 h-4" />
               </Button>
             </form>
@@ -60,12 +62,17 @@ export const Footer = () => {
       </div>
 
       {/* Links */}
-      <div className="container mx-auto px-4 py-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
           <div>
-            <Link to="/" className="flex items-center gap-2.5 mb-4">
-              <img src="/logo.png" alt="UrbanSoko" className="h-9 w-9 object-contain" />
-              <span className="text-lg font-bold tracking-tight uppercase">Urban<span className="text-muted-foreground font-light">Soko</span></span>
+            <Link to="/" className="flex items-center gap-3 mb-5 group">
+              <img src="/logo.png" alt="UrbanSoko" className="h-10 w-10 object-contain transition-transform group-hover:scale-105" />
+              <div className="flex flex-col leading-none">
+                <span className="text-lg font-bold tracking-tight" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+                  Urban<span className="text-primary">Soko</span>
+                </span>
+                <span className="text-[9px] text-muted-foreground tracking-[0.2em] uppercase">Marketplace</span>
+              </div>
             </Link>
             <p className="text-xs text-muted-foreground leading-relaxed">
               Kenya's premier marketplace for quality products with M-Pesa checkout.
@@ -73,8 +80,8 @@ export const Footer = () => {
           </div>
 
           <div>
-            <h4 className="font-medium text-sm mb-3">Shop</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
+            <h4 className="font-semibold text-sm mb-4" style={{ fontFamily: "'DM Sans', sans-serif" }}>Shop</h4>
+            <ul className="space-y-2.5 text-sm text-muted-foreground">
               <li><Link to="/products" className="hover:text-foreground transition-colors">All Products</Link></li>
               <li><Link to="/stores" className="hover:text-foreground transition-colors">Stores</Link></li>
               <li><Link to="/track-order" className="hover:text-foreground transition-colors">Track Order</Link></li>
@@ -82,8 +89,8 @@ export const Footer = () => {
           </div>
 
           <div>
-            <h4 className="font-medium text-sm mb-3">Company</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
+            <h4 className="font-semibold text-sm mb-4" style={{ fontFamily: "'DM Sans', sans-serif" }}>Company</h4>
+            <ul className="space-y-2.5 text-sm text-muted-foreground">
               <li><Link to="/about" className="hover:text-foreground transition-colors">About</Link></li>
               <li><Link to="/contact" className="hover:text-foreground transition-colors">Contact</Link></li>
               <li><Link to="/faq" className="hover:text-foreground transition-colors">FAQ</Link></li>
@@ -91,20 +98,20 @@ export const Footer = () => {
           </div>
 
           <div>
-            <h4 className="font-medium text-sm mb-3">Contact</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li className="flex items-center gap-2"><MapPin className="h-3 w-3 shrink-0" /><span className="truncate">{footer.address}</span></li>
-              <li className="flex items-center gap-2"><Phone className="h-3 w-3 shrink-0" /><span>{footer.phone}</span></li>
-              <li className="flex items-center gap-2"><Mail className="h-3 w-3 shrink-0" /><span className="truncate">{footer.email}</span></li>
+            <h4 className="font-semibold text-sm mb-4" style={{ fontFamily: "'DM Sans', sans-serif" }}>Contact</h4>
+            <ul className="space-y-2.5 text-sm text-muted-foreground">
+              <li className="flex items-center gap-2.5"><MapPin className="h-3.5 w-3.5 shrink-0 text-primary" /><span className="truncate">{footer.address}</span></li>
+              <li className="flex items-center gap-2.5"><Phone className="h-3.5 w-3.5 shrink-0 text-primary" /><span>{footer.phone}</span></li>
+              <li className="flex items-center gap-2.5"><Mail className="h-3.5 w-3.5 shrink-0 text-primary" /><span className="truncate">{footer.email}</span></li>
             </ul>
           </div>
         </div>
       </div>
 
-      <div className="border-t border-border">
-        <div className="container mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-muted-foreground">
+      <div className="border-t border-border/50">
+        <div className="container mx-auto px-4 py-5 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-muted-foreground">
           <p>&copy; {new Date().getFullYear()} UrbanSoko. All rights reserved.</p>
-          <div className="flex gap-4">
+          <div className="flex gap-5">
             <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
             <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
             <Link to="/shipping" className="hover:text-foreground transition-colors">Shipping</Link>
