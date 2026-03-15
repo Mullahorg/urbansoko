@@ -63,9 +63,9 @@ export const Footer = () => {
       <div className="container mx-auto px-4 py-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div>
-            <Link to="/" className="flex items-center gap-2 mb-4">
-              <img src="/logo.png" alt="UrbanSoko" className="h-8 w-8 rounded-lg object-cover" />
-              <span className="font-semibold">UrbanSoko</span>
+            <Link to="/" className="flex items-center gap-2.5 mb-4">
+              <img src="/logo.png" alt="UrbanSoko" className="h-9 w-9 object-contain" />
+              <span className="text-lg font-bold tracking-tight uppercase">Urban<span className="text-muted-foreground font-light">Soko</span></span>
             </Link>
             <p className="text-xs text-muted-foreground leading-relaxed">
               Kenya's premier marketplace for quality products with M-Pesa checkout.

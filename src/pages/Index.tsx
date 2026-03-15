@@ -61,12 +61,16 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero */}
-      <section className="py-16 md:py-24 lg:py-32">
-        <div className="container mx-auto px-4 text-center max-w-3xl">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-6">
+      <section className="relative py-20 md:py-28 lg:py-36 overflow-hidden">
+        {/* Watermark logo */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
+          <img src="/logo.png" alt="" className="w-64 md:w-96 lg:w-[28rem] opacity-[0.04] dark:opacity-[0.06]" />
+        </div>
+        <div className="container mx-auto px-4 text-center max-w-3xl relative z-10">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] mb-6">
             Quality products,<br />delivered to your door
           </h1>
-          <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
+          <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto">
             Discover premium products from verified vendors across Kenya with instant M-Pesa checkout.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">

@@ -86,9 +86,9 @@ const Header = ({ cartCount }: HeaderProps) => {
               <Menu className="h-5 w-5" />
             </Button>
 
-            <Link to="/" className="flex items-center gap-2">
-              <img src="/logo.png" alt="UrbanSoko" className="h-8 w-8 rounded-lg object-cover" />
-              <span className="text-lg font-semibold tracking-tight">UrbanSoko</span>
+            <Link to="/" className="flex items-center gap-2.5">
+              <img src="/logo.png" alt="UrbanSoko" className="h-9 w-9 object-contain" />
+              <span className="text-xl font-bold tracking-tight uppercase">Urban<span className="text-muted-foreground font-light">Soko</span></span>
             </Link>
 
             {/* Desktop Nav Links */}
