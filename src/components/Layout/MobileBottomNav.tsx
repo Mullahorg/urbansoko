@@ -22,8 +22,8 @@ const MobileBottomNav = () => {
   }
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border safe-bottom">
-      <div className="flex items-center justify-around py-1.5">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-t border-border/50 safe-bottom">
+      <div className="flex items-center justify-around py-2">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path ||
             (item.path !== '/' && location.pathname.startsWith(item.path));
@@ -32,17 +32,17 @@ const MobileBottomNav = () => {
             <Link
               key={item.path}
               to={item.path}
-              className="relative flex flex-col items-center gap-0.5 py-1 px-3 min-w-[48px]"
+              className="relative flex flex-col items-center gap-0.5 py-1.5 px-3 min-w-[48px]"
             >
-              <div className="relative">
-                <item.icon className={`h-5 w-5 ${isActive ? 'text-foreground' : 'text-muted-foreground'}`} />
+              <div className={`relative p-1.5 rounded-xl transition-colors ${isActive ? 'bg-primary/10' : ''}`}>
+                <item.icon className={`h-5 w-5 transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
                 {item.badge && item.badge > 0 && (
-                  <span className="absolute -top-1.5 -right-2 h-3.5 min-w-[14px] flex items-center justify-center p-0 text-[9px] bg-foreground text-background rounded-full">
+                  <span className="absolute -top-1 -right-1.5 h-4 min-w-[16px] flex items-center justify-center p-0 text-[9px] font-semibold bg-primary text-primary-foreground rounded-full shadow-sm">
                     {item.badge > 9 ? '9+' : item.badge}
                   </span>
                 )}
               </div>
-              <span className={`text-[10px] ${isActive ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+              <span className={`text-[10px] transition-colors ${isActive ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>
                 {item.label}
               </span>
             </Link>
