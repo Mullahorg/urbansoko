@@ -53,26 +53,27 @@ const ProductCard = ({ product, onAddToCart, onToggleWishlist, onQuickView, isWi
   }, [onAddToCart, product, toast]);
 
   return (
-    <div className="group overflow-hidden rounded-2xl border border-border/50 bg-card hover:shadow-lg transition-all duration-300">
-      <div className="relative overflow-hidden">
+    <div className="group overflow-hidden rounded-2xl bg-card transition-all duration-500 hover:-translate-y-1">
+      <div className="relative overflow-hidden rounded-2xl bg-muted/40">
         <Link to={`/product/${product.id}`}>
           <img
             src={product.image || '/placeholder.svg'}
             alt={product.name}
-            className="w-full aspect-[3/4] object-cover group-hover:scale-[1.04] transition-transform duration-500"
+            className="w-full aspect-[4/5] object-cover group-hover:scale-[1.05] transition-transform duration-700 ease-out"
             loading="lazy"
+            onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/placeholder.svg'; }}
           />
         </Link>
 
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-1.5">
           {product.isNew && (
-            <Badge className="text-[10px] px-2 py-0.5 bg-primary text-primary-foreground rounded-lg font-semibold shadow-sm">
+            <Badge className="text-[10px] tracking-wider uppercase px-2.5 py-1 bg-foreground text-background rounded-full font-medium border-0">
               New
             </Badge>
           )}
           {product.isSale && discountPercentage > 0 && (
-            <Badge className="text-[10px] px-2 py-0.5 bg-destructive text-destructive-foreground rounded-lg font-semibold shadow-sm">
+            <Badge className="text-[10px] tracking-wider uppercase px-2.5 py-1 bg-destructive text-destructive-foreground rounded-full font-medium border-0">
               -{discountPercentage}%
             </Badge>
           )}
@@ -84,14 +85,14 @@ const ProductCard = ({ product, onAddToCart, onToggleWishlist, onQuickView, isWi
           </div>
         )}
 
-        {/* Quick actions */}
-        <div className="absolute top-3 right-3 flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
+        {/* Quick actions — wishlist always visible, quick view on hover */}
+        <div className="absolute top-3 right-3 flex flex-col gap-1.5">
           <WishlistButton productId={product.id} variant="ghost" />
           {onQuickView && (
             <Button
               size="icon"
               variant="secondary"
-              className="h-9 w-9 rounded-xl shadow-sm bg-card/90 backdrop-blur-sm"
+              className="h-9 w-9 rounded-full shadow-sm bg-card/90 backdrop-blur-md border-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
               onClick={(e) => { e.stopPropagation(); onQuickView(product); }}
             >
               <Eye className="h-3.5 w-3.5" />
@@ -101,44 +102,45 @@ const ProductCard = ({ product, onAddToCart, onToggleWishlist, onQuickView, isWi
 
         {/* Add to cart on hover */}
         {product.inStock && (
-          <div className="absolute bottom-0 left-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+          <div className="absolute bottom-0 left-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-all duration-400 translate-y-3 group-hover:translate-y-0">
             <Button
               size="sm"
-              className="w-full h-9 text-xs rounded-xl shadow-md"
+              className="w-full h-10 text-xs tracking-wide uppercase rounded-full shadow-lg bg-foreground text-background hover:bg-foreground/90"
               onClick={handleAddToCart}
               disabled={isAdding}
             >
-              <ShoppingCart className="h-3.5 w-3.5 mr-1.5" />
+              <ShoppingCart className="h-3.5 w-3.5 mr-2" />
               Add to Cart
             </Button>
           </div>
         )}
-
-        {product.rating && (
-          <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-card/90 backdrop-blur-sm rounded-lg px-2 py-1 shadow-sm opacity-100 group-hover:opacity-0 transition-opacity">
-            <Star className="h-3 w-3 fill-accent text-accent" />
-            <span className="text-[11px] font-semibold">{product.rating.toFixed(1)}</span>
-          </div>
-        )}
       </div>
 
-      <div className="p-4">
+      <div className="pt-4 px-1 pb-1">
+        <p className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground mb-1.5">{product.category}</p>
         <Link to={`/product/${product.id}`}>
-          <h3 className="text-sm font-semibold line-clamp-2 mb-1 hover:text-primary transition-colors" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+          <h3 className="text-[15px] font-medium leading-snug line-clamp-2 mb-2 hover:text-primary transition-colors">
             {product.name}
           </h3>
         </Link>
-        <p className="text-xs text-muted-foreground mb-2.5">{product.category}</p>
 
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-sm text-foreground">{formatPrice(product.price)}</span>
-          {product.originalPrice && (
-            <span className="text-xs text-muted-foreground line-through">{formatPrice(product.originalPrice)}</span>
+        <div className="flex items-end justify-between gap-2">
+          <div className="flex items-baseline gap-2">
+            <span className="font-semibold text-base text-foreground">{formatPrice(product.price)}</span>
+            {product.originalPrice && (
+              <span className="text-xs text-muted-foreground line-through">{formatPrice(product.originalPrice)}</span>
+            )}
+          </div>
+          {product.rating && (
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <Star className="h-3 w-3 fill-accent text-accent" />
+              <span className="text-[11px] font-medium">{product.rating.toFixed(1)}</span>
+            </div>
           )}
         </div>
 
         {product.stock !== undefined && product.stock > 0 && product.stock <= 5 && (
-          <p className="text-[10px] text-destructive font-medium mt-1.5">Only {product.stock} left</p>
+          <p className="text-[10px] text-destructive font-medium mt-2 tracking-wide uppercase">Only {product.stock} left</p>
         )}
       </div>
     </div>
