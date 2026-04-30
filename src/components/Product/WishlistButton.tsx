@@ -27,11 +27,13 @@ export const WishlistButton = ({ productId, variant = 'ghost' }: WishlistButtonP
   }, [user, productId]);
 
   const checkWishlist = async () => {
+    if (!user) return;
     const { data } = await supabase
       .from('wishlist')
       .select('id')
       .eq('product_id', productId)
-      .single();
+      .eq('user_id', user.id)
+      .maybeSingle();
 
     setIsInWishlist(!!data);
   };
@@ -50,7 +52,8 @@ export const WishlistButton = ({ productId, variant = 'ghost' }: WishlistButtonP
           const { error } = await supabase
             .from('wishlist')
             .delete()
-            .eq('product_id', productId);
+            .eq('product_id', productId)
+            .eq('user_id', user.id);
 
           if (!error) {
             setIsInWishlist(false);
