@@ -22,6 +22,7 @@ const ProductsPage = () => {
   const [sortBy, setSortBy] = useState('featured');
   const [priceRange, setPriceRange] = useState([0, 50000]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
@@ -48,11 +49,28 @@ const ProductsPage = () => {
     setLoading(false);
   };
 
+  // Derive available colors from current product set
+  const availableColors = useMemo(() => {
+    const set = new Set<string>();
+    products.forEach((p) => {
+      (p.colors || []).forEach((c: string) => {
+        if (c && typeof c === 'string') set.add(c.trim());
+      });
+    });
+    return Array.from(set).sort();
+  }, [products]);
+
   const filteredProducts = useMemo(() => {
     let filtered = [...products];
     filtered = filtered.filter(p => p.price >= priceRange[0] && p.price <= priceRange[1]);
     if (selectedCategories.length > 0) {
       filtered = filtered.filter(p => selectedCategories.includes(p.category));
+    }
+    if (selectedColors.length > 0) {
+      filtered = filtered.filter(p => {
+        const colors: string[] = (p.colors || []).map((c: string) => c?.toLowerCase?.() ?? '');
+        return selectedColors.some((sc) => colors.includes(sc.toLowerCase()));
+      });
     }
     switch (sortBy) {
       case 'price-low': filtered.sort((a, b) => a.price - b.price); break;
@@ -62,7 +80,7 @@ const ProductsPage = () => {
       default: filtered.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
     }
     return filtered;
-  }, [products, priceRange, selectedCategories, sortBy]);
+  }, [products, priceRange, selectedCategories, selectedColors, sortBy]);
 
   const handleToggleWishlist = (productId: string) => {
     setWishlist(prev => prev.includes(productId) ? prev.filter(id => id !== productId) : [...prev, productId]);
@@ -72,7 +90,23 @@ const ProductsPage = () => {
     setSelectedCategories(prev => prev.includes(category) ? prev.filter(c => c !== category) : [...prev, category]);
   };
 
-  const clearFilters = () => { setPriceRange([0, 50000]); setSelectedCategories([]); };
+  const handleColorToggle = (color: string) => {
+    setSelectedColors(prev => prev.includes(color) ? prev.filter(c => c !== color) : [...prev, color]);
+  };
+
+  const clearFilters = () => { setPriceRange([0, 50000]); setSelectedCategories([]); setSelectedColors([]); };
+
+  // Map common color names to swatch values; fall back to the raw value
+  const colorSwatch = (name: string): string => {
+    const map: Record<string, string> = {
+      black: '#000000', white: '#ffffff', red: '#ef4444', blue: '#3b82f6',
+      green: '#22c55e', yellow: '#eab308', orange: '#f97316', pink: '#ec4899',
+      purple: '#a855f7', gray: '#6b7280', grey: '#6b7280', brown: '#92400e',
+      beige: '#e7d7b1', cream: '#f5f0e1', navy: '#1e3a8a', gold: '#d4a017',
+      silver: '#c0c0c0',
+    };
+    return map[name.toLowerCase()] || name;
+  };
 
   const FilterContent = () => (
     <div className="space-y-6">
@@ -95,6 +129,44 @@ const ProductsPage = () => {
           ))}
         </div>
       </div>
+      {availableColors.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-medium text-sm">Color</h3>
+            {selectedColors.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setSelectedColors([])}
+                className="text-[11px] text-muted-foreground hover:text-foreground"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {availableColors.map((color) => {
+              const isSelected = selectedColors.includes(color);
+              const swatch = colorSwatch(color);
+              return (
+                <button
+                  key={color}
+                  type="button"
+                  onClick={() => handleColorToggle(color)}
+                  title={color}
+                  aria-label={`Filter by ${color}`}
+                  aria-pressed={isSelected}
+                  className={`relative h-7 w-7 rounded-full border transition-all ${
+                    isSelected
+                      ? 'border-foreground ring-2 ring-foreground/20 scale-110'
+                      : 'border-border hover:border-foreground/40'
+                  }`}
+                  style={{ backgroundColor: swatch }}
+                />
+              );
+            })}
+          </div>
+        </div>
+      )}
       <Button variant="outline" onClick={clearFilters} className="w-full" size="sm">Clear Filters</Button>
     </div>
   );
