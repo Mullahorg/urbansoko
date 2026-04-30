@@ -17,6 +17,7 @@ import InstallPrompt from "./components/PWA/InstallPrompt";
 import OfflineIndicator from "./components/PWA/OfflineIndicator";
 import ErrorBoundary from "./components/ErrorBoundary";
 import ScrollToTop from "./components/Gamification/ScrollToTop";
+import SplashScreen from "./components/SplashScreen";
 
 import Index from "./pages/Index";
 import AuthPage from "./pages/AuthPage";
@@ -155,6 +156,7 @@ const AppContent = () => (
 
 const App = () => (
   <ErrorBoundary>
+    <SplashScreen />
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <LanguageProvider>
