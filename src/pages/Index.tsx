@@ -53,60 +53,85 @@ const Index = () => {
   };
 
   const features = [
-    { icon: Truck, title: 'Free Delivery', desc: 'On orders over KSh 5,000', color: 'bg-primary/10 text-primary' },
-    { icon: Shield, title: 'Secure Payments', desc: 'M-Pesa & card payments', color: 'bg-accent/10 text-accent' },
-    { icon: Headphones, title: 'Support 24/7', desc: 'Dedicated customer care', color: 'bg-primary/10 text-primary' },
+    { icon: Truck, title: 'Free Delivery', desc: 'On orders over KSh 5,000' },
+    { icon: Shield, title: 'Secure Payments', desc: 'M-Pesa & card payments' },
+    { icon: Headphones, title: 'Support 24/7', desc: 'Dedicated customer care' },
   ];
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero */}
-      <section className="relative py-16 md:py-24 lg:py-32 overflow-hidden">
-        {/* Decorative elements */}
-        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-10 right-10 w-96 h-96 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
+      {/* Hero — editorial split layout */}
+      <section className="relative overflow-hidden">
+        <div className="absolute top-1/3 -left-32 w-[28rem] h-[28rem] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-40 -right-32 w-[32rem] h-[32rem] bg-accent/5 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Watermark logo */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
-          <img src="/logo.png" alt="" className="w-56 md:w-80 lg:w-96 opacity-[0.03] dark:opacity-[0.04]" />
-        </div>
+        <div className="container mx-auto px-4 pt-16 md:pt-24 lg:pt-32 pb-12 md:pb-20 relative z-10">
+          <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-center">
+            <div className="lg:col-span-7 max-w-2xl">
+              <div className="inline-flex items-center gap-2 text-[11px] tracking-[0.2em] uppercase text-muted-foreground mb-8 animate-slide-up">
+                <span className="h-px w-8 bg-foreground/40" />
+                Kenya's Premier Marketplace
+              </div>
+              <h1
+                className="text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] tracking-tight leading-[1.02] mb-8 animate-slide-up"
+                style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600, animationDelay: '0.1s' }}
+              >
+                Curated goods,<br />
+                <em className="text-primary not-italic font-normal" style={{ fontFamily: "'Playfair Display', serif", fontStyle: 'italic' }}>delivered</em> with care.
+              </h1>
+              <p
+                className="text-base md:text-lg text-muted-foreground mb-10 max-w-lg leading-relaxed animate-slide-up"
+                style={{ animationDelay: '0.2s' }}
+              >
+                Discover premium products from verified Kenyan vendors. Instant M-Pesa checkout, doorstep delivery.
+              </p>
+              <div className="flex flex-wrap gap-3 animate-slide-up" style={{ animationDelay: '0.3s' }}>
+                <Button size="lg" className="h-12 px-7 rounded-full text-sm tracking-wide shadow-md hover:shadow-lg transition-all" asChild>
+                  <Link to="/products">
+                    Shop the Collection <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button size="lg" variant="ghost" className="h-12 px-7 rounded-full text-sm tracking-wide hover:bg-muted" asChild>
+                  <Link to="/stores">Explore Stores</Link>
+                </Button>
+              </div>
+            </div>
 
-        <div className="container mx-auto px-4 text-center max-w-3xl relative z-10">
-          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full text-sm font-medium mb-8 animate-slide-up">
-            <Sparkles className="h-3.5 w-3.5" />
-            Kenya's Premier Marketplace
-          </div>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] mb-6 animate-slide-up" style={{ animationDelay: '0.1s' }}>
-            Quality products,<br />
-            <span className="text-primary">delivered</span> to your door
-          </h1>
-          <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto animate-slide-up" style={{ animationDelay: '0.2s', fontFamily: "'DM Sans', sans-serif" }}>
-            Discover premium products from verified vendors across Kenya with instant M-Pesa checkout.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center animate-slide-up" style={{ animationDelay: '0.3s' }}>
-            <Button size="lg" className="h-12 px-8 rounded-xl shadow-md hover:shadow-lg transition-shadow" asChild>
-              <Link to="/products">
-                Browse Products <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button size="lg" variant="outline" className="h-12 px-8 rounded-xl" asChild>
-              <Link to="/stores">Explore Stores</Link>
-            </Button>
+            {/* Hero visual collage */}
+            <div className="lg:col-span-5 relative animate-fade-in hidden lg:block" style={{ animationDelay: '0.4s' }}>
+              <div className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
+                <img
+                  src="https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=80"
+                  alt="Featured collection"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-foreground/30 via-transparent to-transparent" />
+              </div>
+              <div className="absolute -bottom-6 -left-6 w-40 aspect-square rounded-2xl overflow-hidden shadow-xl border-4 border-background hidden md:block">
+                <img
+                  src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80"
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="absolute -top-4 -right-4 bg-card rounded-2xl shadow-xl px-4 py-3 flex items-center gap-2 border border-border/50">
+                <Sparkles className="h-4 w-4 text-accent" />
+                <span className="text-xs font-medium">30+ Premium Items</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section className="border-y border-border/50 bg-muted/30">
-        <div className="container mx-auto px-4 py-10">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Trust strip — minimal */}
+      <section className="border-y border-border/40">
+        <div className="container mx-auto px-4 py-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-10">
             {features.map((f, i) => (
-              <div key={i} className="flex items-center gap-4 p-5 bg-card rounded-2xl border border-border/50 shadow-sm hover:shadow-md transition-shadow">
-                <div className={`h-12 w-12 rounded-xl ${f.color} flex items-center justify-center shrink-0`}>
-                  <f.icon className="h-5 w-5" />
-                </div>
+              <div key={i} className="flex items-center gap-4">
+                <f.icon className="h-5 w-5 text-foreground/70 shrink-0" strokeWidth={1.5} />
                 <div>
-                  <h3 className="font-semibold text-sm" style={{ fontFamily: "'DM Sans', sans-serif" }}>{f.title}</h3>
+                  <h3 className="text-sm font-medium">{f.title}</h3>
                   <p className="text-xs text-muted-foreground mt-0.5">{f.desc}</p>
                 </div>
               </div>
@@ -117,25 +142,30 @@ const Index = () => {
 
       {/* Categories */}
       {categories.length > 0 && (
-        <section className="py-14 md:py-20">
+        <section className="py-16 md:py-24">
           <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl md:text-3xl font-bold">Shop by Category</h2>
-              <Button variant="ghost" size="sm" className="rounded-xl" asChild>
-                <Link to="/products" className="text-sm text-muted-foreground hover:text-foreground">
-                  View all <ArrowRight className="ml-1 h-3 w-3" />
+            <div className="flex items-end justify-between mb-10 md:mb-12">
+              <div>
+                <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground mb-3">Browse</p>
+                <h2 className="text-3xl md:text-4xl tracking-tight" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
+                  Shop by Category
+                </h2>
+              </div>
+              <Button variant="ghost" size="sm" className="rounded-full hidden sm:inline-flex" asChild>
+                <Link to="/products" className="text-xs tracking-wider uppercase text-muted-foreground hover:text-foreground">
+                  View all <ArrowRight className="ml-1.5 h-3 w-3" />
                 </Link>
               </Button>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-8 gap-3">
               {categories.map((cat) => (
                 <Link
                   key={cat.id}
                   to={`/category/${cat.slug}`}
-                  className="group p-5 rounded-2xl border border-border/50 bg-card hover:border-primary/30 hover:shadow-md transition-all text-center"
+                  className="group p-5 aspect-square flex flex-col items-center justify-center rounded-2xl bg-muted/40 hover:bg-muted transition-all text-center"
                 >
-                  <span className="text-3xl block mb-3">{cat.icon || '📦'}</span>
-                  <span className="text-sm font-medium group-hover:text-primary transition-colors" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+                  <span className="text-3xl block mb-3 transition-transform group-hover:scale-110">{cat.icon || '📦'}</span>
+                  <span className="text-xs font-medium group-hover:text-primary transition-colors">
                     {cat.name}
                   </span>
                 </Link>
@@ -146,19 +176,24 @@ const Index = () => {
       )}
 
       {/* Featured Products */}
-      <section className="py-14 md:py-20">
+      <section className="py-16 md:py-24">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold">Featured Products</h2>
-            <Button variant="ghost" size="sm" className="rounded-xl" asChild>
-              <Link to="/products" className="text-sm text-muted-foreground hover:text-foreground">
-                View all <ArrowRight className="ml-1 h-3 w-3" />
+          <div className="flex items-end justify-between mb-10 md:mb-12">
+            <div>
+              <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground mb-3">Editor's pick</p>
+              <h2 className="text-3xl md:text-4xl tracking-tight" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
+                Featured Products
+              </h2>
+            </div>
+            <Button variant="ghost" size="sm" className="rounded-full hidden sm:inline-flex" asChild>
+              <Link to="/products" className="text-xs tracking-wider uppercase text-muted-foreground hover:text-foreground">
+                View all <ArrowRight className="ml-1.5 h-3 w-3" />
               </Link>
             </Button>
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-8">
               {[1,2,3,4].map(i => (
                 <Card key={i} className="rounded-2xl overflow-hidden">
                   <CardContent className="p-0">
@@ -176,7 +211,7 @@ const Index = () => {
               <p className="text-muted-foreground">No featured products available</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-10">
               {featuredProducts.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -200,19 +235,24 @@ const Index = () => {
       </section>
 
       {/* New Arrivals */}
-      <section className="py-14 md:py-20 bg-muted/20">
+      <section className="py-16 md:py-24 bg-muted/30">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold">New Arrivals</h2>
-            <Button variant="ghost" size="sm" className="rounded-xl" asChild>
-              <Link to="/products" className="text-sm text-muted-foreground hover:text-foreground">
-                View all <ArrowRight className="ml-1 h-3 w-3" />
+          <div className="flex items-end justify-between mb-10 md:mb-12">
+            <div>
+              <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground mb-3">Just landed</p>
+              <h2 className="text-3xl md:text-4xl tracking-tight" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>
+                New Arrivals
+              </h2>
+            </div>
+            <Button variant="ghost" size="sm" className="rounded-full hidden sm:inline-flex" asChild>
+              <Link to="/products" className="text-xs tracking-wider uppercase text-muted-foreground hover:text-foreground">
+                View all <ArrowRight className="ml-1.5 h-3 w-3" />
               </Link>
             </Button>
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-8">
               {[1,2,3,4].map(i => (
                 <Card key={i} className="rounded-2xl overflow-hidden">
                   <CardContent className="p-0">
@@ -226,7 +266,7 @@ const Index = () => {
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-10">
               {newArrivals.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -250,22 +290,28 @@ const Index = () => {
         </div>
       </section>
 
-      {/* CTA Banner */}
-      <section className="py-16 md:py-20">
+      {/* CTA Banner — editorial */}
+      <section className="py-16 md:py-24">
         <div className="container mx-auto px-4">
-          <div className="relative bg-primary text-primary-foreground rounded-3xl p-8 md:p-14 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden">
-            {/* Decorative circle */}
-            <div className="absolute -top-20 -right-20 w-64 h-64 bg-white/10 rounded-full pointer-events-none" />
-            <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-white/5 rounded-full pointer-events-none" />
-            <div className="relative z-10">
-              <h3 className="text-2xl md:text-3xl font-bold mb-2">Start selling on UrbanSoko</h3>
-              <p className="text-primary-foreground/80" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-                Join thousands of vendors and reach customers across Kenya.
+          <div className="relative bg-foreground text-background rounded-3xl p-10 md:p-16 lg:p-20 overflow-hidden">
+            <div className="absolute -top-32 -right-32 w-96 h-96 bg-primary/20 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-32 -left-20 w-80 h-80 bg-accent/15 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="relative z-10 max-w-2xl">
+              <p className="text-[11px] tracking-[0.25em] uppercase text-background/60 mb-5">For vendors</p>
+              <h3
+                className="text-3xl md:text-5xl lg:text-6xl tracking-tight leading-[1.05] mb-5"
+                style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}
+              >
+                Start selling on <em className="text-primary-glow not-italic" style={{ fontStyle: 'italic' }}>UrbanSoko</em>.
+              </h3>
+              <p className="text-background/70 text-base md:text-lg mb-8 max-w-lg leading-relaxed">
+                Join thousands of vendors and reach customers across Kenya — with built-in M-Pesa, vendor analytics, and zero setup fees.
               </p>
+              <Button size="lg" variant="secondary" className="rounded-full h-12 px-7 text-sm tracking-wide shadow-lg" asChild>
+                <Link to="/vendor/register">Become a Vendor <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              </Button>
             </div>
-            <Button size="lg" variant="secondary" className="shrink-0 rounded-xl shadow-md relative z-10" asChild>
-              <Link to="/vendor/register">Become a Vendor</Link>
-            </Button>
           </div>
         </div>
       </section>
