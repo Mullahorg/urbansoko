@@ -157,17 +157,35 @@ const Index = () => {
                 </Link>
               </Button>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-8 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {categories.map((cat) => (
                 <Link
                   key={cat.id}
                   to={`/category/${cat.slug}`}
-                  className="group p-5 aspect-square flex flex-col items-center justify-center rounded-2xl bg-muted/40 hover:bg-muted transition-all text-center"
+                  className="group relative aspect-[4/5] overflow-hidden rounded-2xl bg-muted/40 transition-all hover:-translate-y-1 hover:shadow-elegant"
                 >
-                  <span className="text-3xl block mb-3 transition-transform group-hover:scale-110">{cat.icon || '📦'}</span>
-                  <span className="text-xs font-medium group-hover:text-primary transition-colors">
-                    {cat.name}
+                  {cat.image_url ? (
+                    <img
+                      src={cat.image_url}
+                      alt={cat.name}
+                      loading="lazy"
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                    />
+                  ) : null}
+                  {/* Gradient overlay for text legibility */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/75 via-foreground/20 to-transparent" />
+
+                  {/* Icon chip top-left */}
+                  <span className="absolute top-3 left-3 h-9 w-9 rounded-full bg-background/90 backdrop-blur-md flex items-center justify-center text-lg shadow-sm">
+                    {cat.icon || '📦'}
                   </span>
+
+                  {/* Label */}
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <p className="text-[10px] tracking-[0.2em] uppercase text-background/70 mb-1">Shop</p>
+                    <h3 className="text-base font-semibold text-background leading-tight">{cat.name}</h3>
+                  </div>
                 </Link>
               ))}
             </div>
